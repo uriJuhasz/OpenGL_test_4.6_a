@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <initializer_list>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -11,6 +12,11 @@ using namespace std;
 void glfwErrorCallback(int error, const char* description)
 {
     cerr << " GLFW error: " << description << endl;
+}
+
+void glfwWindowResizeCallback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0,0,width, height);
 }
 
 void testOpenGL0(GLFWwindow* const window);
@@ -24,6 +30,7 @@ int main()
         if (GLFWwindow* window = glfwCreateWindow(800, 800, "OpenGLTest", nullptr,nullptr))
         {
             glfwMakeContextCurrent(window);
+            glfwSetWindowSizeCallback(window, glfwWindowResizeCallback);
             {
                 int width, height;
                 glfwGetFramebufferSize(window, &width, &height);
@@ -84,6 +91,22 @@ private:
 typedef Vector<3> Vector3;
 typedef Vector<4> Vector4;
 
+class Matrix44 final
+{
+public:
+    explicit Matrix44(const array<float,16>& a) : m_value(a) {}
+    Matrix44(
+        float m00, float m01,float m02, float m03,
+        float m10, float m11, float m12, float m13,
+        float m20, float m21, float m22, float m23,
+        float m30, float m31, float m32, float m33)  
+        : m_value{m00,m01,m02,m03,m10,m11,m12,m13,m20,m21,m22,m23,m30,m31,m32,m33 } {}
+          float* data() { return m_value.data(); }
+    const float* data() const { return m_value.data(); }
+private:
+    array<float, 16> m_value;
+};
+
 const array<Vector3,4> vertices = {
    Vector3(-1.0f,  -1.0f,  0.0f),
    Vector3( 1.0f,  -1.0f,  0.0f),
@@ -109,14 +132,16 @@ constexpr const char* vertex_shader = R"(
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 
-uniform mat4 transformation;
+uniform mat4 objectMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 
 out vec3 fragmentPosition;
 out vec3 fragmentNormal;
 
 void main() {
-  vec4 pos4 = transformation * vec4(position, 1.0);
-  gl_Position = pos4;
+  vec4 pos4 = objectMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix*viewMatrix*pos4;
   fragmentPosition = pos4.xyz;
   fragmentNormal = normal;
 })";
@@ -135,7 +160,10 @@ out vec4 frag_color;
 void main() {
    vec3 lightDirection = (fragmentPosition-lightPosition);
    float diffuseLight = -dot(normalize(lightDirection),normalize(fragmentNormal));
-   frag_color = vec4(diffuseLight * objectColor.xyz,objectColor.w);
+   vec3 diffuseColor = diffuseLight * objectColor.xyz;
+   const vec3 lightColor = vec3(1,1,1);
+   vec3 specularColor = lightColor * 1/length(lightDirection);
+   frag_color = vec4(diffuseColor+specularColor,objectColor.w);
 })";
 
 string toString(const vector<char>& v)
@@ -245,7 +273,7 @@ void testOpenGL0(GLFWwindow* const window)
         // Set the projection matrix in the vertex shader.
         const auto cost = cosf(theta);
         const auto sint = sinf(theta);
-        array<float, 16> matrix =
+        Matrix44 objectMatrix =
         {
              cost, sint, 0.0f, 0.0f,
             -sint, cost, 0.0f, 0.0f,
@@ -253,10 +281,41 @@ void testOpenGL0(GLFWwindow* const window)
              0.0f, 0.0f, 0.0f, 1.0f,
         };
 
+        Matrix44 viewMatrix =
+        {
+             1.0f, 0.0f, 0.0f, 0.0f,
+             0.0f, 1.0f, 0.0f, 0.0f,
+             0.0f, 0.0f,-2.0f, 0.0f,
+             0.0f, 0.0f, 0.0f, 1.0f,
+        };
+
+        array<int, 4> viewport;
+        glGetIntegerv(GL_VIEWPORT,viewport.data());
+        const float cw = 1;// viewport[2];
+        const float ch = 1;// viewport[3];
+
+        const float vpw = static_cast<float>(viewport[2]);
+        const float vph = static_cast<float>(viewport[3]);
+        const float ar = vpw / vph;
+        const auto horizontal = (vpw >= vph);
+        const float w = horizontal ? ch * ar : cw;
+        const float h = horizontal ? ch      : cw / ar;
+
+        const float n = 0.1f;
+        const float f = 1000.0f;
+        Matrix44 projectionMatrix =
+        {
+             2.0f*n/w, 0.0f, 0.0f, 0.0f,
+             0.0f, 2.0f*n/h, 0.0f, 0.0f,
+             0.0f, 0.0f, f/(f-n), -f*n / (f - n),
+             0.0f, 0.0f, 0.0f, 1.0f,
+        };
+
         checkGLErrors();
 
-        const auto matrixLocation = glGetUniformLocation(shaderProgram, "transformation");
-        glUniformMatrix4fv(matrixLocation, 1, false, matrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "objectMatrix"), 1, false, objectMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, false, viewMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, false, projectionMatrix.data());
 
         checkGLErrors();
 
