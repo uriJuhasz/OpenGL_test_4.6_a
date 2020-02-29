@@ -1,5 +1,7 @@
 #include <iostream>
 #include <array>
+#include <vector>
+#include <string>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -78,6 +80,7 @@ const array<Vertex3,3> vertices = {
 constexpr const char* vertex_shader =
 "#version 400\n"
 "in vec3 vp;"
+"uniform mat4 transformation;"
 "void main() {"
 "  gl_Position = vec4(vp, 1.0);"
 "}";
@@ -89,9 +92,17 @@ constexpr const char* fragment_shader =
 "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
 "}";
 
-
+string toString(const vector<char>& v)
+{
+    string r; r.reserve(v.size());
+    for (const auto c : v)
+        r.push_back(c);
+    return r;
+}
 void testOpenGL0(GLFWwindow* const window)
 {
+    glEnable(GL_DEBUG_OUTPUT);
+
     // tell GL to only draw onto a pixel if the shape is closer to the viewer
     glEnable(GL_DEPTH_TEST); // enable depth-testing
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
@@ -110,22 +121,50 @@ void testOpenGL0(GLFWwindow* const window)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
     //Shaders
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    const auto vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertex_shader, NULL);
     glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    {
+        int infoLength;
+        glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &infoLength);
+        vector<char> info(infoLength,' ');
+        glGetShaderInfoLog(vs, infoLength, &infoLength, info.data());
+        const auto infoString = toString(info);
+        cerr << " Vertex shader log: " << infoString;
+    }
+    {
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR)
+        {
+            cerr << " OpenGL error: :" << err;
+        }
+    }
+
+    const auto fs = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fs, 1, &fragment_shader, NULL);
     glCompileShader(fs);
 
-    GLuint shader_programme = glCreateProgram();
-    glAttachShader(shader_programme, fs);
-    glAttachShader(shader_programme, vs);
-    glLinkProgram(shader_programme);
+    const auto shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, fs);
+    glAttachShader(shaderProgram, vs);
+    glLinkProgram(shaderProgram);
+/*
+    // Set the projection matrix in the vertex shader.
+    array<float, 16> matrix =
+    {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f,
+    };
+    const auto matrixLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
+    glUniformMatrix4fv(matrixLocation, 1, false, matrix.data());
+  */  
 
     while (!glfwWindowShouldClose(window)) {
         // wipe the drawing surface clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUseProgram(shader_programme);
+        glUseProgram(shaderProgram);
         glBindVertexArray(vao);
         // draw points 0-3 from the currently bound VAO with current in-use shader
         glDrawArrays(GL_TRIANGLES, 0, 3);
