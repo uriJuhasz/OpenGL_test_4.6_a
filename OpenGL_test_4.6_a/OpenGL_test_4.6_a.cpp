@@ -71,18 +71,24 @@ public:
     Vertex3(const float x, const float y, const float z) : Base{ x,y,z } {}
 };
 
-const array<Vertex3,3> vertices = {
-   Vertex3(0.0f,  0.5f,  0.0f),
-   Vertex3(0.5f, -0.5f,  0.0f),
-   Vertex3(-0.5f, -0.5f,  0.0f)
+const array<Vertex3,4> vertices = {
+   Vertex3(-1.0f,  -1.0f,  0.0f),
+   Vertex3( 1.0f,  -1.0f,  0.0f),
+   Vertex3( 1.0f,   1.0f,  0.0f),
+   Vertex3(-1.0f,   1.0f,  0.0f)
 };
 
+typedef array<GLuint, 3> Triangle;
+array<Triangle, 2> faces = {
+    Triangle{0, 1, 2},
+    Triangle{0, 2, 3}
+};
 constexpr const char* vertex_shader =
 "#version 400\n"
 "in vec3 vp;"
 "uniform mat4 transformation;"
 "void main() {"
-"  gl_Position = vec4(vp, 1.0);"
+"  gl_Position = transformation * vec4(vp, 1.0);"
 "}";
 
 constexpr const char* fragment_shader =
@@ -99,6 +105,19 @@ string toString(const vector<char>& v)
         r.push_back(c);
     return r;
 }
+
+void checkShaderErrors(GLuint s)
+{
+    int infoLength;
+    glGetShaderiv(s, GL_INFO_LOG_LENGTH, &infoLength);
+    if (infoLength > 0)
+    {
+        vector<char> info(infoLength, ' ');
+        glGetShaderInfoLog(s, infoLength, &infoLength, info.data());
+        const auto infoString = toString(info);
+        cerr << " Vertex shader log: " << infoString;
+    }
+}
 void testOpenGL0(GLFWwindow* const window)
 {
     glEnable(GL_DEBUG_OUTPUT);
@@ -108,69 +127,83 @@ void testOpenGL0(GLFWwindow* const window)
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
     //Vertex buffers
+    const int numVertices = static_cast<int>(vertices.size());
     GLuint vbo = 0;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(vertices[0]), vertices.data(), GL_STATIC_DRAW);
 
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    const int numFaces = static_cast<int>(faces.size());
+    GLuint fao;
+    glGenBuffers(1, &fao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fao);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numFaces*sizeof(faces[0]), faces.data(), GL_STATIC_DRAW);
 
     //Shaders
     const auto vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertex_shader, NULL);
     glCompileShader(vs);
-    {
-        int infoLength;
-        glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &infoLength);
-        vector<char> info(infoLength,' ');
-        glGetShaderInfoLog(vs, infoLength, &infoLength, info.data());
-        const auto infoString = toString(info);
-        cerr << " Vertex shader log: " << infoString;
-    }
-    {
-        GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR)
-        {
-            cerr << " OpenGL error: :" << err;
-        }
-    }
+    checkShaderErrors(vs);
 
     const auto fs = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fs, 1, &fragment_shader, NULL);
     glCompileShader(fs);
+    checkShaderErrors(fs);
 
     const auto shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, fs);
     glAttachShader(shaderProgram, vs);
     glLinkProgram(shaderProgram);
-/*
-    // Set the projection matrix in the vertex shader.
-    array<float, 16> matrix =
-    {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f,
-    };
-    const auto matrixLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
-    glUniformMatrix4fv(matrixLocation, 1, false, matrix.data());
-  */  
-
+    float theta = 0;
     while (!glfwWindowShouldClose(window)) {
         // wipe the drawing surface clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shaderProgram);
+        // Set the projection matrix in the vertex shader.
+        const auto cost = cosf(theta);
+        const auto sint = sinf(theta);
+        array<float, 16> matrix =
+        {
+             cost, sint, 0.0f, 0.0f,
+            -sint, cost, 0.0f, 0.0f,
+             0.0f, 0.0f, 1.0f, 0.0f,
+             0.0f, 0.0f, 0.0f, 1.0f,
+        };
+/*
+        array<float, 16> matrix =
+        {
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f,
+        };
+*/
+        const auto matrixLocation = glGetUniformLocation(shaderProgram, "transformation");
+        glUniformMatrix4fv(matrixLocation, 1, false, matrix.data());
+
         glBindVertexArray(vao);
         // draw points 0-3 from the currently bound VAO with current in-use shader
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawArrays(GL_TRIANGLES, 0, numVertices);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // update other events like input handling 
         glfwPollEvents();
         // put the stuff we've been drawing onto the display
         glfwSwapBuffers(window);
+        {
+            GLenum err;
+            while ((err = glGetError()) != GL_NO_ERROR)
+            {
+                cerr << " OpenGL error: :" << err;
+            }
+        }
+        theta += 0.01f;
     }
+
 }
