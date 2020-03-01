@@ -91,11 +91,50 @@ private:
 typedef Vector<3> Vector3;
 typedef Vector<4> Vector4;
 
+float dot(const Vector3& a, const Vector3& b)
+{
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+Vector3 operator+(const Vector3 a, const Vector3 b)
+{
+    return Vector3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);
+}
+Vector3 operator-(const Vector3 a, const Vector3 b)
+{
+    return Vector3(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
+Vector3 operator*(const Vector3 v, const float s)
+{
+    return Vector3(v[0]*s, v[1]*s, v[2]*s);
+}
+Vector3 operator*(const float s, const Vector3 v)
+{
+    return Vector3(v[0] * s, v[1] * s, v[2] * s);
+}
+Vector3 operator/(const Vector3 v, const float s)
+{
+    return Vector3(v[0] / s, v[1] / s, v[2] / s);
+}
+Vector3 cross(const Vector3 a, const Vector3 b)
+{
+    return Vector3(a[1]*b[2]-a[2]*b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]);
+}
+float length(const Vector3& v)
+{
+    return sqrtf(dot(v, v));
+}
+
+Vector3 normalize(const Vector3& v)
+{
+    return v / length(v);
+}
+
 class Matrix44 final
 {
 public:
-    explicit Matrix44(const array<float,16>& a) : m_value(a) {}
-    Matrix44(
+    explicit constexpr Matrix44(const array<float,16>& a) : m_value(a) {}
+    constexpr Matrix44(
         float m00, float m01,float m02, float m03,
         float m10, float m11, float m12, float m13,
         float m20, float m21, float m22, float m23,
@@ -106,7 +145,12 @@ public:
 private:
     array<float, 16> m_value;
 };
-
+constexpr Matrix44 unitMatrix44 = Matrix44(
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f
+);
 const array<Vector3,4> vertices = {
    Vector3(-1.0f,  -1.0f,  0.0f),
    Vector3( 1.0f,  -1.0f,  0.0f),
@@ -163,7 +207,7 @@ void main() {
    vec3 diffuseColor = diffuseLight * objectColor.xyz;
    const vec3 lightColor = vec3(1,1,1);
    vec3 specularColor = lightColor * 1/length(lightDirection);
-   frag_color = vec4(diffuseColor+specularColor,objectColor.w);
+   frag_color = vec4(1,1,1,1);//vec4(diffuseColor+specularColor,objectColor.w);
 })";
 
 string toString(const vector<char>& v)
@@ -266,29 +310,54 @@ void testOpenGL0(GLFWwindow* const window)
     checkGLErrors();
 
     float theta = 0;
+    float dist = 0;
     while (!glfwWindowShouldClose(window)) {
         // wipe the drawing surface clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shaderProgram);
+        checkGLErrors();
+
         // Set the projection matrix in the vertex shader.
         const auto cost = cosf(theta);
         const auto sint = sinf(theta);
-        Matrix44 objectMatrix =
-        {
+        Matrix44 modelMatrix = unitMatrix44;
+/*        {
              cost, sint, 0.0f, 0.0f,
             -sint, cost, 0.0f, 0.0f,
              0.0f, 0.0f, 1.0f, 0.0f,
              0.0f, 0.0f, 0.0f, 1.0f,
-        };
+        };*/
+
+
+        //Setup the view matrix
+        const auto t2 = theta * 2;
+        const auto cosx = cosf(t2);
+        const auto sinx = sinf(t2);
+        const Vector3 viewer(3 * cosx, 0, 3 * sinx);
+        const Vector3 up(0.0f, 1.0f, 0.0f);
+        const Vector3 target(0.0f, 0.0f, 0.0f);
+        const auto forward = normalize(target - viewer);
+        const auto right = cross(forward, up);
 
         Matrix44 viewMatrix =
         {
-             1.0f, 0.0f, 0.0f, 0.0f,
-             0.0f, 1.0f, 0.0f, 0.0f,
-             0.0f, 0.0f,-2.0f, 0.0f,
+                right  [0], right  [1], right  [2], -dot(right,viewer),
+                up     [0], up     [1], up     [2], -dot(up,viewer),
+                forward[0], forward[1], forward[2], -dot(forward,viewer),
+                0.0f,0.0f, 0.0f, 1.0f
+        };
+                
+/*
+        Matrix44 viewMatrix =
+        {
+             1.0f, 0.0f, 0.0f, 0.0f,//4*cost, //0.0f,
+             0.0f, 1.0f, 0.0f, 0.0f, //0.0f,
+             0.0f, 0.0f, 1.0f, 3.0f, //4*sint,
              0.0f, 0.0f, 0.0f, 1.0f,
         };
-
+        */
+        dist -= 0.1;
+        
         array<int, 4> viewport;
         glGetIntegerv(GL_VIEWPORT,viewport.data());
         const float cw = 1;// viewport[2];
@@ -302,33 +371,37 @@ void testOpenGL0(GLFWwindow* const window)
         const float h = horizontal ? ch      : cw / ar;
 
         const float n = 0.1f;
+        const float f = 100.0f;
+        const float d = f - n;
+        Matrix44 projectionMatrix =
+        {
+            n/w, 0.0f, 0.0f, 0.0f,
+            0.0f, n/h, 0.0f, 0.0f,
+            0.0f, 0.0f, (f+n)/d, -2*f*n/d,
+            0.0f, 0.0f, 1.0f, 0.0f
+        };
+/*
+        const float n = 0.1f;
         const float f = 1000.0f;
         Matrix44 projectionMatrix =
         {
-             2.0f*n/w, 0.0f, 0.0f, 0.0f,
-             0.0f, 2.0f*n/h, 0.0f, 0.0f,
-             0.0f, 0.0f, f/(f-n), -f*n / (f - n),
+             2.0f * n / w, 0.0f, 0.0f, 0.0f,
+             0.0f, 2.0f * n / h, 0.0f, 0.0f,
+             0.0f, 0.0f, f / (f - n), -f * n / (f - n),
              0.0f, 0.0f, 0.0f, 1.0f,
         };
-
+        */
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "objectMatrix"), 1, false, modelMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
         checkGLErrors();
 
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "objectMatrix"), 1, false, objectMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, false, viewMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, false, projectionMatrix.data());
-
-        checkGLErrors();
-
-        const auto uniformLocation_lightPosition = glGetUniformLocation(shaderProgram, "lightPosition");
         const Vector3 lightPosition(0.0f, 0.0f, -1.0f);
-        glUniform3fv(uniformLocation_lightPosition, 1, lightPosition.data());
-
+        glUniform3fv(glGetUniformLocation(shaderProgram, "lightPosition"), 1, lightPosition.data());
         checkGLErrors();
 
-        const auto uniformLocation_objectColor = glGetUniformLocation(shaderProgram, "objectColor");
         const Vector4 objectColor(0.5f, 0.0f, 1.0f,1.0f);
-        glUniform4fv(uniformLocation_objectColor, 1, objectColor.data());
-
+        glUniform4fv(glGetUniformLocation(shaderProgram, "objectColor"), 1, objectColor.data());
         checkGLErrors();
 
         glBindVertexArray(vao);
