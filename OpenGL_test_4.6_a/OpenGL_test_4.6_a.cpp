@@ -207,7 +207,7 @@ void main() {
    vec3 diffuseColor = diffuseLight * objectColor.xyz;
    const vec3 lightColor = vec3(1,1,1);
    vec3 specularColor = lightColor * 1/length(lightDirection);
-   frag_color = vec4(1,1,1,1);//vec4(diffuseColor+specularColor,objectColor.w);
+   frag_color = vec4(diffuseColor+specularColor,objectColor.w);
 })";
 
 string toString(const vector<char>& v)
@@ -320,20 +320,21 @@ void testOpenGL0(GLFWwindow* const window)
         // Set the projection matrix in the vertex shader.
         const auto cost = cosf(theta);
         const auto sint = sinf(theta);
-        Matrix44 modelMatrix = unitMatrix44;
-/*        {
+        Matrix44 modelMatrix = 
+        {
              cost, sint, 0.0f, 0.0f,
             -sint, cost, 0.0f, 0.0f,
              0.0f, 0.0f, 1.0f, 0.0f,
              0.0f, 0.0f, 0.0f, 1.0f,
-        };*/
+        };
 
 
         //Setup the view matrix
         const auto t2 = theta * 2;
         const auto cosx = cosf(t2);
         const auto sinx = sinf(t2);
-        const Vector3 viewer(3 * cosx, 0, 3 * sinx);
+        const auto vd = 3.0f;
+        const Vector3 viewer(vd * cosx, 0, vd * sinx);
         const Vector3 up(0.0f, 1.0f, 0.0f);
         const Vector3 target(0.0f, 0.0f, 0.0f);
         const auto forward = normalize(target - viewer);
@@ -356,7 +357,7 @@ void testOpenGL0(GLFWwindow* const window)
              0.0f, 0.0f, 0.0f, 1.0f,
         };
         */
-        dist -= 0.1;
+
         
         array<int, 4> viewport;
         glGetIntegerv(GL_VIEWPORT,viewport.data());
@@ -370,13 +371,13 @@ void testOpenGL0(GLFWwindow* const window)
         const float w = horizontal ? ch * ar : cw;
         const float h = horizontal ? ch      : cw / ar;
 
-        const float n = 0.1f;
+        const float n = 1.0f;
         const float f = 100.0f;
         const float d = f - n;
         Matrix44 projectionMatrix =
         {
-            n/w, 0.0f, 0.0f, 0.0f,
-            0.0f, n/h, 0.0f, 0.0f,
+            2*n/w, 0.0f, 0.0f, 0.0f,
+            0.0f, 2*n/h, 0.0f, 0.0f,
             0.0f, 0.0f, (f+n)/d, -2*f*n/d,
             0.0f, 0.0f, 1.0f, 0.0f
         };
