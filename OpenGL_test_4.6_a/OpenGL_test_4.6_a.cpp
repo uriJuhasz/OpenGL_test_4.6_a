@@ -72,7 +72,11 @@ int main()
 template<unsigned int D> class Vector final
 {
 public:
-    Vector(const float x, const float y, const float z) : m_value{ x,y,z } 
+    Vector(const float x, const float y) : m_value{ x,y }
+    {
+        static_assert(D == 2);
+    }
+    Vector(const float x, const float y, const float z) : m_value{ x,y,z }
     {
         static_assert(D == 3);
     }
@@ -88,10 +92,18 @@ public:
 private:
     array<float, D> m_value;
 };
+typedef Vector<2> Vector2;
 typedef Vector<3> Vector3;
 typedef Vector<4> Vector4;
 
-float dot(const Vector3& a, const Vector3& b)
+template<unsigned int D> float dot(const Vector<D>& a, const Vector<D>& b)
+{
+    float r = 0.0f;
+    for (int i = 0; i < D; ++i)
+        r += a[i] * b[i];
+    return r;
+}
+template<> float dot(const Vector3& a, const Vector3& b)
 {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
@@ -165,6 +177,13 @@ const array<Vector3, 4> normals = {
    Vector3(0.0f,  0.0f, -1.0f)
 };
 
+const array<Vector2, 4> textureUV = {
+   Vector2(0.0f,  0.0f),
+   Vector2(1.0f,  0.0f),
+   Vector2(1.0f,  1.0f),
+   Vector2(0.0f,  1.0f)
+};
+
 typedef array<GLuint, 3> Triangle;
 array<Triangle, 2> faces = {
     Triangle{0, 1, 2},
@@ -173,21 +192,24 @@ array<Triangle, 2> faces = {
 constexpr const char* vertex_shader = R"(
 #version 400
 
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 normal;
+in vec3 position;
+in vec3 normal;
+in vec2 uvCoord;
 
-uniform mat4 objectMatrix;
+uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 out vec3 fragmentPosition;
 out vec3 fragmentNormal;
+out vec2 fragmentUVCoord;
 
 void main() {
-  vec4 pos4 = objectMatrix * vec4(position, 1.0);
+  vec4 pos4 = modelMatrix * vec4(position, 1.0);
   gl_Position = projectionMatrix*viewMatrix*pos4;
   fragmentPosition = pos4.xyz;
-  fragmentNormal = normal;
+  fragmentNormal = (modelMatrix*vec4(normal,1)).xyz;
+  fragmentUVCoord = uvCoord;
 })";
 
 constexpr const char* fragment_shader = R"(
@@ -195,6 +217,7 @@ constexpr const char* fragment_shader = R"(
 
 in vec3 fragmentPosition;
 in vec3 fragmentNormal;
+in vec2 fragmentUVCoord;
 
 uniform vec3 lightPosition;
 uniform vec4 objectColor;
@@ -204,10 +227,14 @@ out vec4 frag_color;
 void main() {
    vec3 lightDirection = (fragmentPosition-lightPosition);
    float diffuseLight = -dot(normalize(lightDirection),normalize(fragmentNormal));
-   vec3 diffuseColor = diffuseLight * objectColor.xyz;
-   const vec3 lightColor = vec3(1,1,1);
-   vec3 specularColor = lightColor * 1/length(lightDirection);
-   frag_color = vec4(diffuseColor+specularColor,objectColor.w);
+   vec3 baseColor = 
+            vec3(1,0,0)*(1-fragmentUVCoord.x-fragmentUVCoord.y) + 
+            vec3(0,0,1)*(fragmentUVCoord.x-fragmentUVCoord.y) + 
+            vec3(0,1,0)*(fragmentUVCoord.y-fragmentUVCoord.x);
+   vec3 diffuseColor = /*diffuseLight **/ baseColor;//objectColor.xyz;
+   const vec3 lightSpecularColor = vec3(1,1,1);
+   vec3 specularColor = lightSpecularColor * 0.3/length(lightDirection);
+   frag_color = vec4(diffuseColor/*+specularColor*/,objectColor.w);
 })";
 
 string toString(const vector<char>& v)
@@ -255,28 +282,37 @@ void testOpenGL0(GLFWwindow* const window)
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(vertices[0]), vertices.data(), GL_STATIC_DRAW);
-
     checkGLErrors();
+
     GLuint normalbuffer;
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]), normals.data(), GL_STATIC_DRAW);
+    checkGLErrors();
 
+    GLuint uvBuffer;
+    glGenBuffers(1, &uvBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+    glBufferData(GL_ARRAY_BUFFER, textureUV.size() * sizeof(textureUV[0]), textureUV.data(), GL_STATIC_DRAW);
     checkGLErrors();
 
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
+
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    
     checkGLErrors();
 
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0, nullptr);
+    checkGLErrors();
 
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, nullptr);
     checkGLErrors();
 
     const int numFaces = static_cast<int>(faces.size());
@@ -392,7 +428,7 @@ void testOpenGL0(GLFWwindow* const window)
              0.0f, 0.0f, 0.0f, 1.0f,
         };
         */
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "objectMatrix"), 1, false, modelMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, false, modelMatrix.data());
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
         checkGLErrors();
