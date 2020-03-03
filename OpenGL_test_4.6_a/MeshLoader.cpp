@@ -85,6 +85,27 @@ unique_ptr<Mesh> MeshLoader::loadMesh(const string& fileName)
 							vertices.emplace_back(aiVertices[vi][0], aiVertices[vi][1], aiVertices[vi][2]);
 					}
 					{
+						const auto& aiNormals = aiMesh.mNormals;
+						auto& normals = mesh.m_normals;
+						normals.reserve(numVertices);
+						for (int vi = 0; vi < numVertices; ++vi)
+						{
+							const auto& aiNormal = aiNormals[vi];
+							normals.emplace_back(aiNormal[0], aiNormal[1], aiNormal[2]);
+						}
+					}
+					{
+						assert(aiMesh.mNumUVComponents[0] == 2);
+						const auto& aiTextureCoords = aiMesh.mTextureCoords[0];
+						auto& textureCoords = mesh.m_textureCoords;
+						textureCoords.reserve(numVertices);
+						for (int vi = 0; vi < numVertices; ++vi)
+						{
+							const auto& aiTextureCoord = aiTextureCoords[vi];
+							textureCoords.emplace_back(aiTextureCoord[0], aiTextureCoord[1]);
+						}
+					}
+					{
 						const auto& aiFaces = aiMesh.mFaces;
 						auto& faces = mesh.m_faces;
 						faces.reserve(numFaces);

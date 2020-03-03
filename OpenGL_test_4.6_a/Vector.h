@@ -7,6 +7,11 @@ using std::array;
 template<unsigned int D> class Vector final
 {
 public:
+    Vector() 
+    {
+        for (int i = 0; i < D; ++i)
+            m_value[i] = 0.0f;
+    }
     Vector(const float x, const float y) : m_value{ x,y }
     {
         static_assert(D == 2);

@@ -14,6 +14,9 @@ class Mesh final
 public:
     Mesh() {}
 
+    int numVertices() const { return static_cast<int>(m_vertices.size()); }
+    int numFaces   () const { return static_cast<int>(m_faces.size()); }
+
 public:
     typedef vector<Vector3> Vertices;
     typedef vector<Vector2> UVCoords;
@@ -33,7 +36,7 @@ public:
 public:
     Vertices m_vertices;
     Normals  m_normals;
-    UVCoords m_uvCoords;
+    UVCoords m_textureCoords;
 
     Faces m_faces;
 

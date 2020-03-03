@@ -4,10 +4,9 @@
 #include "MeshLoader.h"
 
 #include <iostream>
-#include <array>
 #include <vector>
 #include <string>
-#include <initializer_list>
+#include <cassert>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -24,7 +23,7 @@ void glfwWindowResizeCallback(GLFWwindow* window, int width, int height)
     glViewport(0,0,width, height);
 }
 
-void testOpenGL0(GLFWwindow* const window);
+void testOpenGL0(GLFWwindow* const window, const Mesh& mesh);
 
 int main()
 {
@@ -32,55 +31,65 @@ int main()
 
     const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
     cout << " Loading mesh: " << fileName;
-    const auto mesh = MeshLoader::loadMesh(fileName);
-    if (glfwInit())
+    const auto meshPtr = MeshLoader::loadMesh(fileName);
+    if (meshPtr)
     {
-        glfwSetErrorCallback(glfwErrorCallback);
-        if (GLFWwindow* window = glfwCreateWindow(800, 800, "OpenGLTest", nullptr,nullptr))
+        if (glfwInit())
         {
-            glfwMakeContextCurrent(window);
-            glfwSetWindowSizeCallback(window, glfwWindowResizeCallback);
+            glfwSetErrorCallback(glfwErrorCallback);
+            if (GLFWwindow* window = glfwCreateWindow(800, 800, "OpenGLTest", nullptr, nullptr))
             {
-                int width, height;
-                glfwGetFramebufferSize(window, &width, &height);
-                glViewport(0, 0, width, height);
-                
-//                glfwSetKeyCallback(window, key_callback);
-
                 glfwMakeContextCurrent(window);
-                // start GLEW extension handler
-                glewExperimental = GL_TRUE;
-                glewInit();
+                glfwSetWindowSizeCallback(window, glfwWindowResizeCallback);
+                {
+                    int width, height;
+                    glfwGetFramebufferSize(window, &width, &height);
+                    glViewport(0, 0, width, height);
 
-                // get version info
-                cout << "  OpenGL vendor  : " << glGetString(GL_VENDOR) << endl;
-                cout << "  OpenGL renderer: " << glGetString(GL_RENDERER)  << endl;
-                cout << "  OpenGL version : " << glGetString(GL_VERSION)   << endl;
-                cout << "  glsl   version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+                    //                glfwSetKeyCallback(window, key_callback);
 
-                testOpenGL0(window);
+                    glfwMakeContextCurrent(window);
+                    // start GLEW extension handler
+                    glewExperimental = GL_TRUE;
+                    glewInit();
+
+                    // get version info
+                    cout << "  OpenGL vendor  : " << glGetString(GL_VENDOR) << endl;
+                    cout << "  OpenGL renderer: " << glGetString(GL_RENDERER) << endl;
+                    cout << "  OpenGL version : " << glGetString(GL_VERSION) << endl;
+                    cout << "  glsl   version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+
+                    testOpenGL0(window, *meshPtr);
+                }
+                glfwDestroyWindow(window);
             }
-            glfwDestroyWindow(window);
+            else
+            {
+                cerr << " GLFW: failed to create window" << endl;
+            }
+            glfwTerminate();
         }
         else
         {
-            cerr << " GLFW: failed to create window" << endl;
+            cerr << " GLFW initialization failed, aborting" << endl;
         }
-        glfwTerminate();
     }
     else
     {
-        cerr << " GLFW initialization failed" << endl;
+        cerr << " Could not load mesh, aborting" << endl;
     }
 
     cout << "end" << endl;
 }
 
+/*
 typedef array<GLuint, 3> Triangle;
 array<Triangle, 2> faces = {
     Triangle{0, 1, 2},
     Triangle{0, 2, 3}
 };
+
+
 const array<Vector3, 4> vertices = {
    Vector3(-1.0f,  -1.0f,  0.0f),
    Vector3(1.0f,  -1.0f,  0.0f),
@@ -101,7 +110,7 @@ const array<Vector2, 4> textureUV = {
    Vector2(1.0f,  1.0f),
    Vector2(0.0f,  1.0f)
 };
-
+*/
 
 
 constexpr const char* vertex_shader = R"(
@@ -149,7 +158,7 @@ void main() {
    vec3 diffuseColor = /*diffuseLight **/ baseColor;//objectColor.xyz;
    const vec3 lightSpecularColor = vec3(1,1,1);
    vec3 specularColor = lightSpecularColor * 0.3/length(lightDirection);
-   frag_color = vec4(diffuseColor/*+specularColor*/,objectColor.w);
+   frag_color = vec4(1,1,1,1);//vec4(diffuseColor/*+specularColor*/,objectColor.w);
 })";
 
 string toString(const vector<char>& v)
@@ -182,7 +191,18 @@ void checkGLErrors()
         cerr << "";
     }
 }
-void testOpenGL0(GLFWwindow* const window)
+
+template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
+{
+    s << "[";
+    for (int i = 0; i < D; ++i)
+    {
+        s << (i == 0 ? "" : " ") << v[i];
+    }
+    s << "]";
+    return s;
+}
+void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 {
     glEnable(GL_DEBUG_OUTPUT);
 
@@ -191,7 +211,9 @@ void testOpenGL0(GLFWwindow* const window)
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
     //Vertex buffers
-    const int numVertices = static_cast<int>(vertices.size());
+//    const int numVertices = static_cast<int>(vertices.size());
+    const int numVertices = mesh.numVertices();
+    const auto& vertices = mesh.m_vertices;
     
     GLuint vertexBuffer = 0;
     glGenBuffers(1, &vertexBuffer);
@@ -199,16 +221,22 @@ void testOpenGL0(GLFWwindow* const window)
     glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(vertices[0]), vertices.data(), GL_STATIC_DRAW);
     checkGLErrors();
 
+    const auto& normals = mesh.m_normals;
+    assert(normals.size() == numVertices);
+
     GLuint normalBuffer;
     glGenBuffers(1, &normalBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]), normals.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(normals[0]), normals.data(), GL_STATIC_DRAW);
     checkGLErrors();
+
+    const auto& uvCoords = mesh.m_textureCoords;
+    assert(uvCoords.size() == numVertices);
 
     GLuint uvBuffer;
     glGenBuffers(1, &uvBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-    glBufferData(GL_ARRAY_BUFFER, textureUV.size() * sizeof(textureUV[0]), textureUV.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(uvCoords[0]), uvCoords.data(), GL_STATIC_DRAW);
     checkGLErrors();
 
     GLuint vao = 0;
@@ -230,7 +258,8 @@ void testOpenGL0(GLFWwindow* const window)
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, nullptr);
     checkGLErrors();
 
-    const int numFaces = static_cast<int>(faces.size());
+    const auto& faces = mesh.m_faces;
+    const int numFaces = mesh.numFaces();
     GLuint fao;
     glGenBuffers(1, &fao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fao);
@@ -260,9 +289,30 @@ void testOpenGL0(GLFWwindow* const window)
 
     checkGLErrors();
 
+    array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
+    {
+        for (int vi = 1; vi < numVertices; ++vi)
+        {
+            const auto& vertex = vertices[vi];
+            for (int i = 0; i < 3; ++i)
+            {
+                boundingBox[0][i] = min(boundingBox[0][i], vertex[i]);
+                boundingBox[1][i] = max(boundingBox[1][i], vertex[i]);
+            }
+        }
+    }
+    const auto center = (boundingBox[0] + boundingBox[1]) / 2;
+    const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
+
+    cout << endl;
+    cout << " Model: V=" << numVertices << " F=" << numFaces;
+    cout << "  center: " << center << endl;
+    cout << "  radius: " << modelRadius << endl;
     float theta = 0;
     float dist = 0;
-    while (!glfwWindowShouldClose(window)) {
+    int frameIndex = 0;
+    while (!glfwWindowShouldClose(window)) 
+    {
         // wipe the drawing surface clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shaderProgram);
@@ -271,26 +321,40 @@ void testOpenGL0(GLFWwindow* const window)
         // Set the projection matrix in the vertex shader.
         const auto cost = cosf(theta);
         const auto sint = sinf(theta);
-        Matrix4x4 modelMatrix = 
-        {
+        Matrix4x4 modelMatrix = unitMatrix4x4;
+        /*        {
+                     cost, sint, 0.0f, 0.0f,
+                    -sint, cost, 0.0f, 0.0f,
+                     0.0f, 0.0f, 1.0f, 0.0f,
+                     0.0f, 0.0f, 0.0f, 1.0f,
+                };
+                */
+                /*        {
              cost, sint, 0.0f, 0.0f,
             -sint, cost, 0.0f, 0.0f,
              0.0f, 0.0f, 1.0f, 0.0f,
              0.0f, 0.0f, 0.0f, 1.0f,
         };
-
+        */
 
         //Setup the view matrix
-        const auto t2 = theta * 2;
-        const auto cosx = cosf(t2);
-        const auto sinx = sinf(t2);
-        const auto vd = 3.0f;
-        const Vector3 viewer(vd * cosx, 0, vd * sinx);
+//        const auto t2 = theta * 2;
+//        const auto cosx = cosf(t2);
+//        const auto sinx = sinf(t2);
+//        const auto vd = 3.0f;
+        const Vector3 viewer = center + Vector3(0,0,1) * modelRadius * 2;// (vd * cosx, 0, vd * sinx);
         const Vector3 up(0.0f, 1.0f, 0.0f);
-        const Vector3 target(0.0f, 0.0f, 0.0f);
+        const Vector3 target = center;// (0.0f, 0.0f, 0.0f);
         const auto forward = normalize(target - viewer);
         const auto right = cross(forward, up);
-
+        if (frameIndex == 0)
+        {
+            cout << "  Viewer:" << viewer << endl;
+            cout << "  target:" << target << endl;
+            cout << "  forward:" << forward << endl;
+            cout << "  up     :" << up << endl;
+            cout << "  right  :" << right << endl;
+        }
         Matrix4x4 viewMatrix =
         {
                 right  [0], right  [1], right  [2], -dot(right,viewer),
@@ -323,26 +387,22 @@ void testOpenGL0(GLFWwindow* const window)
         const float h = horizontal ? ch      : cw / ar;
 
         const float n = 1.0f;
-        const float f = 100.0f;
+        const float f = 1000.0f;
         const float d = f - n;
         Matrix4x4 projectionMatrix =
+/*        {
+            2 * n / w, 0.0f, 0.0f, 0.0f,
+            0.0f, 2 * n / h, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 1.0f
+        };*/
         {
             2*n/w, 0.0f, 0.0f, 0.0f,
             0.0f, 2*n/h, 0.0f, 0.0f,
             0.0f, 0.0f, (f+n)/d, -2*f*n/d,
             0.0f, 0.0f, 1.0f, 0.0f
         };
-/*
-        const float n = 0.1f;
-        const float f = 1000.0f;
-        Matrix44 projectionMatrix =
-        {
-             2.0f * n / w, 0.0f, 0.0f, 0.0f,
-             0.0f, 2.0f * n / h, 0.0f, 0.0f,
-             0.0f, 0.0f, f / (f - n), -f * n / (f - n),
-             0.0f, 0.0f, 0.0f, 1.0f,
-        };
-        */
+
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, false, modelMatrix.data());
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
@@ -360,7 +420,7 @@ void testOpenGL0(GLFWwindow* const window)
         checkGLErrors();
         // draw points 0-3 from the currently bound VAO with current in-use shader
         //glDrawArrays(GL_TRIANGLES, 0, numVertices);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
         // update other events like input handling 
         glfwPollEvents();
@@ -376,7 +436,10 @@ void testOpenGL0(GLFWwindow* const window)
                 } while (err!= GL_NO_ERROR);
             }
         }
+        
+        
         theta += 0.01f;
+        frameIndex++;
     }
 
 }

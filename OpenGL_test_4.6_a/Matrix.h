@@ -18,7 +18,7 @@ private:
     std::array<float, 16> m_value;
 };
 
-constexpr Matrix4x4 unitMatrix44 = Matrix4x4(
+constexpr Matrix4x4 unitMatrix4x4 = Matrix4x4(
     1.0f, 0.0f, 0.0f, 0.0f,
     0.0f, 1.0f, 0.0f, 0.0f,
     0.0f, 0.0f, 1.0f, 0.0f,
