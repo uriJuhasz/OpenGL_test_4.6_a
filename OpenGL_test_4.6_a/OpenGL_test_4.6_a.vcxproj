@@ -161,7 +161,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GLTFLoader.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="OpenGL_test_4.6_a.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GLTFLoader.h" />
+    <ClInclude Include="Math.h" />
+    <ClInclude Include="Mesh.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
