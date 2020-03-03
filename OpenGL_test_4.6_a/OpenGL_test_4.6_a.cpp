@@ -29,7 +29,8 @@ int main()
 {
     cout << "start" << endl;
 
-    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
+    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
     cout << " Loading mesh: " << fileName;
     const auto meshPtr = MeshLoader::loadMesh(fileName);
     if (meshPtr)
@@ -144,21 +145,30 @@ in vec3 fragmentNormal;
 in vec2 fragmentUVCoord;
 
 uniform vec3 lightPosition;
-uniform vec4 objectColor;
+uniform vec3 viewerPosition;
 
 out vec4 frag_color;
 
 void main() {
-   vec3 lightDirection = (fragmentPosition-lightPosition);
-   float diffuseLight = -dot(normalize(lightDirection),normalize(fragmentNormal));
+   vec3 lightDirection = normalize(lightPosition-fragmentPosition);
+   vec3 normal = normalize(fragmentNormal);
+   float diffuseLight = dot(lightDirection,normal);
    vec3 baseColor = 
             vec3(1,0,0)*(1-fragmentUVCoord.x-fragmentUVCoord.y) + 
             vec3(0,0,1)*(fragmentUVCoord.x-fragmentUVCoord.y) + 
             vec3(0,1,0)*(fragmentUVCoord.y-fragmentUVCoord.x);
-   vec3 diffuseColor = diffuseLight * baseColor;//objectColor.xyz;
-   const vec3 lightSpecularColor = vec3(1,1,1);
-   vec3 specularColor = vec3(0,0,0); //lightSpecularColor * 0.3/length(lightDirection);
-   frag_color = vec4(diffuseColor+specularColor,objectColor.w);
+   vec3 diffuseColor = diffuseLight * baseColor;
+   
+const vec3 lightSpecularColor = vec3(1,1,1);
+
+   float specularExponent = 10;
+   vec3 viewerDirection = normalize(viewerPosition-fragmentPosition);
+   vec3 reflectedLight = 2*diffuseLight*normal - lightDirection;
+   float specularIntensity = pow(clamp(dot(reflectedLight,viewerDirection),0,1),specularExponent);
+
+    vec3 specularColor = specularIntensity*lightSpecularColor;
+//   vec3 specularColor = vec3(0,0,0); //lightSpecularColor * 0.3/length(lightDirection);
+   frag_color = vec4(diffuseColor+specularColor,1); //objectColor.w);
 })";
 
 string toString(const vector<char>& v)
@@ -304,8 +314,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
     const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
 
-    const Vector3 lightPosition = modelCenter + Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
-    const Vector4 objectColor(0.5f, 0.0f, 1.0f, 1.0f);
+    const Vector3 lightPosition = modelCenter + Vector3(0.0f, 1.0f, 0.0f) * modelRadius * 2;//Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
 
 
     cout << endl;
@@ -347,14 +356,14 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 //        const auto cosx = cosf(t2);
 //        const auto sinx = sinf(t2);
 //        const auto vd = 3.0f;
-        const Vector3 viewer = modelCenter + Vector3(0,0,1) * modelRadius * 2;// (vd * cosx, 0, vd * sinx);
+        const Vector3 viewerPosition = modelCenter + Vector3(0,0,1) * modelRadius * 2;// (vd * cosx, 0, vd * sinx);
         const Vector3 up(0.0f, 1.0f, 0.0f);
         const Vector3 target = modelCenter;// (0.0f, 0.0f, 0.0f);
-        const auto forward = normalize(target - viewer);
+        const auto forward = normalize(target - viewerPosition);
         const auto right = cross(forward, up);
         if (frameIndex == 0)
         {
-            cout << "  Viewer:" << viewer << endl;
+            cout << "  Viewer:" << viewerPosition << endl;
             cout << "  target:" << target << endl;
             cout << "  forward:" << forward << endl;
             cout << "  up     :" << up << endl;
@@ -362,9 +371,9 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         }
         Matrix4x4 viewMatrix =
         {
-                right  [0], right  [1], right  [2], -dot(right,viewer),
-                up     [0], up     [1], up     [2], -dot(up,viewer),
-                forward[0], forward[1], forward[2], -dot(forward,viewer),
+                right  [0], right  [1], right  [2], -dot(right,viewerPosition),
+                up     [0], up     [1], up     [2], -dot(up,viewerPosition),
+                forward[0], forward[1], forward[2], -dot(forward,viewerPosition),
                 0.0f,0.0f, 0.0f, 1.0f
         };
                 
@@ -399,7 +408,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glUniform3fv(glGetUniformLocation(shaderProgram, "lightPosition"), 1, lightPosition.data());
         checkGLErrors();
 
-        glUniform4fv(glGetUniformLocation(shaderProgram, "objectColor"), 1, objectColor.data());
+        glUniform3fv(glGetUniformLocation(shaderProgram, "viewerPosition"), 1, viewerPosition.data());
         checkGLErrors();
 
         glBindVertexArray(vao);
