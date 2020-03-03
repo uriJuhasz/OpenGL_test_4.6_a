@@ -50,7 +50,7 @@ template<> inline float dot(const Vector3& a, const Vector3& b)
 
 inline Vector3 operator-(const Vector3 a)
 {
-    return Vector3(-a[0], a[1], -a[2]);
+    return Vector3(-a[0], -a[1], -a[2]);
 }
 
 inline Vector3 operator+(const Vector3 a, const Vector3 b)

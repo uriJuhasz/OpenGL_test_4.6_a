@@ -29,8 +29,8 @@ int main()
 {
     cout << "start" << endl;
 
-    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
-//    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
+    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
     cout << " Loading mesh: " << fileName;
     const auto meshPtr = MeshLoader::loadMesh(fileName);
     if (meshPtr)
@@ -145,6 +145,7 @@ in vec3 fragmentNormal;
 in vec2 fragmentUVCoord;
 
 uniform vec3 lightPosition;
+uniform vec3 lightPosition1;
 uniform vec3 viewerPosition;
 
 out vec4 frag_color;
@@ -154,12 +155,17 @@ void main() {
    vec3 normal = normalize(fragmentNormal);
    float diffuseLight = dot(lightDirection,normal);
    vec3 baseColor = 
-            vec3(1,0,0)*(1-fragmentUVCoord.x-fragmentUVCoord.y) + 
-            vec3(0,0,1)*(fragmentUVCoord.x-fragmentUVCoord.y) + 
-            vec3(0,1,0)*(fragmentUVCoord.y-fragmentUVCoord.x);
+/*            vec3(1,0,0)*(clamp(1-fragmentUVCoord.x-fragmentUVCoord.y,0,1)+clamp(fragmentUVCoord.x+fragmentUVCoord.y-1.0f,0,1)) + 
+            vec3(0,1,0)*(fragmentUVCoord.y-fragmentUVCoord.x) +
+            vec3(0,0,1)*(fragmentUVCoord.x-fragmentUVCoord.y) 
+*/
+            vec3(1,0,0)*(clamp(1-fragmentUVCoord.x-fragmentUVCoord.y,0,1) + clamp(fragmentUVCoord.x-fragmentUVCoord.y,0,1)) + 
+            vec3(0,1,0)*(clamp(fragmentUVCoord.y-fragmentUVCoord.x,0,1) + clamp(fragmentUVCoord.x-fragmentUVCoord.y,0,1)) +
+            vec3(0,0,1)*(clamp(fragmentUVCoord.x+fragmentUVCoord.y-1.0f,0,1)) 
+    ;
    vec3 diffuseColor = diffuseLight * baseColor;
    
-const vec3 lightSpecularColor = vec3(1,1,1);
+   const vec3 lightSpecularColor = vec3(1,1,1);
 
    float specularExponent = 10;
    vec3 viewerDirection = normalize(viewerPosition-fragmentPosition);
@@ -347,7 +353,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     checkGLErrors();
 
     /////////////
-    {
+ /*   {
         vector<int> vertexNumFaces(numVertices, 0);
         for (const auto& face : faces)
             for (int i = 0; i < 3; ++i)
@@ -357,7 +363,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             if (vertexNumFaces[vi] == 0)
                 cout << "   Vertex " << vi << " is an orphan";
     }
-
+    */
     array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
     {
         for (int vi = 1; vi < numVertices; ++vi)
@@ -373,7 +379,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
     const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
 
-    const Vector3 lightPosition = modelCenter + Vector3(0.0f, 1.0f, 0.0f) * modelRadius * 2;//Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
+    const Vector3 lightPosition = modelCenter + Vector3(0.0f, 1.0f,3.0f) * modelRadius * 2;//Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
 
 
     cout << endl;
