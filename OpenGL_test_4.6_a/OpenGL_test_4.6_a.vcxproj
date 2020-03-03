@@ -181,6 +181,14 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshLoader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="EdgeFragmentShader.glsl" />
+    <None Include="EdgeVertexShader.glsl" />
+    <None Include="LineFragmentShader.glsl" />
+    <None Include="LineVertexShader.glsl" />
+    <None Include="MeshFragmentShader.glsl" />
+    <None Include="MeshVertexShader.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

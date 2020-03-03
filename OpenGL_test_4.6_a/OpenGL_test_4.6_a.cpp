@@ -4,6 +4,8 @@
 #include "MeshLoader.h"
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <string>
 #include <cassert>
@@ -40,7 +42,7 @@ int main()
     {
         if (glfwInit())
         {
-glfwSetErrorCallback(glfwErrorCallback);
+            glfwSetErrorCallback(glfwErrorCallback);
             //glfwWindowHint(GLFW_SAMPLES, 4);  //FSAA?
             if (GLFWwindow* window = glfwCreateWindow(800, 800, "OpenGLTest", nullptr, nullptr))
             {
@@ -94,127 +96,19 @@ glfwSetErrorCallback(glfwErrorCallback);
     cout << "end" << endl;
 }
 
-
-constexpr const char* meshVertexShaderSource = R"(
-#version 400
-
-in vec3 position;
-in vec3 normal;
-in vec2 uvCoord;
-
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-out vec3 fragmentPosition;
-out vec3 fragmentNormal;
-out vec2 fragmentUVCoord;
-
-void main() {
-  vec4 pos4 = modelMatrix * vec4(position, 1.0);
-  gl_Position = projectionMatrix*viewMatrix*pos4;
-  fragmentPosition = pos4.xyz;
-  fragmentNormal = (modelMatrix*vec4(normal,0)).xyz;
-  fragmentUVCoord = uvCoord;
-})";
-
-constexpr const char* meshFragmentShaderSource = R"(
-#version 400
-
-in vec3 fragmentPosition;
-in vec3 fragmentNormal;
-in vec2 fragmentUVCoord;
-
-uniform vec3 light0Position;
-uniform vec3 light1Position;
-uniform vec3 viewerPosition;
-
-out vec4 frag_color;
-
-vec3 calculateLight(vec3 lightPosition, vec3 baseColor, vec3 normal)
+string loadShader(const string& fileName)
 {
-   vec3 lightDirection = normalize(lightPosition-fragmentPosition);
-   float diffuseLight = dot(lightDirection,normal);
-   vec3 diffuseColor = clamp(diffuseLight * baseColor,0,1);
-   
-   const vec3 lightSpecularColor = vec3(1,1,1);
-   const float specularExponent = 10;
+    ifstream f(fileName);
+    string r;
+    if (f)
+    {
+        stringstream buffer;
+        buffer << f.rdbuf();
+        r = buffer.str();
+    }
 
-   vec3 viewerDirection = normalize(viewerPosition-fragmentPosition);
-   vec3 reflectedLight = 2*diffuseLight*normal - lightDirection;
-   
-   float specularIntensity = pow(clamp(dot(reflectedLight,viewerDirection),0,1),specularExponent);
-   vec3 specularColor = specularIntensity*lightSpecularColor;
-
-   return clamp(diffuseColor + specularColor,0,1);
+    return r;
 }
-
-vec3 calculateBaseColor()
-{
-    return 
-            vec3(1,0,0)*(clamp(1-fragmentUVCoord.x-fragmentUVCoord.y,0,1) + clamp(fragmentUVCoord.x-fragmentUVCoord.y,0,1)) + 
-            vec3(0,1,0)*(clamp(fragmentUVCoord.y-fragmentUVCoord.x,0,1) + clamp(fragmentUVCoord.x-fragmentUVCoord.y,0,1)) +
-            vec3(0,0,1)*(clamp(fragmentUVCoord.x+fragmentUVCoord.y-1.0f,0,1)) 
-    ;
-}
-void main() {
-   vec3 normal = normalize(fragmentNormal);
-   vec3 baseColor = calculateBaseColor();
-
-   vec3 light0Color = calculateLight(light0Position,baseColor, normal);
-   vec3 light1Color = calculateLight(light1Position,baseColor, normal);
-   frag_color = vec4(light0Color+light1Color,1);
-})";
-
-//////////////////////////////////////////////////////////////
-constexpr const char* edgeVertexShaderSource = R"(
-#version 400
-
-in vec3 position;
-
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-void main() {
-  gl_Position = projectionMatrix*viewMatrix*modelMatrix * vec4(position, 1.0);
-})";
-
-constexpr const char* edgeFragmentShaderSource = R"(
-#version 400
-
-uniform vec3 edgeColor;
-
-out vec4 frag_color;
-
-void main() {
-   frag_color = vec4(edgeColor,1);
-})";
-
-//////////////////////////////////////////////////////////////
-constexpr const char* lineVertexShaderSource = R"(
-#version 400
-
-in vec3 position;
-
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-void main() {
-  vec4 pos4 = modelMatrix * vec4(position, 1.0);
-  gl_Position = projectionMatrix*viewMatrix*pos4;
-})";
-
-constexpr const char* lineFragmentShaderSource = R"(
-#version 400
-
-out vec4 frag_color;
-
-void main() {
-   frag_color = vec4(1,0,0,1);
-})";
-
 string toString(const vector<char>& v)
 {
     string r; r.reserve(v.size());
@@ -257,17 +151,19 @@ template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
     return s;
 }
 
-GLuint makeShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource, const string& title)
+GLuint makeShaderProgram(const string& vertexShaderSource, const string& fragmentShaderSource, const string& title)
 {
     const auto vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
+    const auto vertexSourcePtr = vertexShaderSource.c_str();
+    glShaderSource(vertexShader, 1, &vertexSourcePtr, nullptr);
     glCompileShader(vertexShader);
     checkShaderErrors(title+"_Vertex", vertexShader);
 
     checkGLErrors();
 
     const auto fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+    const auto fragmentSourcePtr = fragmentShaderSource.c_str();
+    glShaderSource(fragmentShader, 1, &fragmentSourcePtr, nullptr);
     glCompileShader(fragmentShader);
     checkShaderErrors(title + "_Fragment", fragmentShader);
 
@@ -292,7 +188,6 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
     // tell GL to only draw onto a pixel if the shape is closer to the viewer
     glEnable(GL_DEPTH_TEST); // enable depth-testing
-    glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
     //Vertex buffers
 //    const int numVertices = static_cast<int>(vertices.size());
@@ -354,9 +249,15 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     ////////////////////////////////////////////////////////////////
     //Shaders
     ////////////////////////////////////////////////////////////////
-
-    const auto meshShaderProgram = makeShaderProgram(meshVertexShaderSource, meshFragmentShaderSource, "mesh");
+    const auto shaderPath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\)";
+    const auto meshVertexShaderSource = loadShader(shaderPath+string("MeshVertexShader.glsl"));
+    const auto meshFragmentShaderSource = loadShader(shaderPath + string("MeshFragmentShader.glsl"));
+    const auto meshShaderProgram = makeShaderProgram(meshVertexShaderSource.c_str(), meshFragmentShaderSource, "mesh");
+    const auto edgeVertexShaderSource = loadShader(shaderPath + string("EdgeVertexShader.glsl"));
+    const auto edgeFragmentShaderSource = loadShader(shaderPath + string("EdgeFragmentShader.glsl"));
     const auto edgeShaderProgram = makeShaderProgram(edgeVertexShaderSource, edgeFragmentShaderSource, "edge");
+    const auto lineVertexShaderSource = loadShader(shaderPath + string("LineVertexShader.glsl"));
+    const auto lineFragmentShaderSource = loadShader(shaderPath + string("LineFragmentShader.glsl"));
     const auto lineShaderProgram = makeShaderProgram(lineVertexShaderSource, lineFragmentShaderSource, "line");
 
     /////////////
@@ -494,6 +395,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glBindVertexArray(vao);
         checkGLErrors();
 
+        glDepthFunc(GL_LESS);
         glPolygonMode(GL_FRONT, GL_FILL);
         glEnable(GL_CULL_FACE);
         glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
@@ -516,8 +418,11 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, edgeColor.data());
         checkGLErrors();
 
-//        glPolygonMode(GL_FRONT, GL_LINE);
-//        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
+        glPolygonMode(GL_FRONT, GL_LINE);
+        glDepthFunc(GL_LEQUAL);
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glPolygonOffset(-1.0, 0.0);
+        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
 
         glBindVertexArray(0);
@@ -597,7 +502,7 @@ bool oldPosValid = false;
 Vector2 oldPos;
 void glfwMousePosCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    const Vector2 newPos(xpos, ypos);
+    const Vector2 newPos(toFloat(xpos), toFloat(ypos));
     if (oldPosValid && (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE)==GLFW_PRESS))
     {
         const auto delta = newPos - oldPos;
