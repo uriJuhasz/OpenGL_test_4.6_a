@@ -1,7 +1,9 @@
 #ifndef Mesh_H_
 #define Mesh_H_
 
-#include <Math.h>
+#include "Vector.h"
+#include "Matrix.h"
+
 #include <array>
 #include <vector>
 using std::array;
@@ -13,7 +15,6 @@ public:
     Mesh() {}
 
 public:
-public:
     typedef vector<Vector3> Vertices;
     typedef vector<Vector2> UVCoords;
     typedef vector<Vector3> Normals;
@@ -21,6 +22,9 @@ public:
     class Face final
     {
     public:
+        Face(const int vi0, const int vi1, const int vi2) : m_vis{ vi0,vi1,vi2 } {}
+        Face(const array<int, 3>& vis) : m_vis{ vis } {}
+
         array<int, 3> m_vis;
     };
 

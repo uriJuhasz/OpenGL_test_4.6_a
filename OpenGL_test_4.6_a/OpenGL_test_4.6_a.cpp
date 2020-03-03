@@ -1,6 +1,8 @@
 #include "Math.h"
 #include "Mesh.h"
 
+#include "MeshLoader.h"
+
 #include <iostream>
 #include <array>
 #include <vector>
@@ -27,6 +29,10 @@ void testOpenGL0(GLFWwindow* const window);
 int main()
 {
     cout << "start" << endl;
+
+    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
+    cout << " Loading mesh: " << fileName;
+    const auto mesh = MeshLoader::loadMesh(fileName);
     if (glfwInit())
     {
         glfwSetErrorCallback(glfwErrorCallback);
@@ -74,6 +80,26 @@ typedef array<GLuint, 3> Triangle;
 array<Triangle, 2> faces = {
     Triangle{0, 1, 2},
     Triangle{0, 2, 3}
+};
+const array<Vector3, 4> vertices = {
+   Vector3(-1.0f,  -1.0f,  0.0f),
+   Vector3(1.0f,  -1.0f,  0.0f),
+   Vector3(1.0f,   1.0f,  0.0f),
+   Vector3(-1.0f,   1.0f,  0.0f)
+};
+
+const array<Vector3, 4> normals = {
+   Vector3(0.0f,  0.0f, -1.0f),
+   Vector3(0.0f,  0.0f, -1.0f),
+   Vector3(0.0f,  0.0f, -1.0f),
+   Vector3(0.0f,  0.0f, -1.0f)
+};
+
+const array<Vector2, 4> textureUV = {
+   Vector2(0.0f,  0.0f),
+   Vector2(1.0f,  0.0f),
+   Vector2(1.0f,  1.0f),
+   Vector2(0.0f,  1.0f)
 };
 
 
@@ -245,7 +271,7 @@ void testOpenGL0(GLFWwindow* const window)
         // Set the projection matrix in the vertex shader.
         const auto cost = cosf(theta);
         const auto sint = sinf(theta);
-        Matrix44 modelMatrix = 
+        Matrix4x4 modelMatrix = 
         {
              cost, sint, 0.0f, 0.0f,
             -sint, cost, 0.0f, 0.0f,
@@ -265,7 +291,7 @@ void testOpenGL0(GLFWwindow* const window)
         const auto forward = normalize(target - viewer);
         const auto right = cross(forward, up);
 
-        Matrix44 viewMatrix =
+        Matrix4x4 viewMatrix =
         {
                 right  [0], right  [1], right  [2], -dot(right,viewer),
                 up     [0], up     [1], up     [2], -dot(up,viewer),
@@ -299,7 +325,7 @@ void testOpenGL0(GLFWwindow* const window)
         const float n = 1.0f;
         const float f = 100.0f;
         const float d = f - n;
-        Matrix44 projectionMatrix =
+        Matrix4x4 projectionMatrix =
         {
             2*n/w, 0.0f, 0.0f, 0.0f,
             0.0f, 2*n/h, 0.0f, 0.0f,
