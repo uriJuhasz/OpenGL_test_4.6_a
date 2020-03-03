@@ -155,10 +155,10 @@ void main() {
             vec3(1,0,0)*(1-fragmentUVCoord.x-fragmentUVCoord.y) + 
             vec3(0,0,1)*(fragmentUVCoord.x-fragmentUVCoord.y) + 
             vec3(0,1,0)*(fragmentUVCoord.y-fragmentUVCoord.x);
-   vec3 diffuseColor = /*diffuseLight **/ baseColor;//objectColor.xyz;
+   vec3 diffuseColor = diffuseLight * baseColor;//objectColor.xyz;
    const vec3 lightSpecularColor = vec3(1,1,1);
-   vec3 specularColor = lightSpecularColor * 0.3/length(lightDirection);
-   frag_color = vec4(1,1,1,1);//vec4(diffuseColor/*+specularColor*/,objectColor.w);
+   vec3 specularColor = vec3(0,0,0); //lightSpecularColor * 0.3/length(lightDirection);
+   frag_color = vec4(diffuseColor+specularColor,objectColor.w);
 })";
 
 string toString(const vector<char>& v)
@@ -301,12 +301,16 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             }
         }
     }
-    const auto center = (boundingBox[0] + boundingBox[1]) / 2;
+    const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
     const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
+
+    const Vector3 lightPosition = modelCenter + Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
+    const Vector4 objectColor(0.5f, 0.0f, 1.0f, 1.0f);
+
 
     cout << endl;
     cout << " Model: V=" << numVertices << " F=" << numFaces;
-    cout << "  center: " << center << endl;
+    cout << "  center: " << modelCenter << endl;
     cout << "  radius: " << modelRadius << endl;
     float theta = 0;
     float dist = 0;
@@ -321,14 +325,15 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         // Set the projection matrix in the vertex shader.
         const auto cost = cosf(theta);
         const auto sint = sinf(theta);
-        Matrix4x4 modelMatrix = unitMatrix4x4;
-        /*        {
-                     cost, sint, 0.0f, 0.0f,
-                    -sint, cost, 0.0f, 0.0f,
-                     0.0f, 0.0f, 1.0f, 0.0f,
-                     0.0f, 0.0f, 0.0f, 1.0f,
+        Matrix4x4 modelMatrix = 
+            //unitMatrix4x4;
+                {
+                      cost, 0.0f, sint, 0.0f,
+                      0.0f, 1.0f, 0.0f, 0.0f,
+                     -sint, 0.0f, cost, 0.0f,
+                      0.0f, 0.0f, 0.0f, 1.0f,
                 };
-                */
+                
                 /*        {
              cost, sint, 0.0f, 0.0f,
             -sint, cost, 0.0f, 0.0f,
@@ -342,9 +347,9 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 //        const auto cosx = cosf(t2);
 //        const auto sinx = sinf(t2);
 //        const auto vd = 3.0f;
-        const Vector3 viewer = center + Vector3(0,0,1) * modelRadius * 2;// (vd * cosx, 0, vd * sinx);
+        const Vector3 viewer = modelCenter + Vector3(0,0,1) * modelRadius * 2;// (vd * cosx, 0, vd * sinx);
         const Vector3 up(0.0f, 1.0f, 0.0f);
-        const Vector3 target = center;// (0.0f, 0.0f, 0.0f);
+        const Vector3 target = modelCenter;// (0.0f, 0.0f, 0.0f);
         const auto forward = normalize(target - viewer);
         const auto right = cross(forward, up);
         if (frameIndex == 0)
@@ -363,17 +368,6 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
                 0.0f,0.0f, 0.0f, 1.0f
         };
                 
-/*
-        Matrix44 viewMatrix =
-        {
-             1.0f, 0.0f, 0.0f, 0.0f,//4*cost, //0.0f,
-             0.0f, 1.0f, 0.0f, 0.0f, //0.0f,
-             0.0f, 0.0f, 1.0f, 3.0f, //4*sint,
-             0.0f, 0.0f, 0.0f, 1.0f,
-        };
-        */
-
-        
         array<int, 4> viewport;
         glGetIntegerv(GL_VIEWPORT,viewport.data());
         const float cw = 1;// viewport[2];
@@ -390,12 +384,6 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         const float f = 1000.0f;
         const float d = f - n;
         Matrix4x4 projectionMatrix =
-/*        {
-            2 * n / w, 0.0f, 0.0f, 0.0f,
-            0.0f, 2 * n / h, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 1.0f
-        };*/
         {
             2*n/w, 0.0f, 0.0f, 0.0f,
             0.0f, 2*n/h, 0.0f, 0.0f,
@@ -408,11 +396,9 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
         checkGLErrors();
 
-        const Vector3 lightPosition(0.0f, 0.0f, -1.0f);
         glUniform3fv(glGetUniformLocation(shaderProgram, "lightPosition"), 1, lightPosition.data());
         checkGLErrors();
 
-        const Vector4 objectColor(0.5f, 0.0f, 1.0f,1.0f);
         glUniform4fv(glGetUniformLocation(shaderProgram, "objectColor"), 1, objectColor.data());
         checkGLErrors();
 
