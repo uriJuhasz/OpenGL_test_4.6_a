@@ -29,8 +29,8 @@ int main()
 {
     cout << "start" << endl;
 
-//    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
-    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
+    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
     cout << " Loading mesh: " << fileName;
     const auto meshPtr = MeshLoader::loadMesh(fileName);
     if (meshPtr)
@@ -114,7 +114,7 @@ const array<Vector2, 4> textureUV = {
 */
 
 
-constexpr const char* vertex_shader = R"(
+constexpr const char* meshVertexShaderSource = R"(
 #version 400
 
 in vec3 position;
@@ -137,7 +137,7 @@ void main() {
   fragmentUVCoord = uvCoord;
 })";
 
-constexpr const char* fragment_shader = R"(
+constexpr const char* meshFragmentShaderSource = R"(
 #version 400
 
 in vec3 fragmentPosition;
@@ -169,6 +169,29 @@ const vec3 lightSpecularColor = vec3(1,1,1);
     vec3 specularColor = specularIntensity*lightSpecularColor;
 //   vec3 specularColor = vec3(0,0,0); //lightSpecularColor * 0.3/length(lightDirection);
    frag_color = vec4(diffuseColor+specularColor,1); //objectColor.w);
+})";
+
+constexpr const char* lineVertexShaderSource = R"(
+#version 400
+
+in vec3 position;
+
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+  vec4 pos4 = modelMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix*viewMatrix*pos4;
+})";
+
+constexpr const char* lineFragmentShaderSource = R"(
+#version 400
+
+out vec4 frag_color;
+
+void main() {
+   frag_color = vec4(1,0,0,1);
 })";
 
 string toString(const vector<char>& v)
@@ -278,26 +301,62 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     checkGLErrors();
 
     //Shaders
-    const auto vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    checkShaderErrors("Vertex", vs);
+    const auto meshVertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(meshVertexShader, 1, &meshVertexShaderSource, nullptr);
+    glCompileShader(meshVertexShader);
+    checkShaderErrors("Vertex", meshVertexShader);
 
     checkGLErrors();
 
-    const auto fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-    checkShaderErrors("Fragment", fs);
+    const auto meshFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(meshFragmentShader, 1, &meshFragmentShaderSource, nullptr);
+    glCompileShader(meshFragmentShader);
+    checkShaderErrors("Fragment", meshFragmentShader);
 
     checkGLErrors();
 
-    const auto shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, fs);
-    glAttachShader(shaderProgram, vs);
-    glLinkProgram(shaderProgram);
+    const auto meshShaderProgram = glCreateProgram();
+    glAttachShader(meshShaderProgram, meshFragmentShader);
+    glAttachShader(meshShaderProgram, meshVertexShader);
+    glLinkProgram(meshShaderProgram);
 
     checkGLErrors();
+
+    /////////////////////
+    //Line shader
+
+    const auto lineVertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(lineVertexShader, 1, &lineVertexShaderSource, nullptr);
+    glCompileShader(lineVertexShader);
+    checkShaderErrors("Vertex", meshVertexShader);
+
+    checkGLErrors();
+
+    const auto lineFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(lineFragmentShader, 1, &lineFragmentShaderSource, nullptr);
+    glCompileShader(lineFragmentShader);
+    checkShaderErrors("LineFragment", lineFragmentShader);
+
+    checkGLErrors();
+
+    const auto lineShaderProgram = glCreateProgram();
+    glAttachShader(lineShaderProgram, lineFragmentShader);
+    glAttachShader(lineShaderProgram, lineVertexShader);
+    glLinkProgram(lineShaderProgram);
+
+    checkGLErrors();
+
+    /////////////
+    {
+        vector<int> vertexNumFaces(numVertices, 0);
+        for (const auto& face : faces)
+            for (int i = 0; i < 3; ++i)
+                vertexNumFaces[face.m_vis[i]]++;
+
+        for (int vi = 0; vi < numVertices; ++vi)
+            if (vertexNumFaces[vi] == 0)
+                cout << "   Vertex " << vi << " is an orphan";
+    }
 
     array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
     {
@@ -328,7 +387,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     {
         // wipe the drawing surface clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUseProgram(shaderProgram);
+        glUseProgram(meshShaderProgram);
         checkGLErrors();
 
         // Set the projection matrix in the vertex shader.
@@ -338,7 +397,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         const auto rotationAroundXBy90Matrix = Matrix4x4{
                 1.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 1.0f, 0.0f,
-                0.0f, 1.0f, 0.0f, 0.0f,
+                0.0f,-1.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 1.0f
         };
         const auto rotationAroundYMatrix = Matrix4x4 {
@@ -403,23 +462,71 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             0.0f, 0.0f, 1.0f, 0.0f
         };
 
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
         checkGLErrors();
 
-        glUniform3fv(glGetUniformLocation(shaderProgram, "lightPosition"), 1, lightPosition.data());
+        glUniform3fv(glGetUniformLocation(meshShaderProgram, "lightPosition"), 1, lightPosition.data());
         checkGLErrors();
 
-        glUniform3fv(glGetUniformLocation(shaderProgram, "viewerPosition"), 1, viewerPosition.data());
+        glUniform3fv(glGetUniformLocation(meshShaderProgram, "viewerPosition"), 1, viewerPosition.data());
         checkGLErrors();
 
+
+        //////////////////////
+        //Render
         glBindVertexArray(vao);
         checkGLErrors();
         // draw points 0-3 from the currently bound VAO with current in-use shader
         //glDrawArrays(GL_TRIANGLES, 0, numVertices);
         glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
+
+        glBindVertexArray(0);
+
+        ///////////////////////
+        //Bounding box
+        {
+            glUseProgram(lineShaderProgram);
+            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
+            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+            checkGLErrors();
+
+            const auto bb = boundingBox;
+            const array<Vector3, 8> boundingBoxVertices = {
+                Vector3(bb[0][0],bb[0][1],bb[0][2]),
+                Vector3(bb[1][0],bb[0][1],bb[0][2]),
+                Vector3(bb[1][0],bb[1][1],bb[0][2]),
+                Vector3(bb[0][0],bb[1][1],bb[0][2]),
+                Vector3(bb[0][0],bb[0][1],bb[1][2]),
+                Vector3(bb[1][0],bb[0][1],bb[1][2]),
+                Vector3(bb[1][0],bb[1][1],bb[1][2]),
+                Vector3(bb[0][0],bb[1][1],bb[1][2])
+            };
+
+            const array<int, 24> bbEdges = {
+                0,1, 1,2, 2,3, 3,0,
+                4,5, 5,6, 6,7, 7,4,
+                0,4, 1,5, 2,6, 3,7
+            };
+
+            for (int e = 0; e < 12; ++e)
+            {
+                const auto v0 = boundingBoxVertices[bbEdges[2 * e + 0]];
+                const auto v1 = boundingBoxVertices[bbEdges[2 * e + 1]];
+                glLineWidth(2.0f);
+                glColor3f(1.0f, 0.0f, 0.0f);
+                glBegin(GL_LINES);
+                    glVertex3f(v0[0],v0[1],v0[2]);
+                    glVertex3f(v1[0], v1[1], v1[2]);
+                glEnd();
+            }
+        }
+
+
+
         // update other events like input handling 
         glfwPollEvents();
         // put the stuff we've been drawing onto the display
