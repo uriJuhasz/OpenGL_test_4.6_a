@@ -7,7 +7,7 @@ using std::array;
 template<unsigned int D> class Vector final
 {
 public:
-    Vector() 
+    Vector() : m_value()
     {
         for (int i = 0; i < D; ++i)
             m_value[i] = 0.0f;
@@ -53,13 +53,19 @@ inline Vector3 operator-(const Vector3 a)
     return Vector3(-a[0], -a[1], -a[2]);
 }
 
-inline Vector3 operator+(const Vector3 a, const Vector3 b)
+template<unsigned int D>inline Vector<D> operator+(const Vector<D> a, const Vector<D> b)
 {
-    return Vector3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);
+    Vector<D> r;
+    for (int i = 0; i < D; ++i)
+        r[i] = a[i] + b[i];
+    return r;
 }
-inline Vector3 operator-(const Vector3 a, const Vector3 b)
+template<unsigned int D>inline Vector<D> operator-(const Vector<D> a, const Vector<D> b)
 {
-    return Vector3(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    Vector<D> r;
+    for (int i = 0; i < D; ++i)
+        r[i] = a[i] - b[i];
+    return r;
 }
 inline Vector3 operator*(const Vector3 v, const float s)
 {

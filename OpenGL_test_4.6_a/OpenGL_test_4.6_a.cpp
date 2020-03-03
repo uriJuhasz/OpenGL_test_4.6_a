@@ -17,6 +17,9 @@ void glfwErrorCallback(int error, const char* description)
 {
     cerr << " GLFW error: " << description << endl;
 }
+void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+void glfwMousePosCallback(GLFWwindow* window, double xpos, double ypos);
 
 void glfwWindowResizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -29,20 +32,27 @@ int main()
 {
     cout << "start" << endl;
 
-    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
-//    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
+    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
     cout << " Loading mesh: " << fileName;
     const auto meshPtr = MeshLoader::loadMesh(fileName);
     if (meshPtr)
     {
         if (glfwInit())
         {
-            glfwSetErrorCallback(glfwErrorCallback);
+glfwSetErrorCallback(glfwErrorCallback);
+            //glfwWindowHint(GLFW_SAMPLES, 4);  //FSAA?
             if (GLFWwindow* window = glfwCreateWindow(800, 800, "OpenGLTest", nullptr, nullptr))
             {
                 glfwMakeContextCurrent(window);
                 glfwMaximizeWindow(window);
                 glfwSetWindowSizeCallback(window, glfwWindowResizeCallback);
+                glfwSetScrollCallback(window, glfwScrollCallback);
+                glfwSetCursorPosCallback(window, glfwMousePosCallback);
+                glfwSetKeyCallback(window, glfwKeyCallback);
+                //                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                if (glfwRawMouseMotionSupported())
+                    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
                 {
                     int width, height;
                     glfwGetFramebufferSize(window, &width, &height);
@@ -84,36 +94,6 @@ int main()
     cout << "end" << endl;
 }
 
-/*
-typedef array<GLuint, 3> Triangle;
-array<Triangle, 2> faces = {
-    Triangle{0, 1, 2},
-    Triangle{0, 2, 3}
-};
-
-
-const array<Vector3, 4> vertices = {
-   Vector3(-1.0f,  -1.0f,  0.0f),
-   Vector3(1.0f,  -1.0f,  0.0f),
-   Vector3(1.0f,   1.0f,  0.0f),
-   Vector3(-1.0f,   1.0f,  0.0f)
-};
-
-const array<Vector3, 4> normals = {
-   Vector3(0.0f,  0.0f, -1.0f),
-   Vector3(0.0f,  0.0f, -1.0f),
-   Vector3(0.0f,  0.0f, -1.0f),
-   Vector3(0.0f,  0.0f, -1.0f)
-};
-
-const array<Vector2, 4> textureUV = {
-   Vector2(0.0f,  0.0f),
-   Vector2(1.0f,  0.0f),
-   Vector2(1.0f,  1.0f),
-   Vector2(0.0f,  1.0f)
-};
-*/
-
 
 constexpr const char* meshVertexShaderSource = R"(
 #version 400
@@ -145,32 +125,45 @@ in vec3 fragmentPosition;
 in vec3 fragmentNormal;
 in vec2 fragmentUVCoord;
 
-uniform vec3 lightPosition;
+uniform vec3 light0Position;
+uniform vec3 light1Position;
 uniform vec3 viewerPosition;
 
 out vec4 frag_color;
 
-void main() {
+vec3 calculateLight(vec3 lightPosition, vec3 baseColor, vec3 normal)
+{
    vec3 lightDirection = normalize(lightPosition-fragmentPosition);
-   vec3 normal = normalize(fragmentNormal);
    float diffuseLight = dot(lightDirection,normal);
-   vec3 baseColor = 
+   vec3 diffuseColor = clamp(diffuseLight * baseColor,0,1);
+   
+   const vec3 lightSpecularColor = vec3(1,1,1);
+   const float specularExponent = 10;
+
+   vec3 viewerDirection = normalize(viewerPosition-fragmentPosition);
+   vec3 reflectedLight = 2*diffuseLight*normal - lightDirection;
+   
+   float specularIntensity = pow(clamp(dot(reflectedLight,viewerDirection),0,1),specularExponent);
+   vec3 specularColor = specularIntensity*lightSpecularColor;
+
+   return clamp(diffuseColor + specularColor,0,1);
+}
+
+vec3 calculateBaseColor()
+{
+    return 
             vec3(1,0,0)*(clamp(1-fragmentUVCoord.x-fragmentUVCoord.y,0,1) + clamp(fragmentUVCoord.x-fragmentUVCoord.y,0,1)) + 
             vec3(0,1,0)*(clamp(fragmentUVCoord.y-fragmentUVCoord.x,0,1) + clamp(fragmentUVCoord.x-fragmentUVCoord.y,0,1)) +
             vec3(0,0,1)*(clamp(fragmentUVCoord.x+fragmentUVCoord.y-1.0f,0,1)) 
     ;
-   vec3 diffuseColor = diffuseLight * baseColor;
-   
-   const vec3 lightSpecularColor = vec3(1,1,1);
+}
+void main() {
+   vec3 normal = normalize(fragmentNormal);
+   vec3 baseColor = calculateBaseColor();
 
-   float specularExponent = 10;
-   vec3 viewerDirection = normalize(viewerPosition-fragmentPosition);
-   vec3 reflectedLight = 2*diffuseLight*normal - lightDirection;
-   float specularIntensity = pow(clamp(dot(reflectedLight,viewerDirection),0,1),specularExponent);
-
-    vec3 specularColor = specularIntensity*lightSpecularColor;
-//   vec3 specularColor = vec3(0,0,0); //lightSpecularColor * 0.3/length(lightDirection);
-   frag_color = vec4(diffuseColor+specularColor,1); //objectColor.w);
+   vec3 light0Color = calculateLight(light0Position,baseColor, normal);
+   vec3 light1Color = calculateLight(light1Position,baseColor, normal);
+   frag_color = vec4(light0Color+light1Color,1);
 })";
 
 //////////////////////////////////////////////////////////////
@@ -290,6 +283,9 @@ GLuint makeShaderProgram(const char* vertexShaderSource, const char* fragmentSha
     return shaderProgram;
 }
 
+float viewerZOffset = 0.0f; //Ugly
+float viewerZAngle = 0.0f;
+
 void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 {
     glEnable(GL_DEBUG_OUTPUT);
@@ -297,7 +293,6 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     // tell GL to only draw onto a pixel if the shape is closer to the viewer
     glEnable(GL_DEPTH_TEST); // enable depth-testing
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-    glEnable(GL_CULL_FACE);
 
     //Vertex buffers
 //    const int numVertices = static_cast<int>(vertices.size());
@@ -391,7 +386,8 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
     const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
 
-    const Vector3 lightPosition = modelCenter + Vector3(0.0f, 1.0f,3.0f) * modelRadius * 2;//Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
+    const Vector3 light0Position = modelCenter + Vector3(0.0f, 1.0f,3.0f) * modelRadius * 2;//Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
+    const Vector3 light1Position = modelCenter + Vector3(0.0f, -1.0f,-3.0f) * modelRadius * 2;//Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
 
 
     cout << endl;
@@ -433,10 +429,10 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
         //Setup the view matrix
 //        const auto t2 = theta * 2;
-//        const auto cosx = cosf(t2);
-//        const auto sinx = sinf(t2);
+        const auto cosx = cosf(viewerZAngle);
+        const auto sinx = sinf(viewerZAngle);
 //        const auto vd = 3.0f;
-        const Vector3 viewerPosition = modelCenter + Vector3(0,0,1) * modelRadius * 2;// (vd * cosx, 0, vd * sinx);
+        const Vector3 viewerPosition = modelCenter + Vector3(cosx,0,sinx) * (modelRadius * 2 + viewerZOffset);// (vd * cosx, 0, vd * sinx);
         const Vector3 up(0.0f, 1.0f, 0.0f);
         const Vector3 target = modelCenter;// (0.0f, 0.0f, 0.0f);
         const auto forward = normalize(target - viewerPosition);
@@ -485,7 +481,8 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
         checkGLErrors();
 
-        glUniform3fv(glGetUniformLocation(meshShaderProgram, "lightPosition"), 1, lightPosition.data());
+        glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Position"), 1, light0Position.data());
+        glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Position"), 1, light1Position.data());
         checkGLErrors();
 
         glUniform3fv(glGetUniformLocation(meshShaderProgram, "viewerPosition"), 1, viewerPosition.data());
@@ -498,6 +495,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         checkGLErrors();
 
         glPolygonMode(GL_FRONT, GL_FILL);
+        glEnable(GL_CULL_FACE);
         glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
 
@@ -506,14 +504,20 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
         glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
 
-        glLineWidth(0.5f);
-        glEnable(GL_LINE_SMOOTH);
+        glLineWidth(1.0f);
+//        glEnable(GL_BLEND);
+//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//        glEnable(GL_LINE_SMOOTH);
+//        glEnable(GL_POLYGON_SMOOTH);
+//        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+//        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+//        glDisable(GL_CULL_FACE);
         const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
         glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, edgeColor.data());
         checkGLErrors();
 
-        glPolygonMode(GL_FRONT, GL_LINE);
-        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
+//        glPolygonMode(GL_FRONT, GL_LINE);
+//        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
 
         glBindVertexArray(0);
@@ -576,8 +580,39 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         }
         
         
-        theta += 0.01f;
+//        theta += 0.01f;
         frameIndex++;
     }
 
 }
+
+float toFloat(const double d) { return static_cast<float>(d); }
+void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    constexpr float factor = 50.0f;
+    viewerZOffset -= toFloat(yoffset);
+}
+
+bool oldPosValid = false;
+Vector2 oldPos;
+void glfwMousePosCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    const Vector2 newPos(xpos, ypos);
+    if (oldPosValid && (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE)==GLFW_PRESS))
+    {
+        const auto delta = newPos - oldPos;
+        constexpr float factor = 0.02f;
+        viewerZAngle += factor * delta[0];
+    }
+    oldPos = newPos;
+    oldPosValid = true;
+}
+
+void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE)
+    {
+        glfwSetWindowShouldClose(window, 1);
+    }
+}
+
