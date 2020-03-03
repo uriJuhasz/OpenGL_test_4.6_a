@@ -29,8 +29,8 @@ int main()
 {
     cout << "start" << endl;
 
-//    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
-    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
+    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
     cout << " Loading mesh: " << fileName;
     const auto meshPtr = MeshLoader::loadMesh(fileName);
     if (meshPtr)
@@ -41,6 +41,7 @@ int main()
             if (GLFWwindow* window = glfwCreateWindow(800, 800, "OpenGLTest", nullptr, nullptr))
             {
                 glfwMakeContextCurrent(window);
+                glfwMaximizeWindow(window);
                 glfwSetWindowSizeCallback(window, glfwWindowResizeCallback);
                 {
                     int width, height;
@@ -145,7 +146,6 @@ in vec3 fragmentNormal;
 in vec2 fragmentUVCoord;
 
 uniform vec3 lightPosition;
-uniform vec3 lightPosition1;
 uniform vec3 viewerPosition;
 
 out vec4 frag_color;
@@ -155,10 +155,6 @@ void main() {
    vec3 normal = normalize(fragmentNormal);
    float diffuseLight = dot(lightDirection,normal);
    vec3 baseColor = 
-/*            vec3(1,0,0)*(clamp(1-fragmentUVCoord.x-fragmentUVCoord.y,0,1)+clamp(fragmentUVCoord.x+fragmentUVCoord.y-1.0f,0,1)) + 
-            vec3(0,1,0)*(fragmentUVCoord.y-fragmentUVCoord.x) +
-            vec3(0,0,1)*(fragmentUVCoord.x-fragmentUVCoord.y) 
-*/
             vec3(1,0,0)*(clamp(1-fragmentUVCoord.x-fragmentUVCoord.y,0,1) + clamp(fragmentUVCoord.x-fragmentUVCoord.y,0,1)) + 
             vec3(0,1,0)*(clamp(fragmentUVCoord.y-fragmentUVCoord.x,0,1) + clamp(fragmentUVCoord.x-fragmentUVCoord.y,0,1)) +
             vec3(0,0,1)*(clamp(fragmentUVCoord.x+fragmentUVCoord.y-1.0f,0,1)) 
@@ -177,6 +173,32 @@ void main() {
    frag_color = vec4(diffuseColor+specularColor,1); //objectColor.w);
 })";
 
+//////////////////////////////////////////////////////////////
+constexpr const char* edgeVertexShaderSource = R"(
+#version 400
+
+in vec3 position;
+
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+  gl_Position = projectionMatrix*viewMatrix*modelMatrix * vec4(position, 1.0);
+})";
+
+constexpr const char* edgeFragmentShaderSource = R"(
+#version 400
+
+uniform vec3 edgeColor;
+
+out vec4 frag_color;
+
+void main() {
+   frag_color = vec4(edgeColor,1);
+})";
+
+//////////////////////////////////////////////////////////////
 constexpr const char* lineVertexShaderSource = R"(
 #version 400
 
@@ -241,6 +263,33 @@ template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
     s << "]";
     return s;
 }
+
+GLuint makeShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource, const string& title)
+{
+    const auto vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
+    glCompileShader(vertexShader);
+    checkShaderErrors(title+"_Vertex", vertexShader);
+
+    checkGLErrors();
+
+    const auto fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+    glCompileShader(fragmentShader);
+    checkShaderErrors(title + "_Fragment", fragmentShader);
+
+    checkGLErrors();
+
+    const auto shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, fragmentShader);
+    glAttachShader(shaderProgram, vertexShader);
+    glLinkProgram(shaderProgram);
+
+    checkGLErrors();
+
+    return shaderProgram;
+}
+
 void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 {
     glEnable(GL_DEBUG_OUTPUT);
@@ -248,6 +297,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     // tell GL to only draw onto a pixel if the shape is closer to the viewer
     glEnable(GL_DEPTH_TEST); // enable depth-testing
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+    glEnable(GL_CULL_FACE);
 
     //Vertex buffers
 //    const int numVertices = static_cast<int>(vertices.size());
@@ -306,51 +356,13 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
     checkGLErrors();
 
+    ////////////////////////////////////////////////////////////////
     //Shaders
-    const auto meshVertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(meshVertexShader, 1, &meshVertexShaderSource, nullptr);
-    glCompileShader(meshVertexShader);
-    checkShaderErrors("Vertex", meshVertexShader);
+    ////////////////////////////////////////////////////////////////
 
-    checkGLErrors();
-
-    const auto meshFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(meshFragmentShader, 1, &meshFragmentShaderSource, nullptr);
-    glCompileShader(meshFragmentShader);
-    checkShaderErrors("Fragment", meshFragmentShader);
-
-    checkGLErrors();
-
-    const auto meshShaderProgram = glCreateProgram();
-    glAttachShader(meshShaderProgram, meshFragmentShader);
-    glAttachShader(meshShaderProgram, meshVertexShader);
-    glLinkProgram(meshShaderProgram);
-
-    checkGLErrors();
-
-    /////////////////////
-    //Line shader
-
-    const auto lineVertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(lineVertexShader, 1, &lineVertexShaderSource, nullptr);
-    glCompileShader(lineVertexShader);
-    checkShaderErrors("Vertex", meshVertexShader);
-
-    checkGLErrors();
-
-    const auto lineFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(lineFragmentShader, 1, &lineFragmentShaderSource, nullptr);
-    glCompileShader(lineFragmentShader);
-    checkShaderErrors("LineFragment", lineFragmentShader);
-
-    checkGLErrors();
-
-    const auto lineShaderProgram = glCreateProgram();
-    glAttachShader(lineShaderProgram, lineFragmentShader);
-    glAttachShader(lineShaderProgram, lineVertexShader);
-    glLinkProgram(lineShaderProgram);
-
-    checkGLErrors();
+    const auto meshShaderProgram = makeShaderProgram(meshVertexShaderSource, meshFragmentShaderSource, "mesh");
+    const auto edgeShaderProgram = makeShaderProgram(edgeVertexShaderSource, edgeFragmentShaderSource, "edge");
+    const auto lineShaderProgram = makeShaderProgram(lineVertexShaderSource, lineFragmentShaderSource, "line");
 
     /////////////
  /*   {
@@ -484,9 +496,24 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         //Render
         glBindVertexArray(vao);
         checkGLErrors();
-        // draw points 0-3 from the currently bound VAO with current in-use shader
-        //glDrawArrays(GL_TRIANGLES, 0, numVertices);
+
+        glPolygonMode(GL_FRONT, GL_FILL);
         glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
+        checkGLErrors();
+
+        glUseProgram(edgeShaderProgram);
+        glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+
+        glLineWidth(0.5f);
+        glEnable(GL_LINE_SMOOTH);
+        const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
+        glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, edgeColor.data());
+        checkGLErrors();
+
+        glPolygonMode(GL_FRONT, GL_LINE);
+        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
 
         glBindVertexArray(0);
