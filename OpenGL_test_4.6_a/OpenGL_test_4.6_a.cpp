@@ -133,7 +133,7 @@ void main() {
   vec4 pos4 = modelMatrix * vec4(position, 1.0);
   gl_Position = projectionMatrix*viewMatrix*pos4;
   fragmentPosition = pos4.xyz;
-  fragmentNormal = (modelMatrix*vec4(normal,1)).xyz;
+  fragmentNormal = (modelMatrix*vec4(normal,0)).xyz;
   fragmentUVCoord = uvCoord;
 })";
 
@@ -334,22 +334,25 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         // Set the projection matrix in the vertex shader.
         const auto cost = cosf(theta);
         const auto sint = sinf(theta);
-        Matrix4x4 modelMatrix = 
             //unitMatrix4x4;
-                {
-                      cost, 0.0f, sint, 0.0f,
-                      0.0f, 1.0f, 0.0f, 0.0f,
-                     -sint, 0.0f, cost, 0.0f,
-                      0.0f, 0.0f, 0.0f, 1.0f,
-                };
-                
-                /*        {
-             cost, sint, 0.0f, 0.0f,
-            -sint, cost, 0.0f, 0.0f,
-             0.0f, 0.0f, 1.0f, 0.0f,
-             0.0f, 0.0f, 0.0f, 1.0f,
+        const auto rotationAroundXBy90Matrix = Matrix4x4{
+                1.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f
         };
-        */
+        const auto rotationAroundYMatrix = Matrix4x4 {
+                cost, 0.0f, sint, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f,
+                -sint, 0.0f, cost, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f,
+        };
+        Matrix4x4 modelMatrix =
+            makeTranslationMatrix(modelCenter) *
+            rotationAroundYMatrix *
+            rotationAroundXBy90Matrix *
+            makeTranslationMatrix(-modelCenter)
+            ;
 
         //Setup the view matrix
 //        const auto t2 = theta * 2;
@@ -400,7 +403,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             0.0f, 0.0f, 1.0f, 0.0f
         };
 
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, false, modelMatrix.data());
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
         checkGLErrors();

@@ -48,6 +48,11 @@ template<> inline float dot(const Vector3& a, const Vector3& b)
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
+inline Vector3 operator-(const Vector3 a)
+{
+    return Vector3(-a[0], a[1], -a[2]);
+}
+
 inline Vector3 operator+(const Vector3 a, const Vector3 b)
 {
     return Vector3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);

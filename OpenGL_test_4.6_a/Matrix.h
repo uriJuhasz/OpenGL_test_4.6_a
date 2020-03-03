@@ -5,6 +5,14 @@
 class Matrix4x4 final
 {
 public:
+    constexpr Matrix4x4() : m_value()
+    {
+        for (int i = 0; i < 16; ++i)
+            m_value[i] = (i%4) ? 1.0f : 0.0f;
+    }
+
+    float  at(const int r, const int c) const { return m_value[r * 4 + c]; }
+    float& at(const int r, const int c)       { return m_value[r * 4 + c]; }
     explicit constexpr Matrix4x4(const std::array<float, 16>& a) : m_value(a) {}
     constexpr Matrix4x4(
         float m00, float m01, float m02, float m03,
@@ -24,3 +32,33 @@ constexpr Matrix4x4 unitMatrix4x4 = Matrix4x4(
     0.0f, 0.0f, 1.0f, 0.0f,
     0.0f, 0.0f, 0.0f, 1.0f
 );
+
+inline Matrix4x4 makeTranslationMatrix(const Vector3& v)
+{
+    return Matrix4x4(
+        1.0f, 0.0f, 0.0f, v[0],
+        0.0f, 1.0f, 0.0f, v[1],
+        0.0f, 0.0f, 1.0f, v[2],
+        0.0f, 0.0f, 0.0f, 1.0f
+    );
+    /*
+    return Matrix4x4(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        v[0], v[1], v[2], 1.0f
+    );*/
+}
+inline Matrix4x4 operator*(const Matrix4x4& a, const Matrix4x4& b)
+{
+    Matrix4x4 r;
+    for (int i=0; i<4; ++i)
+        for (int j = 0; j < 4; ++j)
+        {
+            float v = 0.0f;
+            for (int k = 0; k < 4; ++k)
+                v += a.at(i,k) * b.at(k,j);
+            r.at(i,j) = v;
+        }
+    return r;
+}
