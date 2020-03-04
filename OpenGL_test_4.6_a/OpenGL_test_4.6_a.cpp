@@ -444,8 +444,8 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         //////////////////////
         //Patch sphere
         {
-            const auto tcsShader = makeSingleShader(GL_TESS_CONTROL_SHADER,    "SphereTesselationControlShader.glsl",    "Sphere_TCS");
-            const auto tesShader = makeSingleShader(GL_TESS_EVALUATION_SHADER, "SphereTesselationEvaluationShader.glsl", "Sphere_TES");
+            const auto tcsShader = makeSingleShader(GL_TESS_CONTROL_SHADER,    "SphereTesselationControlShader2.glsl",    "Sphere_TCS");
+            const auto tesShader = makeSingleShader(GL_TESS_EVALUATION_SHADER, "SphereTesselationEvaluationShader2.glsl", "Sphere_TES");
             const auto vertexShader = makeSingleShader(GL_VERTEX_SHADER, "SphereTesselationVertexShader.glsl", "Sphere_Vertex");
             const auto fragmentShader = makeSingleShader(GL_FRAGMENT_SHADER, "SphereTesselationFragmentShader.glsl", "Sphere_Fragment");
             
@@ -461,7 +461,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             checkGLErrors();
 
             glUniform1f(glGetUniformLocation(shaderProgram, "uDetail"), 10.0f);
-            glUniform1f(glGetUniformLocation(shaderProgram, "uScale"), 10.0f);
+//            glUniform1f(glGetUniformLocation(shaderProgram, "uScale"), 100.0f);
 
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, unitMatrix4x4.data());
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
@@ -474,8 +474,8 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             glPatchParameteri(GL_PATCH_VERTICES, 1); // #of vertices in each patch
             glBegin(GL_PATCHES);
 //                glVertex4f(0.0f, 0.0f, 0.0f, 100.0f);
-                glVertex4f(0.0f, 0.0f, 0.0f, 1.0f);
-                glVertex4f(0.0f, 0.0f, -50.0f, 5.0f);
+                glVertex4f(0.0f, 0.0f, 0.0f, 10.0f);
+                glVertex4f(0.0f, 0.0f, -50.0f, 50.0f);
 //                glVertex4f(0.0f, 0.0f, 50.0f, 1000.0f);
             glEnd();
         }

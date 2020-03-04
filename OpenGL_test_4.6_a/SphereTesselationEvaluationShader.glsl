@@ -7,7 +7,7 @@ patch in vec3 tcCenter;
 
 out vec3 teNormal;
 
-uniform float uScale;
+//uniform float uScale;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -26,7 +26,7 @@ void main( )
 	float cosphi = cos(phi);
 	vec3 xyz = vec3( cosphi*cos(theta), sin(phi), cosphi*sin(theta) );
 	teNormal = xyz;
-	xyz *= ( uScale * tcRadius );
+	xyz *= ( tcRadius );
 	xyz += tcCenter;
 	gl_Position = projectionMatrix*viewMatrix*modelMatrix* vec4( xyz,1. );
 }

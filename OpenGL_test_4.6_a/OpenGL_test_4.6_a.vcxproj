@@ -208,7 +208,9 @@
     <None Include="MeshFragmentShader.glsl" />
     <None Include="MeshVertexShader.glsl" />
     <None Include="SphereTesselationControlShader.glsl" />
+    <None Include="SphereTesselationControlShader2.glsl" />
     <None Include="SphereTesselationEvaluationShader.glsl" />
+    <None Include="SphereTesselationEvaluationShader2.glsl" />
     <None Include="SphereTesselationFragmentShader.glsl" />
     <None Include="SphereTesselationVertexShader.glsl" />
   </ItemGroup>
