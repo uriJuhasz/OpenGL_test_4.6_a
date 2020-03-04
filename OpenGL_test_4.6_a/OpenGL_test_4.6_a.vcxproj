@@ -207,6 +207,10 @@
     <None Include="LineVertexShader.glsl" />
     <None Include="MeshFragmentShader.glsl" />
     <None Include="MeshVertexShader.glsl" />
+    <None Include="SphereTesselationControlShader.glsl" />
+    <None Include="SphereTesselationEvaluationShader.glsl" />
+    <None Include="SphereTesselationFragmentShader.glsl" />
+    <None Include="SphereTesselationVertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />

@@ -47,6 +47,10 @@
     <None Include="EdgeVertexShader.glsl" />
     <None Include="LineVertexShader.glsl" />
     <None Include="EdgeGeometryShader.glsl" />
+    <None Include="SphereTesselationControlShader.glsl" />
+    <None Include="SphereTesselationEvaluationShader.glsl" />
+    <None Include="SphereTesselationVertexShader.glsl" />
+    <None Include="SphereTesselationFragmentShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />

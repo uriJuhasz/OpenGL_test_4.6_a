@@ -89,7 +89,12 @@ int main()
                             glGetIntegerv(GL_SHADER_BINARY_FORMATS, binaryFormats.data());
                             cout << " OpenGL Binary formats:" << endl;
                             for (int i = 0; i < numBinaryShaderFormats; ++i)
-                                cout << "   " <<  ((binaryFormats[i]== GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR" : "Unknown"+to_string(binaryFormats[i]) );
+                                cout << "   " <<  ((binaryFormats[i]== GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR" : "Unknown"+to_string(binaryFormats[i]) ) << endl;
+                        }
+                        {
+                            GLint maxPatchVertices = 0;
+                            glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
+                            cout << "  OpenGL max patch vertices: " << maxPatchVertices;
                         }
                     }
 
@@ -171,40 +176,47 @@ template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
     return s;
 }
 
-GLuint makeShaderProgram(const string& vertexShaderSource, const string& fragmentShaderSource, const string& title)
+static const string shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\)";
+GLuint makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title)
 {
-    const auto vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    const auto vertexSourcePtr = vertexShaderSource.c_str();
-    glShaderSource(vertexShader, 1, &vertexSourcePtr, nullptr);
-    glCompileShader(vertexShader);
-    checkShaderErrors(title+"_Vertex", vertexShader);
+    const auto shader = glCreateShader(shaderType);
+    const auto shaderSource = loadShader(shaderBasePath + shaderPath);
+    const auto shaderSourcePtr = shaderSource.c_str();
+    glShaderSource(shader, 1, &shaderSourcePtr, nullptr);
+    glCompileShader(shader);
+    checkShaderErrors(title, shader);
 
     checkGLErrors();
-
-    const auto fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    const auto fragmentSourcePtr = fragmentShaderSource.c_str();
-    glShaderSource(fragmentShader, 1, &fragmentSourcePtr, nullptr);
-    glCompileShader(fragmentShader);
-    checkShaderErrors(title + "_Fragment", fragmentShader);
-
-    checkGLErrors();
-
+    return shader;
+}
+GLuint makeShaderProgram(const string& vertexShaderFilename, const string& fragmentShaderFilename, const string& geometryShaderFilename, const string& title)
+{
     const auto shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, fragmentShader);
-    glAttachShader(shaderProgram, vertexShader);
+
+    {
+        const auto vertexShader = makeSingleShader(GL_VERTEX_SHADER, vertexShaderFilename, title + "_Vertex");
+        glAttachShader(shaderProgram, vertexShader);
+    }
+
+    {
+        const auto fragmentShader = makeSingleShader(GL_FRAGMENT_SHADER, fragmentShaderFilename, title + "_Fragment");
+        glAttachShader(shaderProgram, fragmentShader);
+    }
+
+    if (!geometryShaderFilename.empty())
+    {
+        const auto geometryShader = makeSingleShader(GL_GEOMETRY_SHADER, geometryShaderFilename, title + "_Geometry");
+        glAttachShader(shaderProgram, geometryShader);
+    }
+
+
     glLinkProgram(shaderProgram);
 
     checkGLErrors();
 
     return shaderProgram;
 }
-static const auto shaderPath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\)";
-GLuint makeAndLoadShaderProgram(const string& vertexShaderFileName, const string& fragmentShaderFileName, const string& title)
-{
-    const auto vertexShaderSource = loadShader(shaderPath + vertexShaderFileName);
-    const auto fragmentShaderSource = loadShader(shaderPath + fragmentShaderFileName);
-    return makeShaderProgram(vertexShaderSource, fragmentShaderSource, title);
-}
+
 
 float viewerZOffset = 0.0f; //Ugly
 float viewerZAngle = 0.0f;
@@ -288,21 +300,10 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     ////////////////////////////////////////////////////////////////
     //Shaders
     ////////////////////////////////////////////////////////////////
-    const auto meshShaderProgram = makeAndLoadShaderProgram("MeshVertexShader.glsl", "MeshFragmentShader.glsl", "mesh");
-    const auto edgeShaderProgram = makeAndLoadShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "edge");
-    const auto lineShaderProgram = makeAndLoadShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "line");
+    const auto meshShaderProgram = makeShaderProgram("MeshVertexShader.glsl", "MeshFragmentShader.glsl", "", "mesh");
+    const auto edgeShaderProgram = makeShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "EdgeGeometryShader.glsl", "edge");
+    const auto lineShaderProgram = makeShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "", "line");
 
-    {
-        const auto shaderSource = loadShader(shaderPath + string("EdgeGeometryShader.glsl"));
-        const auto shader = glCreateShader(GL_GEOMETRY_SHADER);
-        const auto shaderSourcePtr = shaderSource.c_str();
-        glShaderSource(shader, 1, &shaderSourcePtr, nullptr);
-        glCompileShader(shader);
-        checkShaderErrors(string("Edge") + "_GEOMETRY", shader);
-        glAttachShader(edgeShaderProgram, shader);
-        glLinkProgram(edgeShaderProgram);
-        checkGLErrors();
-    }
     /////////////
  /*   {
         vector<int> vertexNumFaces(numVertices, 0);
@@ -441,6 +442,45 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
 
         //////////////////////
+        //Patch sphere
+        {
+            const auto tcsShader = makeSingleShader(GL_TESS_CONTROL_SHADER,    "SphereTesselationControlShader.glsl",    "Sphere_TCS");
+            const auto tesShader = makeSingleShader(GL_TESS_EVALUATION_SHADER, "SphereTesselationEvaluationShader.glsl", "Sphere_TES");
+            const auto vertexShader = makeSingleShader(GL_VERTEX_SHADER, "SphereTesselationVertexShader.glsl", "Sphere_Vertex");
+            const auto fragmentShader = makeSingleShader(GL_FRAGMENT_SHADER, "SphereTesselationFragmentShader.glsl", "Sphere_Fragment");
+            
+            const auto shaderProgram = glCreateProgram();
+            glAttachShader(shaderProgram, tcsShader);
+            glAttachShader(shaderProgram, tesShader);
+            glAttachShader(shaderProgram, vertexShader);
+            glAttachShader(shaderProgram, fragmentShader);
+            glLinkProgram(shaderProgram);
+            checkGLErrors();
+
+            glUseProgram(shaderProgram);
+            checkGLErrors();
+
+            glUniform1f(glGetUniformLocation(shaderProgram, "uDetail"), 10.0f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "uScale"), 10.0f);
+
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, unitMatrix4x4.data());
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+
+            checkGLErrors();
+
+            glDisable(GL_CULL_FACE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glPatchParameteri(GL_PATCH_VERTICES, 1); // #of vertices in each patch
+            glBegin(GL_PATCHES);
+//                glVertex4f(0.0f, 0.0f, 0.0f, 100.0f);
+                glVertex4f(0.0f, 0.0f, 0.0f, 1.0f);
+                glVertex4f(0.0f, 0.0f, -50.0f, 5.0f);
+//                glVertex4f(0.0f, 0.0f, 50.0f, 1000.0f);
+            glEnd();
+        }
+
+        //////////////////////
         //Render
         glBindVertexArray(vao);
         checkGLErrors();
@@ -449,7 +489,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glPolygonMode(GL_FRONT, GL_FILL);
         glEnable(GL_CULL_FACE);
         const auto numFaces = mesh.numFaces();
-        glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
+//        glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
 
         glUseProgram(edgeShaderProgram);
