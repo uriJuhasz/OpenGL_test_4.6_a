@@ -7,6 +7,8 @@ using std::array;
 template<unsigned int D> class Vector final
 {
 public:
+    typedef Vector<D> MyType;
+
     Vector() : m_value()
     {
         for (int i = 0; i < D; ++i)
@@ -26,6 +28,31 @@ public:
     }
     const float& operator[](const int i) const { return m_value[i]; }
     float& operator[](const int i) { return m_value[i]; }
+
+    MyType& operator+=(const MyType& other)
+    {
+        for (int i = 0; i < D; ++i)
+            m_value[i] += other[i];
+        return *this;
+    }
+    MyType& operator-=(const MyType& other)
+    {
+        for (int i = 0; i < D; ++i)
+            m_value[i] -= other[i];
+        return *this;
+    }
+    MyType& operator*=(const float s)
+    {
+        for (int i = 0; i < D; ++i)
+            m_value[i] *= s;
+        return *this;
+    }
+    MyType& operator/=(const float s)
+    {
+        for (int i = 0; i < D; ++i)
+            m_value[i] /= s;
+        return *this;
+    }
 
     const float* data() const { return m_value.data(); }
     float* data() { return m_value.data(); }

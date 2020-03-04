@@ -32,11 +32,11 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh);
 
 int main()
 {
-    cout << "start" << endl;
-
+    cout << "Start" << endl;
+    cout << endl;
 //    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
     const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
-//    const auto fileName = R"(C:\Users\rossd\Downloads\e9886310c15534884ace0361cbea72f7\Scorpio N05808.3ds)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\Scorpio N05808.3ds)";
 //    const auto fileName = R"(C:\Users\rossd\Downloads\fc6bdb2aea4b58c23a3e8d4e87fba763\Elephant N090813.3DS)";
 //    const auto fileName = R"(C:\Users\rossd\Downloads\a8cfcfd0082c61bad7aa4fbd1c57a277\Ship hms victory frigate nelson N270214.3DS)";
 //    const auto fileName = R"(C:\Users\rossd\Downloads\e6eadc4ff882b84784dd133168c1f099\Autogenerator BelMag N170211.3DS)";
@@ -71,11 +71,27 @@ int main()
                     glewExperimental = GL_TRUE;
                     glewInit();
 
-                    // get version info
-                    cout << "  OpenGL vendor  : " << glGetString(GL_VENDOR) << endl;
-                    cout << "  OpenGL renderer: " << glGetString(GL_RENDERER) << endl;
-                    cout << "  OpenGL version : " << glGetString(GL_VERSION) << endl;
-                    cout << "  glsl   version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+                    {
+                        // get version info
+                        cout << endl;
+
+                        cout << "  OpenGL vendor  : " << glGetString(GL_VENDOR) << endl;
+                        cout << "  OpenGL renderer: " << glGetString(GL_RENDERER) << endl;
+                        cout << "  OpenGL version : " << glGetString(GL_VERSION) << endl;
+                        cout << "  GLSL   version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+
+                        cout << endl;
+                        int numBinaryShaderFormats;
+                        glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &numBinaryShaderFormats);
+                        if (numBinaryShaderFormats)
+                        {
+                            vector<int> binaryFormats(numBinaryShaderFormats);
+                            glGetIntegerv(GL_SHADER_BINARY_FORMATS, binaryFormats.data());
+                            cout << " OpenGL Binary formats:" << endl;
+                            for (int i = 0; i < numBinaryShaderFormats; ++i)
+                                cout << "   " <<  ((binaryFormats[i]== GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR" : "Unknown"+to_string(binaryFormats[i]) );
+                        }
+                    }
 
                     testOpenGL0(window, *meshPtr);
                 }
@@ -182,9 +198,17 @@ GLuint makeShaderProgram(const string& vertexShaderSource, const string& fragmen
 
     return shaderProgram;
 }
+GLuint makeAndLoadShaderProgram(const string& vertexShaderFileName, const string& fragmentShaderFileName, const string& title)
+{
+    static const auto shaderPath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\)";
+    const auto vertexShaderSource = loadShader(shaderPath + vertexShaderFileName);
+    const auto fragmentShaderSource = loadShader(shaderPath + fragmentShaderFileName);
+    return makeShaderProgram(vertexShaderSource, fragmentShaderSource, title);
+}
 
 float viewerZOffset = 0.0f; //Ugly
 float viewerZAngle = 0.0f;
+Vector2 viewerPanOffset;
 
 void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 {
@@ -253,16 +277,9 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     ////////////////////////////////////////////////////////////////
     //Shaders
     ////////////////////////////////////////////////////////////////
-    const auto shaderPath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\)";
-    const auto meshVertexShaderSource = loadShader(shaderPath+string("MeshVertexShader.glsl"));
-    const auto meshFragmentShaderSource = loadShader(shaderPath + string("MeshFragmentShader.glsl"));
-    const auto meshShaderProgram = makeShaderProgram(meshVertexShaderSource.c_str(), meshFragmentShaderSource, "mesh");
-    const auto edgeVertexShaderSource = loadShader(shaderPath + string("EdgeVertexShader.glsl"));
-    const auto edgeFragmentShaderSource = loadShader(shaderPath + string("EdgeFragmentShader.glsl"));
-    const auto edgeShaderProgram = makeShaderProgram(edgeVertexShaderSource, edgeFragmentShaderSource, "edge");
-    const auto lineVertexShaderSource = loadShader(shaderPath + string("LineVertexShader.glsl"));
-    const auto lineFragmentShaderSource = loadShader(shaderPath + string("LineFragmentShader.glsl"));
-    const auto lineShaderProgram = makeShaderProgram(lineVertexShaderSource, lineFragmentShaderSource, "line");
+    const auto meshShaderProgram = makeAndLoadShaderProgram("MeshVertexShader.glsl", "MeshFragmentShader.glsl", "mesh");
+    const auto edgeShaderProgram = makeAndLoadShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "edge");
+    const auto lineShaderProgram = makeAndLoadShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "line");
 
     /////////////
  /*   {
@@ -337,7 +354,11 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         const auto cosx = cosf(viewerZAngle);
         const auto sinx = sinf(viewerZAngle);
 //        const auto vd = 3.0f;
-        const Vector3 viewerPosition = modelCenter + Vector3(cosx,0,sinx) * (modelRadius * 2 + viewerZOffset);// (vd * cosx, 0, vd * sinx);
+        const Vector3 viewerPosition = 
+            modelCenter
+            + (Vector3(cosx,0,sinx) * (modelRadius * 2 + viewerZOffset)) 
+//            + Vector3(viewerPanOffset[0], viewerPanOffset[1],0.0f)
+            ;
         const Vector3 up(0.0f, 1.0f, 0.0f);
         const Vector3 target = modelCenter;// (0.0f, 0.0f, 0.0f);
         const auto forward = normalize(target - viewerPosition);
@@ -507,11 +528,19 @@ Vector2 oldPos;
 void glfwMousePosCallback(GLFWwindow* window, double xpos, double ypos)
 {
     const Vector2 newPos(toFloat(xpos), toFloat(ypos));
-    if (oldPosValid && (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE)==GLFW_PRESS))
+    if (oldPosValid)
+        
     {
         const auto delta = newPos - oldPos;
-        constexpr float factor = 0.02f;
-        viewerZAngle += factor * delta[0];
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+        {
+            constexpr float factor = 0.02f;
+            viewerZAngle += factor * delta[0];
+        }
+        else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+        {
+            viewerPanOffset += delta;
+        }
     }
     oldPos = newPos;
     oldPosValid = true;
