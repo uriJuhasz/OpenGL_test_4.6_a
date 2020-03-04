@@ -210,24 +210,28 @@ float viewerZOffset = 0.0f; //Ugly
 float viewerZAngle = 0.0f;
 Vector2 viewerPanOffset;
 
-void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
+
+GLuint insertMesh(const Mesh& mesh)
 {
-    glEnable(GL_DEBUG_OUTPUT);
-
-    // tell GL to only draw onto a pixel if the shape is closer to the viewer
-    glEnable(GL_DEPTH_TEST); // enable depth-testing
-
-    //Vertex buffers
-//    const int numVertices = static_cast<int>(vertices.size());
     const int numVertices = mesh.numVertices();
     const auto& vertices = mesh.m_vertices;
-    
+
+    GLuint vao = 0;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    //Vertex positions
     GLuint vertexBuffer = 0;
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(vertices[0]), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(vertices[0]), vertices.data(), GL_STATIC_DRAW);
+    checkGLErrors();
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     checkGLErrors();
 
+    //Vertex normals
     const auto& normals = mesh.m_normals;
     assert(normals.size() == numVertices);
 
@@ -236,44 +240,51 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
     glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(normals[0]), normals.data(), GL_STATIC_DRAW);
     checkGLErrors();
-
-    const auto& uvCoords = mesh.m_textureCoords;
-    assert(uvCoords.size() == numVertices);
-
-    GLuint uvBuffer;
-    glGenBuffers(1, &uvBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(uvCoords[0]), uvCoords.data(), GL_STATIC_DRAW);
-    checkGLErrors();
-
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    checkGLErrors();
-
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0, nullptr);
     checkGLErrors();
 
+    //UV coords
+    const auto& uvCoords = mesh.m_textureCoords;
+    assert(uvCoords.size() == numVertices);
+
+    GLuint uvcoordBuffer;
+    glGenBuffers(1, &uvcoordBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvcoordBuffer);
+    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(uvCoords[0]), uvCoords.data(), GL_STATIC_DRAW);
+    checkGLErrors();
+
     glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvcoordBuffer);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, nullptr);
     checkGLErrors();
 
+    //Faces
     const auto& faces = mesh.m_faces;
     const int numFaces = mesh.numFaces();
     GLuint fao;
     glGenBuffers(1, &fao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fao);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numFaces*sizeof(faces[0]), faces.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numFaces * sizeof(faces[0]), faces.data(), GL_STATIC_DRAW);
 
     checkGLErrors();
+    return vao;
+}
+void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
+{
+    ////////////////////////////////////
+    //General scene setup
+    glEnable(GL_DEBUG_OUTPUT);
 
+    // tell GL to only draw onto a pixel if the shape is closer to the viewer
+    glEnable(GL_DEPTH_TEST); // enable depth-testing
+
+    /////////////////////////////////////////
+    /////////////////////////////////////////
+    //Mesh setup
+    //Vertex buffers
+    const auto vao = insertMesh(mesh);
     ////////////////////////////////////////////////////////////////
     //Shaders
     ////////////////////////////////////////////////////////////////
@@ -293,8 +304,11 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
                 cout << "   Vertex " << vi << " is an orphan";
     }
     */
+    const auto& vertices = mesh.m_vertices;
+    const auto numVertices = mesh.numVertices();
     array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
     {
+        const auto& vertices = mesh.m_vertices;
         for (int vi = 1; vi < numVertices; ++vi)
         {
             const auto& vertex = vertices[vi];
@@ -313,7 +327,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
 
     cout << endl;
-    cout << " Model: V=" << numVertices << " F=" << numFaces;
+    cout << " Model: V=" << mesh.numVertices() << " F=" << mesh.numFaces();
     cout << "  center: " << modelCenter << endl;
     cout << "  radius: " << modelRadius << endl;
     float theta = 0;
@@ -423,6 +437,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glDepthFunc(GL_LESS);
         glPolygonMode(GL_FRONT, GL_FILL);
         glEnable(GL_CULL_FACE);
+        const auto numFaces = mesh.numFaces();
         glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
 
@@ -447,7 +462,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glDepthFunc(GL_LEQUAL);
         glEnable(GL_POLYGON_OFFSET_LINE);
         glPolygonOffset(-1.0, 0.0);
-//        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
         checkGLErrors();
 
         glBindVertexArray(0);

@@ -1,5 +1,5 @@
 #pragma once
-
+#pragma warning(disable: 26451)
 #include <array>
 
 class Matrix4x4 final
