@@ -1,4 +1,5 @@
 #version 400 compatibility
+
 layout( quads, equal_spacing, ccw) in;
 
 patch in float tcRadius;
@@ -19,7 +20,7 @@ void main( )
 	vec3 p = gl_in[0].gl_Position.xyz;
 	float u = gl_TessCoord.x;
 	float v = gl_TessCoord.y;
-	float w = gl_TessCoord.z;
+//	float w = gl_TessCoord.z;
 	float phi = pi * ( u - .5 );
 	float theta = 2. * pi * ( v - .5 );
 	float cosphi = cos(phi);
