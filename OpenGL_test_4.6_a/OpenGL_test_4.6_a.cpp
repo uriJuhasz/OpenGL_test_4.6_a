@@ -189,7 +189,7 @@ template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
     return s;
 }
 
-static const string shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\)";
+static const string shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\shaders\)";
 GLuint makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title)
 {
     const auto shader = glCreateShader(shaderType);
@@ -460,7 +460,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
         //////////////////////
         //Patch sphere
-        constexpr bool renderSphere = false;
+        constexpr bool renderSphere = true;
         if (renderSphere)
         {
             const auto tcsShader = makeSingleShader(GL_TESS_CONTROL_SHADER,    "SphereTesselationControlShader2.glsl",    "Sphere_TCS");
@@ -504,6 +504,8 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         constexpr bool renderMesh = true;
         if (renderMesh)
         {
+            glUseProgram(meshShaderProgram);
+            checkGLErrors();
             glBindVertexArray(vao);
             checkGLErrors();
 
@@ -515,7 +517,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             checkGLErrors();
         }
 
-        constexpr bool renderWireframe = false;
+        constexpr bool renderWireframe = true;
         if (renderWireframe)
         {
             glUseProgram(edgeShaderProgram);

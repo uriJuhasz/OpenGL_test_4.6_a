@@ -40,20 +40,20 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MeshVertexShader.glsl" />
-    <None Include="MeshFragmentShader.glsl" />
-    <None Include="EdgeFragmentShader.glsl" />
-    <None Include="LineFragmentShader.glsl" />
-    <None Include="EdgeVertexShader.glsl" />
-    <None Include="LineVertexShader.glsl" />
-    <None Include="EdgeGeometryShader.glsl" />
-    <None Include="SphereTesselationControlShader.glsl" />
-    <None Include="SphereTesselationVertexShader.glsl" />
-    <None Include="SphereTesselationFragmentShader.glsl" />
-    <None Include="SphereTesselationEvaluationShader.glsl" />
-    <None Include="SphereTesselationEvaluationShader2.glsl" />
-    <None Include="SphereTesselationControlShader2.glsl" />
-    <None Include="MeshGeometryShader.glsl" />
+    <None Include="shaders\EdgeFragmentShader.glsl" />
+    <None Include="shaders\EdgeGeometryShader.glsl" />
+    <None Include="shaders\EdgeVertexShader.glsl" />
+    <None Include="shaders\LineFragmentShader.glsl" />
+    <None Include="shaders\LineVertexShader.glsl" />
+    <None Include="shaders\MeshFragmentShader.glsl" />
+    <None Include="shaders\MeshGeometryShader.glsl" />
+    <None Include="shaders\SphereTesselationControlShader.glsl" />
+    <None Include="shaders\SphereTesselationControlShader2.glsl" />
+    <None Include="shaders\SphereTesselationEvaluationShader.glsl" />
+    <None Include="shaders\SphereTesselationEvaluationShader2.glsl" />
+    <None Include="shaders\SphereTesselationFragmentShader.glsl" />
+    <None Include="shaders\SphereTesselationVertexShader.glsl" />
+    <None Include="shaders\MeshVertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />
