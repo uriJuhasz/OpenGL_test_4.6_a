@@ -64,13 +64,17 @@ unique_ptr<Mesh> MeshLoader::loadMesh(const string& fileName)
 				const int numFaces = toInt(aiMesh.mNumFaces);
 
 				const bool useMesh = !result && numFaces > 0 && hasTriangles;
-				cout << "  " << mi << " : "
+				cout << "  " << mi << " : \"" << aiMesh.mName.C_Str() << "\""
 					<< " #v= " << numVertices
 					<< " #f= " << numFaces
 					<< " primitives:"
 					<< nameIfHas(hasPoints, " points")
 					<< nameIfHas(hasLines, " lines")
 					<< nameIfHas(hasTriangles, " triangles")
+					<< " materialID: " << aiMesh.mMaterialIndex
+					<< nameIfHas(aiMesh.HasVertexColors(0), " hasColors")
+					<< nameIfHas(aiMesh.HasTangentsAndBitangents(), " hasTangents")
+					<< nameIfHas(aiMesh.HasBones(), " demBones")
 					<< endl
 					;
 				if (useMesh)
