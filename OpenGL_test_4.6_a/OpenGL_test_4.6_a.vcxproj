@@ -201,11 +201,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="EdgeFragmentShader.glsl" />
+    <None Include="EdgeGeometryShader.glsl" />
     <None Include="EdgeVertexShader.glsl" />
     <None Include="LineFragmentShader.glsl" />
     <None Include="LineVertexShader.glsl" />
     <None Include="MeshFragmentShader.glsl" />
     <None Include="MeshVertexShader.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

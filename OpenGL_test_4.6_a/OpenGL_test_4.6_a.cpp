@@ -198,9 +198,9 @@ GLuint makeShaderProgram(const string& vertexShaderSource, const string& fragmen
 
     return shaderProgram;
 }
+static const auto shaderPath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\)";
 GLuint makeAndLoadShaderProgram(const string& vertexShaderFileName, const string& fragmentShaderFileName, const string& title)
 {
-    static const auto shaderPath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\)";
     const auto vertexShaderSource = loadShader(shaderPath + vertexShaderFileName);
     const auto fragmentShaderSource = loadShader(shaderPath + fragmentShaderFileName);
     return makeShaderProgram(vertexShaderSource, fragmentShaderSource, title);
@@ -292,6 +292,17 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     const auto edgeShaderProgram = makeAndLoadShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "edge");
     const auto lineShaderProgram = makeAndLoadShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "line");
 
+    {
+        const auto shaderSource = loadShader(shaderPath + string("EdgeGeometryShader.glsl"));
+        const auto shader = glCreateShader(GL_GEOMETRY_SHADER);
+        const auto shaderSourcePtr = shaderSource.c_str();
+        glShaderSource(shader, 1, &shaderSourcePtr, nullptr);
+        glCompileShader(shader);
+        checkShaderErrors(string("Edge") + "_GEOMETRY", shader);
+        glAttachShader(edgeShaderProgram, shader);
+        glLinkProgram(edgeShaderProgram);
+        checkGLErrors();
+    }
     /////////////
  /*   {
         vector<int> vertexNumFaces(numVertices, 0);

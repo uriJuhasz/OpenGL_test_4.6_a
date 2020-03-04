@@ -46,5 +46,9 @@
     <None Include="LineFragmentShader.glsl" />
     <None Include="EdgeVertexShader.glsl" />
     <None Include="LineVertexShader.glsl" />
+    <None Include="EdgeGeometryShader.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Todo.txt" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,11 @@
+Frame rate
+
+Material class
+Shader class
+MeshResource class
+Mesh+Visualization class
+
+Geometry shader - e.g. split triangle
+Tesselation shader:
+   Sphere
+   NURBS patches
