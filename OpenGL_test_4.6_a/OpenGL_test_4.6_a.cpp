@@ -94,8 +94,9 @@ int main()
                         {
                             GLint maxPatchVertices = 0;
                             glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
-                            cout << "  OpenGL max patch vertices: " << maxPatchVertices;
+                            cout << "  OpenGL max patch vertices: " << maxPatchVertices << endl;
                         }
+                        cout << endl;
                     }
 
                     testOpenGL0(window, *meshPtr);
@@ -154,13 +155,25 @@ void checkShaderErrors(const string& shaderType, const GLuint s)
         cerr << shaderType << " shader log: " << endl << infoString;
     }
 }
+void checkShaderProgramErrors(const string& shaderType, const GLuint p)
+{
+    int infoLength;
+    glGetProgramiv(p, GL_INFO_LOG_LENGTH, &infoLength);
+    if (infoLength > 0)
+    {
+        vector<char> info(infoLength, ' ');
+        glGetProgramInfoLog(p, infoLength, &infoLength, info.data());
+        const auto infoString = toString(info);
+        cerr << shaderType << " shader program log: " << endl << infoString << endl;
+    }
+}
 
 void checkGLErrors()
 {
     GLenum err = glGetError();
     if (err != GL_NO_ERROR)
     {
-        cerr << " OpenGL error: " << err << gluErrorString(err) << endl;
+        cerr << " OpenGL error " << err << " : " << gluErrorString(err) << endl;
         cerr << "";
     }
 }
@@ -211,6 +224,7 @@ GLuint makeShaderProgram(const string& vertexShaderFilename, const string& fragm
 
 
     glLinkProgram(shaderProgram);
+    checkShaderProgramErrors(title, shaderProgram);
 
     checkGLErrors();
 
@@ -300,7 +314,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     ////////////////////////////////////////////////////////////////
     //Shaders
     ////////////////////////////////////////////////////////////////
-    const auto meshShaderProgram = makeShaderProgram("MeshVertexShader.glsl", "MeshFragmentShader.glsl", "", "mesh");
+    const auto meshShaderProgram = makeShaderProgram("MeshVertexShader.glsl", "MeshFragmentShader.glsl", "MeshGeometryShader.glsl", "mesh");
     const auto edgeShaderProgram = makeShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "EdgeGeometryShader.glsl", "edge");
     const auto lineShaderProgram = makeShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "", "line");
 
@@ -443,6 +457,8 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
         //////////////////////
         //Patch sphere
+        constexpr bool renderSphere = false;
+        if (renderSphere)
         {
             const auto tcsShader = makeSingleShader(GL_TESS_CONTROL_SHADER,    "SphereTesselationControlShader2.glsl",    "Sphere_TCS");
             const auto tesShader = makeSingleShader(GL_TESS_EVALUATION_SHADER, "SphereTesselationEvaluationShader2.glsl", "Sphere_TES");
@@ -482,40 +498,48 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
         //////////////////////
         //Render
-        glBindVertexArray(vao);
-        checkGLErrors();
+        constexpr bool renderMesh = true;
+        if (renderMesh)
+        {
+            glBindVertexArray(vao);
+            checkGLErrors();
 
-        glDepthFunc(GL_LESS);
-        glPolygonMode(GL_FRONT, GL_FILL);
-        glEnable(GL_CULL_FACE);
-        const auto numFaces = mesh.numFaces();
-//        glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
-        checkGLErrors();
+            glDepthFunc(GL_LESS);
+            glPolygonMode(GL_FRONT, GL_FILL);
+            glEnable(GL_CULL_FACE);
+            const auto numFaces = mesh.numFaces();
+            glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
+            checkGLErrors();
+        }
 
-        glUseProgram(edgeShaderProgram);
-        glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+        constexpr bool renderWireframe = false;
+        if (renderWireframe)
+        {
+            glUseProgram(edgeShaderProgram);
+            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
+            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
 
-        glLineWidth(1.0f);
-//        glEnable(GL_BLEND);
-//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//        glEnable(GL_LINE_SMOOTH);
-//        glEnable(GL_POLYGON_SMOOTH);
-//        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-//        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-//        glDisable(GL_CULL_FACE);
-        const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
-        glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, edgeColor.data());
-        checkGLErrors();
+            glLineWidth(1.0f);
+            //        glEnable(GL_BLEND);
+            //        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            //        glEnable(GL_LINE_SMOOTH);
+            //        glEnable(GL_POLYGON_SMOOTH);
+            //        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+            //        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+            //        glDisable(GL_CULL_FACE);
+            const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
+            glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, edgeColor.data());
+            checkGLErrors();
 
-        glPolygonMode(GL_FRONT, GL_LINE);
-        glDepthFunc(GL_LEQUAL);
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glPolygonOffset(-1.0, 0.0);
-        glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
-        checkGLErrors();
-
+            glPolygonMode(GL_FRONT, GL_LINE);
+            glDepthFunc(GL_LEQUAL);
+            glEnable(GL_POLYGON_OFFSET_LINE);
+            glPolygonOffset(-1.0, 0.0);
+            const auto numFaces = mesh.numFaces();
+            glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
+            checkGLErrors();
+        }
         glBindVertexArray(0);
 
         ///////////////////////

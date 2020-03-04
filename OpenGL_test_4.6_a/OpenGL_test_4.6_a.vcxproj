@@ -206,6 +206,7 @@
     <None Include="LineFragmentShader.glsl" />
     <None Include="LineVertexShader.glsl" />
     <None Include="MeshFragmentShader.glsl" />
+    <None Include="MeshGeometryShader.glsl" />
     <None Include="MeshVertexShader.glsl" />
     <None Include="SphereTesselationControlShader.glsl" />
     <None Include="SphereTesselationControlShader2.glsl" />

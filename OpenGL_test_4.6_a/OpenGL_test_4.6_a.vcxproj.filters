@@ -53,6 +53,7 @@
     <None Include="SphereTesselationEvaluationShader.glsl" />
     <None Include="SphereTesselationEvaluationShader2.glsl" />
     <None Include="SphereTesselationControlShader2.glsl" />
+    <None Include="MeshGeometryShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />
