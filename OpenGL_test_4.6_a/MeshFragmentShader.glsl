@@ -9,27 +9,29 @@ struct VertexData
 
 layout (location=1) in VertexData geometryVertex;
 
-
 uniform vec3 light0Position;
+uniform vec3 light0Color;
+uniform float light0SpecularExponent;
+	
 uniform vec3 light1Position;
+uniform vec3 light1Color;
+uniform float light1SpecularExponent;
+
 uniform vec3 viewerPosition;
 
 out vec4 frag_color;
 
-vec3 calculateLight(vec3 lightPosition, vec3 baseColor, vec3 normal)
+vec3 calculateLight(vec3 lightPosition, vec3 lightColor, float lightSpecularExponent, vec3 baseColor, vec3 normal)
 {
 	vec3 lightDirection = normalize(lightPosition-geometryVertex.position);
 	float diffuseLight = dot(lightDirection,normal);
 	vec3 diffuseColor = clamp(diffuseLight * baseColor,0,1);
 
-	const vec3 lightSpecularColor = vec3(1,1,1);
-	const float specularExponent = 10;
-
 	vec3 viewerDirection = normalize(viewerPosition-geometryVertex.position);
 	vec3 reflectedLight = 2*diffuseLight*normal - lightDirection;
 
-	float specularIntensity = pow(clamp(dot(reflectedLight,viewerDirection),0,1),specularExponent);
-	vec3 specularColor = specularIntensity*lightSpecularColor;
+	float specularIntensity = pow(clamp(dot(reflectedLight,viewerDirection),0,1),lightSpecularExponent);
+	vec3 specularColor = specularIntensity*lightColor;
 
 	return clamp(diffuseColor + specularColor,0,1);
 }
@@ -47,7 +49,7 @@ void main() {
 	vec3 normal = normalize(geometryVertex.normal);
 	vec3 baseColor = calculateBaseColor();
 
-	vec3 light0Color = calculateLight(light0Position,baseColor, normal);
-	vec3 light1Color = calculateLight(light1Position,baseColor, normal);
-	frag_color = vec4(light0Color+light1Color,1);
+	vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,baseColor, normal);
+	vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,baseColor, normal);
+	frag_color = vec4(light0Component + light1Component ,1);
 }

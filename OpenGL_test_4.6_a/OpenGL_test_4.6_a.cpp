@@ -351,7 +351,6 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     const Vector3 light0Position = modelCenter + Vector3(0.0f, 1.0f,3.0f) * modelRadius * 2;//Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
     const Vector3 light1Position = modelCenter + Vector3(0.0f, -1.0f,-3.0f) * modelRadius * 2;//Vector3(-1.0f, 0.0f,-3.0f)* modelRadius;
 
-
     cout << endl;
     cout << " Model: V=" << mesh.numVertices() << " F=" << mesh.numFaces();
     cout << "  center: " << modelCenter << endl;
@@ -448,7 +447,11 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         checkGLErrors();
 
         glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Position"), 1, light0Position.data());
+        glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
+        glUniform1f(glGetUniformLocation(meshShaderProgram, "light0SpecularExponent"), 10.0f);
         glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Position"), 1, light1Position.data());
+        glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
+        glUniform1f(glGetUniformLocation(meshShaderProgram, "light1SpecularExponent"), 100.0f);
         checkGLErrors();
 
         glUniform3fv(glGetUniformLocation(meshShaderProgram, "viewerPosition"), 1, viewerPosition.data());

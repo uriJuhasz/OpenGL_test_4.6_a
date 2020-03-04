@@ -27,7 +27,7 @@ void main()
     vec4 p1 = gl_in[1].gl_Position;
     vec4 p2 = gl_in[2].gl_Position;
     vec3 areaNormal = -cross((p2-p0).xyz,(p1-p0).xyz);
-    vec3 normal = normalize(areaNormal) * 0.3f;//length(areaNormal)*1.04.4;
+    vec3 normal = normalize(areaNormal) * 7.3f;//length(areaNormal)*1.04.4;
     vec4 mid = (p0+p1+p2)/3 + vec4(normal,0);
     
     VertexData midVertex = VertexData(
