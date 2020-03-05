@@ -30,6 +30,12 @@ void glfwWindowResizeCallback(GLFWwindow* window, int width, int height)
 
 void testOpenGL0(GLFWwindow* const window, const Mesh& mesh);
 
+GLint glGetUInt(GLenum e)
+{
+    GLint r;
+    glGetIntegerv(e, &r);
+    return r;
+}
 int main()
 {
     cout << "Start" << endl;
@@ -91,11 +97,10 @@ int main()
                             for (int i = 0; i < numBinaryShaderFormats; ++i)
                                 cout << "   " <<  ((binaryFormats[i]== GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR" : "Unknown"+to_string(binaryFormats[i]) ) << endl;
                         }
-                        {
-                            GLint maxPatchVertices = 0;
-                            glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
-                            cout << "  OpenGL max patch vertices: " << maxPatchVertices << endl;
-                        }
+                        cout << "  OpenGL max tessellation level: " << glGetUInt(GL_MAX_TESS_GEN_LEVEL) << endl;
+                        cout << "  OpenGL max patch vertices: " << glGetUInt(GL_MAX_PATCH_VERTICES) << endl;
+                        cout << "  OpenGL max geometry output vertices: " << glGetUInt(GL_MAX_GEOMETRY_OUTPUT_VERTICES) << endl;
+                        cout << "  OpenGL max geometry output components: " << glGetUInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS) << endl;
                         cout << endl;
                     }
 
@@ -364,18 +369,6 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     const auto edgeShaderProgram = makeShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "EdgeGeometryShader.glsl", "edge");
     const auto lineShaderProgram = makeShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "", "line");
 
-    /////////////
- /*   {
-        vector<int> vertexNumFaces(numVertices, 0);
-        for (const auto& face : faces)
-            for (int i = 0; i < 3; ++i)
-                vertexNumFaces[face.m_vis[i]]++;
-
-        for (int vi = 0; vi < numVertices; ++vi)
-            if (vertexNumFaces[vi] == 0)
-                cout << "   Vertex " << vi << " is an orphan";
-    }
-    */
     const auto& vertices = mesh.m_vertices;
     const auto numVertices = mesh.numVertices();
     array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
@@ -408,7 +401,6 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     {
         // wipe the drawing surface clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUseProgram(meshShaderProgram);
         checkGLErrors();
 
         //Setup the view matrix
@@ -489,7 +481,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
         //////////////////////
         //Bezier patch
-        constexpr bool showBezierPatch = true;
+        constexpr bool showBezierPatch = false;
         if (showBezierPatch)
         {
             const auto shaderProgram = makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
@@ -607,7 +599,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
                 checkGLErrors();
             }
 
-            constexpr bool renderWireframe = true;
+            constexpr bool renderWireframe = false;
             if (renderWireframe)
             {
                 glUseProgram(edgeShaderProgram);
@@ -637,7 +629,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             }
             ///////////////////////
             //Bounding box
-            constexpr bool showBoundingBox = true;
+            constexpr bool showBoundingBox = false;
             if (showBoundingBox)
             {
                 glUseProgram(lineShaderProgram);
