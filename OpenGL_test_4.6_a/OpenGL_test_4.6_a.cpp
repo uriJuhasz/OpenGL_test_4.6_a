@@ -329,6 +329,20 @@ GLuint insertMesh(const Mesh& mesh)
     checkGLErrors();
     return vao;
 }
+
+Matrix4x4 makeViewMatrix(const Vector3& viewerPosition, const Vector3& target, const Vector3& up)
+{
+    const auto forward = normalize(target - viewerPosition);
+    const auto right = cross(forward, up);
+
+    return 
+    {
+            right  [0], right  [1], right  [2], -dot(right  ,viewerPosition),
+            up     [0], up     [1], up     [2], -dot(up     ,viewerPosition),
+            forward[0], forward[1], forward[2], -dot(forward,viewerPosition),
+            0.0f      ,0.0f       , 0.0f      , 1.0f
+    };
+}
 void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 {
     ////////////////////////////////////
@@ -397,58 +411,18 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glUseProgram(meshShaderProgram);
         checkGLErrors();
 
-        // Set the projection matrix in the vertex shader.
-        const auto cost = cosf(theta);
-        const auto sint = sinf(theta);
-            //unitMatrix4x4;
-        const auto rotationAroundXBy90Matrix = Matrix4x4{
-                1.0f, 0.0f, 0.0f, 0.0f,
-                0.0f, 0.0f, 1.0f, 0.0f,
-                0.0f,-1.0f, 0.0f, 0.0f,
-                0.0f, 0.0f, 0.0f, 1.0f
-        };
-        const auto rotationAroundYMatrix = Matrix4x4 {
-                cost, 0.0f, sint, 0.0f,
-                0.0f, 1.0f, 0.0f, 0.0f,
-                -sint, 0.0f, cost, 0.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-        };
-        Matrix4x4 modelMatrix =
-            makeTranslationMatrix(modelCenter) *
-            rotationAroundYMatrix *
-            rotationAroundXBy90Matrix *
-            makeTranslationMatrix(-modelCenter)
-            ;
-
         //Setup the view matrix
-//        const auto t2 = theta * 2;
         const auto cosx = cosf(viewerZAngle);
         const auto sinx = sinf(viewerZAngle);
-//        const auto vd = 3.0f;
         const Vector3 viewerPosition = 
             modelCenter
             + (Vector3(cosx,0,sinx) * (modelRadius * 2 + viewerZOffset)) 
-//            + Vector3(viewerPanOffset[0], viewerPanOffset[1],0.0f)
             ;
         const Vector3 up(0.0f, 1.0f, 0.0f);
-        const Vector3 target = modelCenter;// (0.0f, 0.0f, 0.0f);
+        const Vector3 target = modelCenter;
         const auto forward = normalize(target - viewerPosition);
         const auto right = cross(forward, up);
-        if (frameIndex == 0)
-        {
-            cout << "  Viewer:" << viewerPosition << endl;
-            cout << "  target:" << target << endl;
-            cout << "  forward:" << forward << endl;
-            cout << "  up     :" << up << endl;
-            cout << "  right  :" << right << endl;
-        }
-        Matrix4x4 viewMatrix =
-        {
-                right  [0], right  [1], right  [2], -dot(right,viewerPosition),
-                up     [0], up     [1], up     [2], -dot(up,viewerPosition),
-                forward[0], forward[1], forward[2], -dot(forward,viewerPosition),
-                0.0f,0.0f, 0.0f, 1.0f
-        };
+        const auto viewMatrix = makeViewMatrix(viewerPosition, target, up);
                 
         array<int, 4> viewport;
         glGetIntegerv(GL_VIEWPORT,viewport.data());
@@ -472,22 +446,6 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             0.0f, 0.0f, (f+n)/d, -2*f*n/d,
             0.0f, 0.0f, 1.0f, 0.0f
         };
-
-        glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
-        checkGLErrors();
-
-        glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Position"), 1, light0Position.data());
-        glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
-        glUniform1f(glGetUniformLocation(meshShaderProgram, "light0SpecularExponent"), 10.0f);
-        glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Position"), 1, light1Position.data());
-        glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
-        glUniform1f(glGetUniformLocation(meshShaderProgram, "light1SpecularExponent"), 100.0f);
-        checkGLErrors();
-
-        glUniform3fv(glGetUniformLocation(meshShaderProgram, "viewerPosition"), 1, viewerPosition.data());
-        checkGLErrors();
 
 
         //////////////////////
@@ -548,13 +506,30 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             glPatchParameteri(GL_PATCH_VERTICES, 16);
             checkGLErrors();
 
-            const Matrix4x4 modelMatrix = makeTranslationMatrix(Vector3(12.0f, 0.0f, 16.0f));
+            const Matrix4x4 modelMatrix = unitMatrix4x4;// makeTranslationMatrix(Vector3(90.0f, 0.0f, 18.0f));
+
+            const auto cosx = cosf(viewerZAngle);
+            const auto sinx = sinf(viewerZAngle);
+            const Vector3 target(1.5f, 0.0f, 1.5f);
+            const Vector3 viewerPosition =
+                  target
+                + (Vector3(cosx, 0, sinx) * (4.0f + viewerZOffset))
+                ;
+
+
+//            const Vector3 viewerPosition(1.5f, 1.5f, -3.0f);
+            const Vector3 up(0.0f, 1.0f, 0.0f);
+            const auto viewMatrix = makeViewMatrix(viewerPosition, target, up);
+
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
 
             const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
             glUniform3fv(glGetUniformLocation(shaderProgram, "edgeColor"), 1, edgeColor.data());
+            checkGLErrors();
+
+            glUniform1f(glGetUniformLocation(shaderProgram, "tessellationLevel"), 64.0f);
             checkGLErrors();
 
 
@@ -573,95 +548,136 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         }
         //////////////////////
         //Render mesh
-        constexpr bool renderMesh = false;
+        constexpr bool renderMesh = true;
         if (renderMesh)
         {
-            glUseProgram(meshShaderProgram);
-            checkGLErrors();
-            glBindVertexArray(vao);
-            checkGLErrors();
-
-            glDepthFunc(GL_LESS);
-            glPolygonMode(GL_FRONT, GL_FILL);
-            glEnable(GL_CULL_FACE);
-            const auto numFaces = mesh.numFaces();
-            glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
-            checkGLErrors();
-        }
-
-        constexpr bool renderWireframe = false;
-        if (renderWireframe)
-        {
-            glUseProgram(edgeShaderProgram);
-            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
-
-            glLineWidth(1.0f);
-            //        glEnable(GL_BLEND);
-            //        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            //        glEnable(GL_LINE_SMOOTH);
-            //        glEnable(GL_POLYGON_SMOOTH);
-            //        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-            //        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-            //        glDisable(GL_CULL_FACE);
-            const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
-            glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, edgeColor.data());
-            checkGLErrors();
-
-            glPolygonMode(GL_FRONT, GL_LINE);
-            glDepthFunc(GL_LEQUAL);
-            glEnable(GL_POLYGON_OFFSET_LINE);
-            glPolygonOffset(-1.0, 0.0);
-            const auto numFaces = mesh.numFaces();
-            glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
-            checkGLErrors();
-        }
-        glBindVertexArray(0);
-
-        ///////////////////////
-        //Bounding box
-        constexpr bool showBoundingBox = false;
-        if (showBoundingBox)
-        {
-            glUseProgram(lineShaderProgram);
-            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
-            checkGLErrors();
-
-            const auto bb = boundingBox;
-            const array<Vector3, 8> boundingBoxVertices = {
-                Vector3(bb[0][0],bb[0][1],bb[0][2]),
-                Vector3(bb[1][0],bb[0][1],bb[0][2]),
-                Vector3(bb[1][0],bb[1][1],bb[0][2]),
-                Vector3(bb[0][0],bb[1][1],bb[0][2]),
-                Vector3(bb[0][0],bb[0][1],bb[1][2]),
-                Vector3(bb[1][0],bb[0][1],bb[1][2]),
-                Vector3(bb[1][0],bb[1][1],bb[1][2]),
-                Vector3(bb[0][0],bb[1][1],bb[1][2])
+            // Calculate the model matrix for the mesh
+            const auto cost = cosf(theta);
+            const auto sint = sinf(theta);
+            //unitMatrix4x4;
+            const auto rotationAroundXBy90Matrix = Matrix4x4{
+                    1.0f, 0.0f, 0.0f, 0.0f,
+                    0.0f, 0.0f, 1.0f, 0.0f,
+                    0.0f,-1.0f, 0.0f, 0.0f,
+                    0.0f, 0.0f, 0.0f, 1.0f
             };
-
-            const array<int, 24> bbEdges = {
-                0,1, 1,2, 2,3, 3,0,
-                4,5, 5,6, 6,7, 7,4,
-                0,4, 1,5, 2,6, 3,7
+            const auto rotationAroundYMatrix = Matrix4x4{
+                    cost, 0.0f, sint, 0.0f,
+                    0.0f, 1.0f, 0.0f, 0.0f,
+                    -sint, 0.0f, cost, 0.0f,
+                    0.0f, 0.0f, 0.0f, 1.0f,
             };
+            Matrix4x4 modelMatrix =
+                makeTranslationMatrix(modelCenter) *
+                rotationAroundYMatrix *
+                rotationAroundXBy90Matrix *
+                makeTranslationMatrix(-modelCenter)
+                ;
 
-            for (int e = 0; e < 12; ++e)
+            constexpr bool renderMeshFaces = true;
+            if (renderMeshFaces)
             {
-                const auto v0 = boundingBoxVertices[bbEdges[2 * e + 0]];
-                const auto v1 = boundingBoxVertices[bbEdges[2 * e + 1]];
-                glLineWidth(2.0f);
-                glColor3f(1.0f, 0.0f, 0.0f);
-                glBegin(GL_LINES);
-                    glVertex3f(v0[0],v0[1],v0[2]);
-                    glVertex3f(v1[0], v1[1], v1[2]);
-                glEnd();
+                glUseProgram(meshShaderProgram);
+                checkGLErrors();
+
+                glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
+                glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+                glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+                checkGLErrors();
+
+                glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Position"), 1, light0Position.data());
+                glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
+                glUniform1f(glGetUniformLocation(meshShaderProgram, "light0SpecularExponent"), 10.0f);
+                glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Position"), 1, light1Position.data());
+                glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
+                glUniform1f(glGetUniformLocation(meshShaderProgram, "light1SpecularExponent"), 100.0f);
+                checkGLErrors();
+
+                glUniform3fv(glGetUniformLocation(meshShaderProgram, "viewerPosition"), 1, viewerPosition.data());
+                checkGLErrors();
+
+                glBindVertexArray(vao);
+                checkGLErrors();
+
+                glDepthFunc(GL_LESS);
+                glPolygonMode(GL_FRONT, GL_FILL);
+                glEnable(GL_CULL_FACE);
+                const auto numFaces = mesh.numFaces();
+                glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
+                checkGLErrors();
+            }
+
+            constexpr bool renderWireframe = true;
+            if (renderWireframe)
+            {
+                glUseProgram(edgeShaderProgram);
+                glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
+                glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+                glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+
+                glLineWidth(1.0f);
+                //        glEnable(GL_BLEND);
+                //        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                //        glEnable(GL_LINE_SMOOTH);
+                //        glEnable(GL_POLYGON_SMOOTH);
+                //        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+                //        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+                //        glDisable(GL_CULL_FACE);
+                const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
+                glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, edgeColor.data());
+                checkGLErrors();
+
+                glPolygonMode(GL_FRONT, GL_LINE);
+                glDepthFunc(GL_LEQUAL);
+                glEnable(GL_POLYGON_OFFSET_LINE);
+                glPolygonOffset(-1.0, 0.0);
+                const auto numFaces = mesh.numFaces();
+                glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
+                checkGLErrors();
+            }
+            ///////////////////////
+            //Bounding box
+            constexpr bool showBoundingBox = true;
+            if (showBoundingBox)
+            {
+                glUseProgram(lineShaderProgram);
+                glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
+                glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+                glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+                checkGLErrors();
+
+                const auto bb = boundingBox;
+                const array<Vector3, 8> boundingBoxVertices = {
+                    Vector3(bb[0][0],bb[0][1],bb[0][2]),
+                    Vector3(bb[1][0],bb[0][1],bb[0][2]),
+                    Vector3(bb[1][0],bb[1][1],bb[0][2]),
+                    Vector3(bb[0][0],bb[1][1],bb[0][2]),
+                    Vector3(bb[0][0],bb[0][1],bb[1][2]),
+                    Vector3(bb[1][0],bb[0][1],bb[1][2]),
+                    Vector3(bb[1][0],bb[1][1],bb[1][2]),
+                    Vector3(bb[0][0],bb[1][1],bb[1][2])
+                };
+
+                const array<int, 24> bbEdges = {
+                    0,1, 1,2, 2,3, 3,0,
+                    4,5, 5,6, 6,7, 7,4,
+                    0,4, 1,5, 2,6, 3,7
+                };
+
+                for (int e = 0; e < 12; ++e)
+                {
+                    const auto v0 = boundingBoxVertices[bbEdges[2 * e + 0]];
+                    const auto v1 = boundingBoxVertices[bbEdges[2 * e + 1]];
+                    glLineWidth(2.0f);
+                    glColor3f(1.0f, 0.0f, 0.0f);
+                    glBegin(GL_LINES);
+                    glVertex3fv(v0.data());
+                    glVertex3fv(v1.data());
+//                    glVertex3f(v1[0], v1[1], v1[2]);
+                    glEnd();
+                }
             }
         }
-
-
 
         // update other events like input handling 
         glfwPollEvents();
@@ -677,9 +693,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
                 } while (err!= GL_NO_ERROR);
             }
         }
-        
-        
-//        theta += 0.01f;
+ 
         frameIndex++;
     }
 
