@@ -200,6 +200,7 @@
     <ClInclude Include="MeshLoader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\BezierShaderProgram.glsl" />
     <None Include="shaders\EdgeFragmentShader.glsl" />
     <None Include="shaders\EdgeGeometryShader.glsl" />
     <None Include="shaders\EdgeVertexShader.glsl" />

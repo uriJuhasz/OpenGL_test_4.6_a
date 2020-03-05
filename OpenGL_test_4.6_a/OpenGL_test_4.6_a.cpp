@@ -206,20 +206,12 @@ GLuint makeShaderProgram(const string& vertexShaderFilename, const string& fragm
 {
     const auto shaderProgram = glCreateProgram();
 
-    {
-        const auto vertexShader = makeSingleShader(GL_VERTEX_SHADER, vertexShaderFilename, title + "_Vertex");
-        glAttachShader(shaderProgram, vertexShader);
-    }
-
-    {
-        const auto fragmentShader = makeSingleShader(GL_FRAGMENT_SHADER, fragmentShaderFilename, title + "_Fragment");
-        glAttachShader(shaderProgram, fragmentShader);
-    }
+    glAttachShader(shaderProgram, makeSingleShader(GL_VERTEX_SHADER, vertexShaderFilename, title + "_Vertex"));
+    glAttachShader(shaderProgram, makeSingleShader(GL_FRAGMENT_SHADER, fragmentShaderFilename, title + "_Fragment"));
 
     if (!geometryShaderFilename.empty())
     {
-        const auto geometryShader = makeSingleShader(GL_GEOMETRY_SHADER, geometryShaderFilename, title + "_Geometry");
-        glAttachShader(shaderProgram, geometryShader);
+        glAttachShader(shaderProgram, makeSingleShader(GL_GEOMETRY_SHADER, geometryShaderFilename, title + "_Geometry"));
     }
 
 
@@ -231,6 +223,46 @@ GLuint makeShaderProgram(const string& vertexShaderFilename, const string& fragm
     return shaderProgram;
 }
 
+GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
+{
+    const auto shader = glCreateShader(shaderType);
+    const auto ccString = string(
+        (shaderType == GL_VERTEX_SHADER) ? "VS" :
+        (shaderType == GL_TESS_CONTROL_SHADER) ? "TCS" :
+        (shaderType == GL_TESS_EVALUATION_SHADER) ? "TES" :
+        (shaderType == GL_GEOMETRY_SHADER) ? "GS" :
+        (shaderType == GL_FRAGMENT_SHADER) ? "FS" :
+        "");
+    const auto defineString = R"(#version 410\n #define COMPILING_)" + ccString + "\n";
+    array<const char*, 2> ptrs = {
+        defineString.c_str(),
+        shaderSource.c_str()
+    };
+    glShaderSource(shader, 2, ptrs.data(), nullptr);
+    glCompileShader(shader);
+    checkShaderErrors(ccString, shader);
+
+    checkGLErrors();
+    return shader;
+}
+
+GLuint makeTessellationShaderProgram(const string& fileName, const string& title)
+{
+    const auto shaderSource = loadShader(shaderBasePath + fileName);
+    const auto shaderProgram = glCreateProgram();
+
+    glAttachShader(shaderProgram, makeSingleShaderCC(GL_VERTEX_SHADER, shaderSource));
+    glAttachShader(shaderProgram, makeSingleShaderCC(GL_TESS_CONTROL_SHADER, shaderSource));
+    glAttachShader(shaderProgram, makeSingleShaderCC(GL_TESS_EVALUATION_SHADER, shaderSource));
+    glAttachShader(shaderProgram, makeSingleShaderCC(GL_GEOMETRY_SHADER, shaderSource));
+    glAttachShader(shaderProgram, makeSingleShaderCC(GL_FRAGMENT_SHADER, shaderSource));
+    glLinkProgram(shaderProgram);
+    checkShaderProgramErrors(title, shaderProgram);
+
+    checkGLErrors();
+
+    return shaderProgram;
+}
 
 float viewerZOffset = 0.0f; //Ugly
 float viewerZAngle = 0.0f;
@@ -500,7 +532,36 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         }
 
         //////////////////////
-        //Render
+        //Bezier patch
+        {
+            const auto shaderProgram = makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
+            checkGLErrors();
+            glUseProgram(shaderProgram);
+            checkGLErrors();
+
+            const array<Vector3, 16> patchParameters = {
+                Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),
+                Vector3(0,1,1), Vector3(1,-2,1), Vector3(2, 1,1), Vector3(3, 0,1),
+                Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
+                Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
+            };
+            glPatchParameteri(GL_PATCH_VERTICES, 16);
+            checkGLErrors();
+
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, unitMatrix4x4.data());
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+
+            glDisable(GL_CULL_FACE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glBegin(GL_PATCHES);
+            for (int i = 0; i < patchParameters.size(); ++i)
+                glVertex3fv(patchParameters[i].data());
+            glEnd();
+            checkGLErrors();
+        }
+        //////////////////////
+        //Render mesh
         constexpr bool renderMesh = true;
         if (renderMesh)
         {

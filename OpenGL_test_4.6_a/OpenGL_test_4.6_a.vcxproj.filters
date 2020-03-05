@@ -54,6 +54,7 @@
     <None Include="shaders\SphereTesselationFragmentShader.glsl" />
     <None Include="shaders\SphereTesselationVertexShader.glsl" />
     <None Include="shaders\MeshVertexShader.glsl" />
+    <None Include="shaders\BezierShaderProgram.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />
