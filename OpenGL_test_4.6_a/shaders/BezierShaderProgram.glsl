@@ -159,17 +159,24 @@ vec3 calculateLight(vec3 lightPosition, vec3 lightColor, float lightSpecularExpo
 
 	return clamp(diffuseColor + specularColor,0,1);
 }
-
+vec3 calculateBaseColor(vec2 uvCoord)
+{
+	return
+		vec3(1,0,0)*(clamp(1-uvCoord.x-uvCoord.y,0,1) + clamp(uvCoord.x-uvCoord.y,0,1)) +
+		vec3(0,1,0)*(clamp(uvCoord.y-uvCoord.x,0,1) + clamp(uvCoord.x-uvCoord.y,0,1)) +
+		vec3(0,0,1)*(clamp(uvCoord.x+uvCoord.y-1.0f,0,1))
+	;
+}
 void main() 
 {
 	vec2 uvCoord = gVertexData.uvCoord;
 	float radius = length(uvCoord-vec2(0.5,0.5));
-	if (radius>0.5)
+	if (radius<0.2)
 		discard;
 
 	vec3 normal = normalize(gVertexData.normal) *(gl_FrontFacing ? 1 : -1);
 
-	vec3 color = gl_FrontFacing ? frontColor : backColor;
+	vec3 color = gl_FrontFacing ? calculateBaseColor(uvCoord) : vec3(1,1,1)-calculateBaseColor(uvCoord);//backColor;
 
 	vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
 	vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);
