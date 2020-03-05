@@ -269,7 +269,7 @@ GLuint makeTessellationShaderProgram(const string& fileName, const string& title
     return shaderProgram;
 }
 
-float viewerZOffset = 0.0f; //Ugly
+float viewerZOffset = 2.0f; //Ugly
 float viewerZAngle = 0.0f;
 Vector2 viewerPanOffset;
 
@@ -481,7 +481,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
         //////////////////////
         //Bezier patch
-        constexpr bool showBezierPatch = false;
+        constexpr bool showBezierPatch = true;
         if (showBezierPatch)
         {
             const auto shaderProgram = makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
@@ -505,7 +505,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             const Vector3 target(1.5f, 0.0f, 1.5f);
             const Vector3 viewerPosition =
                   target
-                + (Vector3(cosx, 0, sinx) * (4.0f + viewerZOffset))
+                + (Vector3(cosx, 0, sinx) * (1.0f + viewerZOffset))
                 ;
 
 
@@ -517,8 +517,23 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
 
-            const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
-            glUniform3fv(glGetUniformLocation(shaderProgram, "edgeColor"), 1, edgeColor.data());
+            const Vector3 light0Position = target + Vector3(20.0f,  1000.0f, -20.0f);
+            const Vector3 light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "light0Position"), 1, light0Position.data());
+            glUniform3fv(glGetUniformLocation(shaderProgram, "light0Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
+            glUniform1f(glGetUniformLocation(shaderProgram, "light0SpecularExponent"), 50.0f);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "light1Position"), 1, light1Position.data());
+            glUniform3fv(glGetUniformLocation(shaderProgram, "light1Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
+            glUniform1f(glGetUniformLocation(shaderProgram, "light1SpecularExponent"), 100.0f);
+            checkGLErrors();
+
+            glUniform3fv(glGetUniformLocation(shaderProgram, "viewerPosition"), 1, viewerPosition.data());
+            checkGLErrors();
+
+            const Vector3 frontColor(1.0f, 0.0f, 1.0f);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "frontColor"), 1, frontColor.data());
+            const Vector3 backColor(0.1f, 0.3f, 0.3f);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "backColor"), 1, backColor.data());
             checkGLErrors();
 
             glUniform1f(glGetUniformLocation(shaderProgram, "tessellationLevel"), 64.0f);
@@ -526,7 +541,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
 
             glDisable(GL_CULL_FACE);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// LINE);
             glLineWidth(1.0f);
 
             glBegin(GL_PATCHES);
@@ -540,7 +555,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         }
         //////////////////////
         //Render mesh
-        constexpr bool renderMesh = true;
+        constexpr bool renderMesh = false;
         if (renderMesh)
         {
             // Calculate the model matrix for the mesh
@@ -695,7 +710,7 @@ float toFloat(const double d) { return static_cast<float>(d); }
 void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     constexpr float factor = 50.0f;
-    viewerZOffset -= toFloat(yoffset);
+    viewerZOffset = clamp(viewerZOffset - toFloat(yoffset), -0.0f, 10.0f);
 }
 
 bool oldPosValid = false;

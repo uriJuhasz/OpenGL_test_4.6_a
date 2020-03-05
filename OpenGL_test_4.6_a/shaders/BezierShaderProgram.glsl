@@ -1,3 +1,11 @@
+struct VertexData
+{
+    vec3 position;
+    vec3 normal;
+    vec2 uvCoord;
+};
+
+
 #ifdef COMPILING_VS
 
 layout (location = 0) in vec3 position;
@@ -32,7 +40,7 @@ void main( )
 
 layout( quads, equal_spacing, ccw) in;
 
-out vec3 teNormal;
+out VertexData teVertexData;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -79,21 +87,20 @@ void main( )
 	vec4 bv = makeVecT0(v);
 	vec4 dbv = makeVecT1(v);
 
-	// finally, we get to compute something:
 	vec4 position = someOp(P, bu,bv);
-//	gl_Position = (projectionMatrix * viewMatrix * modelMatrix) * position;
 
-
-	vec4 dpdu = someOp(P, dbu,dbv);
+	vec4 dpdu = someOp(P, dbu, bv);
 	vec4 dpdv = someOp(P, bu, dbv);
 
+	vec4 worldPosition = modelMatrix*position;
+	gl_Position = (projectionMatrix * viewMatrix) * worldPosition;
 
-	teNormal = normalize( cross( dpdu.xyz, dpdv.xyz ) );
+	teVertexData = VertexData(
+	    worldPosition.xyz,
+		(modelMatrix*vec4(normalize(cross( dpdu.xyz, dpdv.xyz )),0)).xyz,
+		vec2(u,v)
+	);
 
-//	gl_Position = vec4(u-0.5,v-0.5,0,1); 
-//	gl_Position = vec4(vec3(-0.5,-0.5,0)+0.3*vec3((P[0][0] * (1-u)*(1-v) + P[0][3]*u*(1-v) + P[3][0]*(1-u)*v + P[3][3]*u*v).xz,0),1);
-//	gl_Position = vec4(vec3(-0.5,-0.5,0)+0.3*position.xzy,1);
-	gl_Position = (projectionMatrix * viewMatrix * modelMatrix) * position;
 }
 
 #endif
@@ -103,13 +110,15 @@ void main( )
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
-//in   vec4 tessVertex[];
-//out  vec4 geometryVertex;
+layout (location=1) in VertexData teVertexData[];
+layout (location=1) out VertexData gVertexData;
+
 void main() 
 {
     for (int i=0; i<3; ++i)
 	{
 		gl_Position = gl_in[i].gl_Position;
+		gVertexData = teVertexData[i];
 		EmitVertex();
 	}
 }
@@ -117,14 +126,53 @@ void main()
 
 #ifdef COMPILING_FS
 
-uniform vec3 edgeColor;
+uniform vec3 viewerPosition;
 
-in vec4 geometryVertex;
+uniform vec3 frontColor;
+uniform vec3 backColor;
+
+uniform vec3 light0Position;
+uniform vec3 light0Color;
+uniform float light0SpecularExponent;
+	
+uniform vec3 light1Position;
+uniform vec3 light1Color;
+uniform float light1SpecularExponent;
+
+layout (location=1) in VertexData gVertexData;
 
 out vec4 frag_color;
 
+vec3 calculateLight(vec3 lightPosition, vec3 lightColor, float lightSpecularExponent, vec3 baseColor, vec3 normal)
+{
+	vec3 lightDirection = normalize(lightPosition-gVertexData.position);
+	float diffuseLight = dot(lightDirection,normal);
+	if (diffuseLight<0)
+		return vec3(0,0,0);
+	vec3 diffuseColor = clamp(diffuseLight * baseColor,0,1);
+
+	vec3 viewerDirection = normalize(viewerPosition-gVertexData.position);
+	vec3 reflectedLight = 2*diffuseLight*normal - lightDirection;
+
+	float specularIntensity = pow(clamp(dot(reflectedLight,viewerDirection),0,1),lightSpecularExponent);
+	vec3 specularColor = specularIntensity*lightColor;
+
+	return clamp(diffuseColor + specularColor,0,1);
+}
+
 void main() 
 {
-  frag_color = vec4(edgeColor,1);
+	vec2 uvCoord = gVertexData.uvCoord;
+	float radius = length(uvCoord-vec2(0.5,0.5));
+	if (radius>0.5)
+		discard;
+
+	vec3 normal = normalize(gVertexData.normal) *(gl_FrontFacing ? 1 : -1);
+
+	vec3 color = gl_FrontFacing ? frontColor : backColor;
+
+	vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
+	vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);
+	frag_color = vec4(light0Component + light1Component ,1);
 }
 #endif

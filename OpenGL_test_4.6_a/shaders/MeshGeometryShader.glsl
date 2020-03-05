@@ -55,9 +55,9 @@ void main()
     midVertex.position += normal*1.0f;
 
     VertexData nvs[3] = {
-        mixVD(ovs[0],realMid,0.5),
-        mixVD(ovs[1],realMid,0.5),
-        mixVD(ovs[2],realMid,0.5),
+        mixVD(ovs[0],realMid,0.8),
+        mixVD(ovs[1],realMid,0.8),
+        mixVD(ovs[2],realMid,0.8),
     };
     emitVertexData(ovs[0]);
     emitVertexData(ovs[1]);
