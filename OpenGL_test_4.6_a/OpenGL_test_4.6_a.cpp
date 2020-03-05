@@ -233,7 +233,7 @@ GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
         (shaderType == GL_GEOMETRY_SHADER) ? "GS" :
         (shaderType == GL_FRAGMENT_SHADER) ? "FS" :
         "");
-    const auto defineString = R"(#version 410\n #define COMPILING_)" + ccString + "\n";
+    const auto defineString = "#version 430\n#define COMPILING_" + ccString + "\n";
     array<const char*, 2> ptrs = {
         defineString.c_str(),
         shaderSource.c_str()
@@ -492,7 +492,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
         //////////////////////
         //Patch sphere
-        constexpr bool renderSphere = true;
+        constexpr bool renderSphere = false;
         if (renderSphere)
         {
             const auto tcsShader = makeSingleShader(GL_TESS_CONTROL_SHADER,    "SphereTesselationControlShader2.glsl",    "Sphere_TCS");
@@ -524,15 +524,15 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glPatchParameteri(GL_PATCH_VERTICES, 1); // #of vertices in each patch
             glBegin(GL_PATCHES);
-//                glVertex4f(0.0f, 0.0f, 0.0f, 100.0f);
                 glVertex4f(0.0f, 0.0f, 0.0f, 10.0f);
                 glVertex4f(0.0f, 0.0f, -50.0f, 50.0f);
-//                glVertex4f(0.0f, 0.0f, 50.0f, 1000.0f);
             glEnd();
         }
 
         //////////////////////
         //Bezier patch
+        constexpr bool showBezierPatch = true;
+        if (showBezierPatch)
         {
             const auto shaderProgram = makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
             checkGLErrors();
@@ -548,21 +548,32 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             glPatchParameteri(GL_PATCH_VERTICES, 16);
             checkGLErrors();
 
-            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, unitMatrix4x4.data());
+            const Matrix4x4 modelMatrix = makeTranslationMatrix(Vector3(12.0f, 0.0f, 16.0f));
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
 
+            const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "edgeColor"), 1, edgeColor.data());
+            checkGLErrors();
+
+
             glDisable(GL_CULL_FACE);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glLineWidth(1.0f);
+
             glBegin(GL_PATCHES);
             for (int i = 0; i < patchParameters.size(); ++i)
                 glVertex3fv(patchParameters[i].data());
+/*            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j)
+                    glVertex3f(-0.5f + ((float)i)/3.0f, -0.5f + ((float)j) / 3.0f,0.0f);*/
             glEnd();
             checkGLErrors();
         }
         //////////////////////
         //Render mesh
-        constexpr bool renderMesh = true;
+        constexpr bool renderMesh = false;
         if (renderMesh)
         {
             glUseProgram(meshShaderProgram);
@@ -578,7 +589,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             checkGLErrors();
         }
 
-        constexpr bool renderWireframe = true;
+        constexpr bool renderWireframe = false;
         if (renderWireframe)
         {
             glUseProgram(edgeShaderProgram);
@@ -610,6 +621,8 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
         ///////////////////////
         //Bounding box
+        constexpr bool showBoundingBox = false;
+        if (showBoundingBox)
         {
             glUseProgram(lineShaderProgram);
             glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());

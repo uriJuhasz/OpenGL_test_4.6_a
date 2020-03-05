@@ -1,6 +1,6 @@
 #ifdef COMPILING_VS
 
-in vec3 position;
+layout (location = 0) in vec3 position;
 
 void main( )
 {
@@ -46,39 +46,52 @@ vec4 makeVecT1(float u)
 	return 3 * vec4( -(1-u) * (1-u), (1-u) * (1-3*u), u * (2-3*u), u * u);
 }
 
+vec4  someOp(vec4 P[4][4], vec4 a, vec4 b)
+{
+	vec4 r = vec4(0,0,0,0);
+
+	for (int i=0; i<4; ++i)
+	{
+		for (int j=0; j<4; ++j)
+		{
+			r += a[i]*P[i][j]*b[j];
+		}
+	}
+	return r;
+}
 void main( )
 {
-	mat4x4 matrix = mat4x4(
-		gl_in[ 0].gl_Position, gl_in[ 1].gl_Position, gl_in[ 2].gl_Position,gl_in[ 3].gl_Position,
-		gl_in[ 4].gl_Position, gl_in[ 5].gl_Position, gl_in[ 6].gl_Position,gl_in[ 7].gl_Position,
-		gl_in[ 8].gl_Position, gl_in[ 9].gl_Position, gl_in[10].gl_Position,gl_in[11].gl_Position,
-		gl_in[12].gl_Position, gl_in[13].gl_Position, gl_in[14].gl_Position,gl_in[15].gl_Position);
+	vec4 P[4][4] = {
+		{gl_in[ 0].gl_Position, gl_in[ 1].gl_Position, gl_in[ 2].gl_Position,gl_in[ 3].gl_Position},
+		{gl_in[ 4].gl_Position, gl_in[ 5].gl_Position, gl_in[ 6].gl_Position,gl_in[ 7].gl_Position},
+		{gl_in[ 8].gl_Position, gl_in[ 9].gl_Position, gl_in[10].gl_Position,gl_in[11].gl_Position},
+		{gl_in[12].gl_Position, gl_in[13].gl_Position, gl_in[14].gl_Position,gl_in[15].gl_Position}
+		};
 	
 	float u = gl_TessCoord.x;
 	float v = gl_TessCoord.y;
 
 	// the basis functions:
 	vec4 bu = makeVecT0(u);
-	float dbu = makeVecT1(u);
+	vec4 dbu = makeVecT1(u);
 	vec4 bv = makeVecT0(v);
-	float dbv = makeVecT1(v);
+	vec4 dbv = makeVecT1(v);
 
 	// finally, we get to compute something:
-	gl_Position = (projectionMatrix * viewMatrix * modelMatrix) * bu * (matrix * bv);
-/*	  bu0 * ( bv0*p00 + bv1*p01 + bv2*p02 + bv3*p03 )
-	+ bu1 * ( bv0*p10 + bv1*p11 + bv2*p12 + bv3*p13 )
-	+ bu2 * ( bv0*p20 + bv1*p21 + bv2*p22 + bv3*p23 )
-	+ bu3 * ( bv0*p30 + bv1*p31 + bv2*p32 + bv3*p33 );*/
+	vec4 position = someOp(P, bu,bv);
+//	gl_Position = (projectionMatrix * viewMatrix * modelMatrix) * position;
 
-	vec4 dpdu = dbu * (matrix*bv);
 
-	vec4 dpdv = bu * (matrix*dbv); 
-/*	  bu0 * ( dbv0*p00 + dbv1*p01 + dbv2*p02 + dbv3*p03 )
-	+ bu1 * ( dbv0*p10 + dbv1*p11 + dbv2*p12 + dbv3*p13 )
-	+ bu2 * ( dbv0*p20 + dbv1*p21 + dbv2*p22 + dbv3*p23 )
-	+ bu3 * ( dbv0*p30 + dbv1*p31 + dbv2*p32 + dbv3*p33 );*/
+	vec4 dpdu = someOp(P, dbu,dbv);
+	vec4 dpdv = someOp(P, bu, dbv);
+
 
 	teNormal = normalize( cross( dpdu.xyz, dpdv.xyz ) );
+
+//	gl_Position = vec4(u-0.5,v-0.5,0,1); 
+//	gl_Position = vec4(vec3(-0.5,-0.5,0)+0.3*vec3((P[0][0] * (1-u)*(1-v) + P[0][3]*u*(1-v) + P[3][0]*(1-u)*v + P[3][3]*u*v).xz,0),1);
+//	gl_Position = vec4(vec3(-0.5,-0.5,0)+0.3*position.xzy,1);
+	gl_Position = (projectionMatrix * viewMatrix * modelMatrix) * position;
 }
 
 #endif
@@ -88,8 +101,8 @@ void main( )
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
-in   vec4 tessVertex;
-out  vec4 geometryVertex;
+//in   vec4 tessVertex[];
+//out  vec4 geometryVertex;
 void main() 
 {
     for (int i=0; i<3; ++i)
@@ -103,6 +116,8 @@ void main()
 #ifdef COMPILING_FS
 
 uniform vec3 edgeColor;
+
+in vec4 geometryVertex;
 
 out vec4 frag_color;
 
