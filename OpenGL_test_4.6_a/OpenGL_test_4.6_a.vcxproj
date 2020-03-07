@@ -191,6 +191,7 @@
   <ItemGroup>
     <ClCompile Include="Backend\BackendContext.cpp" />
     <ClCompile Include="Backend\BackendWindow.cpp" />
+    <ClCompile Include="Utilities\Exception.cpp" />
     <ClCompile Include="Utilities\Misc.cpp" />
     <ClCompile Include="OpenGLBackend\OpenGLBackend.cpp" />
     <ClCompile Include="OpenGLBackend\private\OpenGLWindow.cpp" />
@@ -210,6 +211,7 @@
   <ItemGroup>
     <ClInclude Include="Backend\BackendContext.h" />
     <ClInclude Include="Backend\BackendWindow.h" />
+    <ClInclude Include="Utilities\Exception.h" />
     <ClInclude Include="Utilities\Misc.h" />
     <ClInclude Include="OpenGLBackend\OpenGLBackend.h" />
     <ClInclude Include="OpenGLBackend\private\OpenGLWindow.h" />

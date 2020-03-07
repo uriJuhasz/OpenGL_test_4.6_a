@@ -1,5 +1,7 @@
 #include "MeshLoader.h"
 
+#include "Utilities/Exception.h"
+
 #pragma warning(push, 0) 
 /* assimp include files. These three are usually needed. */
 #include <assimp/cimport.h>
@@ -133,6 +135,8 @@ unique_ptr<Mesh> MeshLoader::loadMesh(const string& fileName)
 
 	aiDetachAllLogStreams();
 
+	if (!result)
+		throw new Exception("could not load mesh \"" + fileName + "\"");
 	return result;
 }
 

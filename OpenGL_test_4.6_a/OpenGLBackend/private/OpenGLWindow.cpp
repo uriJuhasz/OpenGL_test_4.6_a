@@ -3,6 +3,7 @@
 
 #include "OpenGLBackend/OpenGLUtilities.h"
 
+#include "Utilities/Exception.h"
 #include "Utilities/Misc.h"
 
 #include <GLFW/glfw3.h>
@@ -20,7 +21,7 @@ public:
         , m_view(nullptr)
     {
         if (!context)
-            return;
+            throw new Exception("GLFWWindow: context is invalid");
         if (const auto window = glfwCreateWindow(c_defaultWidth, c_defaultHeight, title.c_str(), nullptr, nullptr))
         {
             m_window = window;
@@ -35,6 +36,13 @@ public:
 
             if (glfwRawMouseMotionSupported())
                 glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+        }
+        else
+        {
+            const char* errorMessageC;
+            glfwGetError(&errorMessageC);
+            const auto errorMessage = string(errorMessageC ? errorMessageC : "Unknown error");
+            throw new Exception("GLFWWindow: failed to create window : " + errorMessage);
         }
     }
 

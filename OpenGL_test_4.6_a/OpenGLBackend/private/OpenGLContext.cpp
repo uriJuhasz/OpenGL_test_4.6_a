@@ -2,6 +2,8 @@
 
 #include "OpenGLWindow.h"
 
+#include "Utilities/Exception.h"
+
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -24,6 +26,13 @@ public:
         if (m_valid)
         {
             glfwSetErrorCallback(glfwErrorCallback);
+        }
+        else
+        {
+            const char* errorMessageC;
+            glfwGetError(&errorMessageC);
+            const auto errorMessage = errorMessageC ? errorMessageC : "Unknown error";
+            throw new Exception(string("Could not initialize GLFW : ") + errorMessage);
         }
     }
 
