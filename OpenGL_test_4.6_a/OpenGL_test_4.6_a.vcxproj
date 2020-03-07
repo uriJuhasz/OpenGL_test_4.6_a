@@ -189,28 +189,34 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="ColorRGB.cpp" />
+    <ClCompile Include="Backend\BackendContext.cpp" />
+    <ClCompile Include="Backend\BackendWindow.cpp" />
+    <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\ColorRGB.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="IO\MeshLoader.cpp" />
     <ClCompile Include="OpenGLBackend\OpenGLUtilities.cpp" />
     <ClCompile Include="OpenGL_test_4.6_a.cpp" />
-    <ClCompile Include="PointLight.cpp" />
-    <ClCompile Include="SceneObject.cpp" />
+    <ClCompile Include="Scene\PointLight.cpp" />
+    <ClCompile Include="Scene\SceneObject.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Backend\ViewInterface.cpp" />
     <ClCompile Include="View\View.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="ColorRGB.h" />
+    <ClInclude Include="Backend\BackendContext.h" />
+    <ClInclude Include="Backend\BackendWindow.h" />
+    <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\ColorRGB.h" />
     <ClInclude Include="Math\Matrix.h" />
     <ClInclude Include="Math\Vector.h" />
     <ClInclude Include="Geometry\Mesh.h" />
     <ClInclude Include="IO\MeshLoader.h" />
     <ClInclude Include="OpenGLBackend\OpenGLUtilities.h" />
-    <ClInclude Include="PointLight.h" />
-    <ClInclude Include="SceneObject.h" />
+    <ClInclude Include="Scene\PointLight.h" />
+    <ClInclude Include="Scene\SceneObject.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Backend\ViewInterface.h" />
     <ClInclude Include="View\View.h" />
   </ItemGroup>
   <ItemGroup>

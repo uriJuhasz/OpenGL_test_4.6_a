@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-using std::array;
 
 //////////////////////////////////////////////////////////////////////
 template<unsigned int D> class Vector final
@@ -57,7 +56,7 @@ public:
     const float* data() const { return m_value.data(); }
     float* data() { return m_value.data(); }
 private:
-    array<float, D> m_value;
+    std::array<float, D> m_value;
 };
 typedef Vector<2> Vector2;
 typedef Vector<3> Vector3;
