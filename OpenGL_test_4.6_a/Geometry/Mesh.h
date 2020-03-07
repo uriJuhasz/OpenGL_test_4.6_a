@@ -1,8 +1,8 @@
 #ifndef Mesh_H_
 #define Mesh_H_
 
-#include "Vector.h"
-#include "Matrix.h"
+#include "Math/Vector.h"
+#include "Math/Matrix.h"
 
 #include <array>
 #include <vector>

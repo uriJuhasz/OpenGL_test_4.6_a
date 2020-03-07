@@ -90,7 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Code\glfw-3.3.2.bin.WIN64\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -142,7 +142,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Code\glfw-3.3.2.bin.WIN64\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -168,7 +168,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -189,15 +189,19 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshLoader.cpp" />
+    <ClCompile Include="Geometry\Mesh.cpp" />
+    <ClCompile Include="IO\MeshLoader.cpp" />
+    <ClCompile Include="OpenGLBackend\OpenGLUtilities.cpp" />
     <ClCompile Include="OpenGL_test_4.6_a.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Matrix.h" />
-    <ClInclude Include="Vector.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshLoader.h" />
+    <ClInclude Include="Math\Matrix.h" />
+    <ClInclude Include="Math\Vector.h" />
+    <ClInclude Include="Geometry\Mesh.h" />
+    <ClInclude Include="IO\MeshLoader.h" />
+    <ClInclude Include="OpenGLBackend\OpenGLUtilities.h" />
+    <ClInclude Include="Scene\Scene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\BezierShaderProgram.glsl" />

@@ -1,7 +1,11 @@
-#include "Math.h"
-#include "Mesh.h"
+//#include "Math.h"
+#include "Geometry/Mesh.h"
 
-#include "MeshLoader.h"
+#include "IO/MeshLoader.h"
+
+#include "Scene/Scene.h"
+
+#include "OpenGLBackend/OpenGLUtilities.h"
 
 #include <iostream>
 #include <fstream>
@@ -30,22 +34,16 @@ void glfwWindowResizeCallback(GLFWwindow* window, int width, int height)
 
 void testOpenGL0(GLFWwindow* const window, const Mesh& mesh);
 
-GLint glGetUInt(GLenum e)
-{
-    GLint r;
-    glGetIntegerv(e, &r);
-    return r;
-}
 int main()
 {
     cout << "Start" << endl;
     cout << endl;
-//    const auto fileName = R"(C:\Users\rossd\Downloads\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
-    const auto fileName = R"(C:\Users\rossd\Downloads\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
-//    const auto fileName = R"(C:\Users\rossd\Downloads\Scorpio N05808.3ds)";
-//    const auto fileName = R"(C:\Users\rossd\Downloads\fc6bdb2aea4b58c23a3e8d4e87fba763\Elephant N090813.3DS)";
-//    const auto fileName = R"(C:\Users\rossd\Downloads\a8cfcfd0082c61bad7aa4fbd1c57a277\Ship hms victory frigate nelson N270214.3DS)";
-//    const auto fileName = R"(C:\Users\rossd\Downloads\e6eadc4ff882b84784dd133168c1f099\Autogenerator BelMag N170211.3DS)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\3d\90-3ds\3ds\Dragon 2.5_3ds.3ds)";
+    const auto fileName = R"(C:\Users\rossd\Downloads\3d\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\3d\Scorpio N05808.3ds)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\3d\fc6bdb2aea4b58c23a3e8d4e87fba763\Elephant N090813.3DS)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\3d\a8cfcfd0082c61bad7aa4fbd1c57a277\Ship hms victory frigate nelson N270214.3DS)";
+//    const auto fileName = R"(C:\Users\rossd\Downloads\3d\e6eadc4ff882b84784dd133168c1f099\Autogenerator BelMag N170211.3DS)";
     cout << " Loading mesh: " << fileName;
     const auto meshPtr = MeshLoader::loadMesh(fileName);
     if (meshPtr)
@@ -102,6 +100,10 @@ int main()
                         cout << "  OpenGL max geometry output vertices: " << glGetUInt(GL_MAX_GEOMETRY_OUTPUT_VERTICES) << endl;
                         cout << "  OpenGL max geometry output components: " << glGetUInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS) << endl;
                         cout << endl;
+                        cout << "  OpenGL max shader storage block size     : " << glGetUInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) << endl;
+                        cout << "  OpenGL max combined shader storage blocks: " << glGetUInt(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS) << endl;
+
+                        cout << endl;
                     }
 
                     testOpenGL0(window, *meshPtr);
@@ -127,6 +129,8 @@ int main()
     cout << "end" << endl;
 }
 
+Camera sceneCamera;
+
 string loadShader(const string& fileName)
 {
     ifstream f(fileName);
@@ -139,48 +143,6 @@ string loadShader(const string& fileName)
     }
 
     return r;
-}
-string toString(const vector<char>& v)
-{
-    string r; r.reserve(v.size());
-    for (const auto c : v)
-        r.push_back(c);
-    return r;
-}
-
-void checkShaderErrors(const string& shaderType, const GLuint s)
-{
-    int infoLength;
-    glGetShaderiv(s, GL_INFO_LOG_LENGTH, &infoLength);
-    if (infoLength > 0)
-    {
-        vector<char> info(infoLength, ' ');
-        glGetShaderInfoLog(s, infoLength, &infoLength, info.data());
-        const auto infoString = toString(info);
-        cerr << shaderType << " shader log: " << endl << infoString;
-    }
-}
-void checkShaderProgramErrors(const string& shaderType, const GLuint p)
-{
-    int infoLength;
-    glGetProgramiv(p, GL_INFO_LOG_LENGTH, &infoLength);
-    if (infoLength > 0)
-    {
-        vector<char> info(infoLength, ' ');
-        glGetProgramInfoLog(p, infoLength, &infoLength, info.data());
-        const auto infoString = toString(info);
-        cerr << shaderType << " shader program log: " << endl << infoString << endl;
-    }
-}
-
-void checkGLErrors()
-{
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR)
-    {
-        cerr << " OpenGL error " << err << " : " << gluErrorString(err) << endl;
-        cerr << "";
-    }
 }
 
 template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
@@ -268,61 +230,6 @@ GLuint makeTessellationShaderProgram(const string& fileName, const string& title
 
     return shaderProgram;
 }
-class Camera final
-{
-public:
-    Vector3 m_position = Vector3(0.0f,0.0f,-4.0f);
-    Vector3 m_target = Vector3(0.0f,0.0f,0.0f);
-    Vector3 m_up     = Vector3(0.0f,1.0f,0.0f);
-
-    float m_near = 1.0;
-    float m_far  = 1000.0f;
-    Vector2 m_field = Vector2(1.0f,1.0f);
-
-    Matrix4x4 makeViewMatrix() const
-    {
-        const auto target = m_target;
-        const auto position = m_position;
-        const auto forward = normalize(target - position);
-        const auto right = normalize(cross(forward, m_up));
-        const auto up = cross(right, forward);
-
-        return
-        {
-                right[0]  , right[1]  , right[2]  , -dot(right  ,position),
-                up[0]     , up[1]     , up[2]     , -dot(up     ,position),
-                forward[0], forward[1], forward[2], -dot(forward,position),
-                0.0f      , 0.0f      , 0.0f      , 1.0f
-        };
-    }
-
-    Matrix4x4 makeProjectionMatrix() const
-    {
-        array<int, 4> viewport;
-        glGetIntegerv(GL_VIEWPORT, viewport.data());
-
-        const float vpw = static_cast<float>(viewport[2]);
-        const float vph = static_cast<float>(viewport[3]);
-        const float ar = vpw / vph;
-        const auto horizontal = (vpw >= vph);
-        const float w = m_field[0] * (horizontal ? ar : 1);
-        const float h = m_field[1] * (horizontal ? 1 : 1 / ar);
-
-        const float n = m_near;
-        const float f = m_far;
-        const float d = f - n;
-        return 
-        {
-            2 * n / w, 0.0f, 0.0f, 0.0f,
-            0.0f, 2 * n / h, 0.0f, 0.0f,
-            0.0f, 0.0f, (f + n) / d, -2 * f * n / d,
-            0.0f, 0.0f, 1.0f, 0.0f
-        };
-    }
-};
-
-Camera sceneCamera;
-
 //float viewerZOffset = 2.0f; //Ugly
 //float viewerZAngle = 0.0f;
 //Vector2 viewerPanOffset;
@@ -343,60 +250,6 @@ void updateFinished()
     needUpdate = false;
 }
 
-
-GLuint insertMesh(const Mesh& mesh)
-{
-    const int numVertices = mesh.numVertices();
-    const auto& vertices = mesh.m_vertices;
-
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    //Vertex positions
-    GLuint vertexBuffer = 0;
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(vertices[0]), vertices.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    checkGLErrors();
-
-    //Vertex normals
-    const auto& normals = mesh.m_normals;
-    assert(normals.size() == numVertices);
-
-    GLuint normalBuffer;
-    glGenBuffers(1, &normalBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(normals[0]), normals.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0, nullptr);
-    checkGLErrors();
-
-    //UV coords
-    const auto& uvCoords = mesh.m_textureCoords;
-    assert(uvCoords.size() == numVertices);
-
-    GLuint uvcoordBuffer;
-    glGenBuffers(1, &uvcoordBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvcoordBuffer);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(uvCoords[0]), uvCoords.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, nullptr);
-    checkGLErrors();
-
-    //Faces
-    const auto& faces = mesh.m_faces;
-    const int numFaces = mesh.numFaces();
-    GLuint fao;
-    glGenBuffers(1, &fao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fao);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numFaces * sizeof(faces[0]), faces.data(), GL_STATIC_DRAW);
-
-    checkGLErrors();
-    return vao;
-}
 
 
 void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
@@ -460,7 +313,9 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         checkGLErrors();
 
         const auto viewMatrix = sceneCamera.makeViewMatrix();// (viewerPosition, target, up);
-        const auto projectionMatrix = sceneCamera.makeProjectionMatrix();
+        
+        const auto viewportDimensions = glGetViewportDimensions();
+        const auto projectionMatrix = sceneCamera.makeProjectionMatrix(viewportDimensions[0]/ viewportDimensions[1]);
 
         //////////////////////
         //Patch sphere
@@ -725,23 +580,19 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             }
         }
 
-        // update other events like input handling 
-        glfwPollEvents();
         // put the stuff we've been drawing onto the display
         glfwSwapBuffers(window);
-        {
-            GLenum err = glGetError();
-            if (err != GL_NO_ERROR)
-            {
-                do {
-                    cerr << " OpenGL error: " << err << gluErrorString(err) << endl;
-                    err = glGetError();
-                } while (err!= GL_NO_ERROR);
-            }
-        }
+
+        checkGLErrors();
  
         frameIndex++;
         updateFinished();
+
+        // update other events like input handling 
+        glfwPollEvents();
+        if (!updateNeeded())
+            glfwWaitEvents();
+
     }
 
 }
