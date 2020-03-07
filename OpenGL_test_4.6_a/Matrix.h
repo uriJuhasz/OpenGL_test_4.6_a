@@ -136,3 +136,9 @@ inline Vector4 operator*(const Matrix4x4& m, const Vector4 v)
     }
     return r;
 }
+
+inline Vector3 mulHomogeneous(const Matrix4x4& m, const Vector3& v)
+{
+    return makeNonHomogeneous(m * makeHomogeneous(v));
+}
+

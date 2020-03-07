@@ -358,9 +358,7 @@ GLuint insertMesh(const Mesh& mesh)
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(vertices[0]), vertices.data(), GL_STATIC_DRAW);
-    checkGLErrors();
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     checkGLErrors();
 
@@ -372,9 +370,7 @@ GLuint insertMesh(const Mesh& mesh)
     glGenBuffers(1, &normalBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
     glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(normals[0]), normals.data(), GL_STATIC_DRAW);
-    checkGLErrors();
     glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0, nullptr);
     checkGLErrors();
 
@@ -386,10 +382,7 @@ GLuint insertMesh(const Mesh& mesh)
     glGenBuffers(1, &uvcoordBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvcoordBuffer);
     glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(uvCoords[0]), uvCoords.data(), GL_STATIC_DRAW);
-    checkGLErrors();
-
     glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, uvcoordBuffer);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, nullptr);
     checkGLErrors();
 
@@ -466,21 +459,8 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         checkGLErrors();
 
-        //Setup the view matrix
-/*        const auto cosx = cosf(viewerZAngle);
-        const auto sinx = sinf(viewerZAngle);
-        const Vector3 viewerPosition = 
-            modelCenter
-            + (Vector3(cosx,0,sinx) * (modelRadius * 2 + viewerZOffset)) 
-            ;
-        const Vector3 up(0.0f, 1.0f, 0.0f);
-        const Vector3 target = modelCenter;
-        const auto forward = normalize(target - viewerPosition);
-        const auto right = cross(forward, up);*/
         const auto viewMatrix = sceneCamera.makeViewMatrix();// (viewerPosition, target, up);
-                
         const auto projectionMatrix = sceneCamera.makeProjectionMatrix();
-
 
         //////////////////////
         //Patch sphere
@@ -531,14 +511,28 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             glUseProgram(shaderProgram);
             checkGLErrors();
 
-            const array<Vector3, 16> patchParameters = {
-                Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),
-                Vector3(0,1,1), Vector3(1,-2,1), Vector3(2, 1,1), Vector3(3, 0,1),
-                Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
-                Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
-            };
-            glPatchParameteri(GL_PATCH_VERTICES, 16);
-            checkGLErrors();
+            const auto numPatchVertices = 16;
+            glPatchParameteri(GL_PATCH_VERTICES, numPatchVertices);
+            GLuint vao = 0;
+            {
+                const array<Vector3, 16> patchParameters = {
+                    Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),
+                    Vector3(0,1,1), Vector3(1,-2,1), Vector3(2, 1,1), Vector3(3, 0,1),
+                    Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
+                    Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
+                };
+                glGenVertexArrays(1, &vao);
+                glBindVertexArray(vao);
+
+                //Vertex positions
+                GLuint vertexBuffer = 0;
+                glGenBuffers(1, &vertexBuffer);
+                glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+                glBufferData(GL_ARRAY_BUFFER, patchParameters.size() * sizeof(patchParameters[0]), patchParameters.data(), GL_STATIC_DRAW);
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+                checkGLErrors();
+            }
 
             const Matrix4x4 modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
             const Vector3 target(0.0f, 0.0f, 0.0f);
@@ -573,17 +567,30 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 
 
             glDisable(GL_CULL_FACE);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// LINE);
-            glLineWidth(1.0f);
+            constexpr bool showPatchFaces = true;
+            if (showPatchFaces)
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// LINE);
+                glUniform1i(glGetUniformLocation(shaderProgram, "edgeMode"), 0);
+                glDepthFunc(GL_LESS);
 
-            glBegin(GL_PATCHES);
-            for (int i = 0; i < patchParameters.size(); ++i)
-                glVertex3fv(patchParameters[i].data());
-/*            for (int i = 0; i < 4; ++i)
-                for (int j = 0; j < 4; ++j)
-                    glVertex3f(-0.5f + ((float)i)/3.0f, -0.5f + ((float)j) / 3.0f,0.0f);*/
-            glEnd();
-            checkGLErrors();
+                glBindVertexArray(vao);
+                glDrawArrays(GL_PATCHES, 0, 16);
+                checkGLErrors();
+            }
+            constexpr bool showPatchEdges = true;
+            if (showPatchEdges)
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                glUniform1i(glGetUniformLocation(shaderProgram, "edgeMode"), 1);
+                glLineWidth(1.0f);
+                glDepthFunc(GL_LEQUAL);
+                glEnable(GL_POLYGON_OFFSET_LINE);
+                glPolygonOffset(-1.0, 0.0);
+                glBindVertexArray(vao);
+                glDrawArrays(GL_PATCHES, 0, 16);
+                checkGLErrors();
+            }
         }
         //////////////////////
         //Render mesh
@@ -758,24 +765,25 @@ void glfwMousePosCallback(GLFWwindow* window, double xpos, double ypos)
 {
     const Vector2 newPos(toFloat(xpos), toFloat(ypos));
     if (oldPosValid)
-        
     {
         const auto delta = newPos - oldPos;
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
         {
-            constexpr float factor = 0.02f;
+            constexpr float factor = 0.01f;
             auto viewMatrix = sceneCamera.makeViewMatrix();
             const auto forwardLength = length(sceneCamera.m_target - sceneCamera.m_position);
             auto viewMatrixInverse = transpose(viewMatrix);
-//            viewMatrix.at(2,3) -= forwardLength; //Move target to origin
+            viewMatrix.at(2,3) -= forwardLength; //Move target to origin
             for (int i = 0; i < 3; ++i)
             {
-                viewMatrixInverse.at(i, 3) = sceneCamera.m_position[i]; // sceneCamera.m_target[i];
+                viewMatrixInverse.at(i, 3) = sceneCamera.m_target[i];
                 viewMatrixInverse.at(3, i) = 0.0f;
             }
 
-            const auto rotationMatrix = makeXRotationMatrix(factor * delta[1]) * makeYRotationMatrix(factor * delta[0]);
-            sceneCamera.m_position = makeNonHomogenous(viewMatrixInverse * rotationMatrix * viewMatrix * makeHomogenous(sceneCamera.m_position));
+            const auto rotationMatrix = makeXRotationMatrix(-factor * delta[1]) * makeYRotationMatrix(factor * delta[0]);
+            const auto matrix = viewMatrixInverse * rotationMatrix * viewMatrix;
+            sceneCamera.m_position = mulHomogeneous(matrix,sceneCamera.m_position);
+            sceneCamera.m_up       = mulHomogeneous(matrix,sceneCamera.m_up);
             requestUpdate();
 
         }

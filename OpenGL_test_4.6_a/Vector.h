@@ -120,12 +120,12 @@ template<unsigned int D>inline Vector<D> normalize(const Vector<D>& v)
     return v / length(v);
 }
 
-inline Vector4 makeHomogenous(const Vector3& v)
+inline Vector4 makeHomogeneous(const Vector3& v)
 {
     return Vector4(v[0], v[1], v[2], 1.0f);
 }
 
-inline Vector3 makeNonHomogenous(const Vector4& v)
+inline Vector3 makeNonHomogeneous(const Vector4& v)
 {
     return Vector3(v[0], v[1], v[2]);
 }
