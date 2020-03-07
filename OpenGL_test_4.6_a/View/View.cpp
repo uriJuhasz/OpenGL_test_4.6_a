@@ -25,7 +25,6 @@ public:
 
     virtual ~ViewImpl();
 
-    void initOpenGL() override;
     void setupScene() override;
     void renderScene() override;
 
@@ -61,7 +60,7 @@ ViewImpl::ViewImpl(BackendWindow& backendWindow)
     : m_backendWindow(backendWindow)
 {
     backendWindow.registerView(this);
-    initOpenGL();
+    backendWindow.init();
 }
 
 ViewImpl::~ViewImpl()
@@ -69,49 +68,6 @@ ViewImpl::~ViewImpl()
     m_backendWindow.registerView(nullptr);
 }
 
-
-
-void ViewImpl::initOpenGL()
-{
-    //Initialize OpenGL
-    {
-        const auto fbSize = m_backendWindow.getFramebufferSize();
-        glViewport(0, 0, fbSize[0], fbSize[1]);
-
-        // start GLEW extension handler
-        glewExperimental = GL_TRUE;
-        glewInit();
-
-        // get version info
-        cout << endl;
-
-        cout << "  OpenGL vendor  : " << glGetString(GL_VENDOR) << endl;
-        cout << "  OpenGL renderer: " << glGetString(GL_RENDERER) << endl;
-        cout << "  OpenGL version : " << glGetString(GL_VERSION) << endl;
-        cout << "  GLSL   version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
-
-        cout << endl;
-        int numBinaryShaderFormats;
-        glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &numBinaryShaderFormats);
-        if (numBinaryShaderFormats)
-        {
-            vector<int> binaryFormats(numBinaryShaderFormats);
-            glGetIntegerv(GL_SHADER_BINARY_FORMATS, binaryFormats.data());
-            cout << " OpenGL Binary formats:" << endl;
-            for (int i = 0; i < numBinaryShaderFormats; ++i)
-                cout << "   " << ((binaryFormats[i] == GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR" : "Unknown" + to_string(binaryFormats[i])) << endl;
-        }
-        cout << "  OpenGL max tessellation level: " << glGetUInt(GL_MAX_TESS_GEN_LEVEL) << endl;
-        cout << "  OpenGL max patch vertices: " << glGetUInt(GL_MAX_PATCH_VERTICES) << endl;
-        cout << "  OpenGL max geometry output vertices: " << glGetUInt(GL_MAX_GEOMETRY_OUTPUT_VERTICES) << endl;
-        cout << "  OpenGL max geometry output components: " << glGetUInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS) << endl;
-        cout << endl;
-        cout << "  OpenGL max shader storage block size     : " << glGetUInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) << endl;
-        cout << "  OpenGL max combined shader storage blocks: " << glGetUInt(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS) << endl;
-
-        cout << endl;
-    }
-};
 string loadShader(const string& fileName)
 {
     ifstream f(fileName);

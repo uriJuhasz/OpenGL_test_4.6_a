@@ -10,7 +10,6 @@ protected:
 public:
     virtual ~ViewInterface() {}
 
-    virtual void initOpenGL() = 0;
     virtual void setupScene() = 0;
     virtual void renderScene() = 0;
 

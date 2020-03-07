@@ -191,6 +191,10 @@
   <ItemGroup>
     <ClCompile Include="Backend\BackendContext.cpp" />
     <ClCompile Include="Backend\BackendWindow.cpp" />
+    <ClCompile Include="Utilities\Misc.cpp" />
+    <ClCompile Include="OpenGLBackend\OpenGLBackend.cpp" />
+    <ClCompile Include="OpenGLBackend\private\OpenGLWindow.cpp" />
+    <ClCompile Include="OpenGLBackend\private\OpenGLContext.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
     <ClCompile Include="Scene\ColorRGB.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
@@ -206,6 +210,10 @@
   <ItemGroup>
     <ClInclude Include="Backend\BackendContext.h" />
     <ClInclude Include="Backend\BackendWindow.h" />
+    <ClInclude Include="Utilities\Misc.h" />
+    <ClInclude Include="OpenGLBackend\OpenGLBackend.h" />
+    <ClInclude Include="OpenGLBackend\private\OpenGLWindow.h" />
+    <ClInclude Include="OpenGLBackend\private\OpenGLContext.h" />
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\ColorRGB.h" />
     <ClInclude Include="Math\Matrix.h" />
