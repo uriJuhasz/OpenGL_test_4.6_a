@@ -2,6 +2,8 @@
 #pragma warning(disable: 26451)
 #include <array>
 
+#include "Vector.h"
+
 class Matrix4x4;
 
 inline Matrix4x4 operator*(const Matrix4x4& a, const Matrix4x4& b);

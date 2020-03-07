@@ -189,19 +189,29 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ColorRGB.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="IO\MeshLoader.cpp" />
     <ClCompile Include="OpenGLBackend\OpenGLUtilities.cpp" />
     <ClCompile Include="OpenGL_test_4.6_a.cpp" />
+    <ClCompile Include="PointLight.cpp" />
+    <ClCompile Include="SceneObject.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="View\View.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="ColorRGB.h" />
     <ClInclude Include="Math\Matrix.h" />
     <ClInclude Include="Math\Vector.h" />
     <ClInclude Include="Geometry\Mesh.h" />
     <ClInclude Include="IO\MeshLoader.h" />
     <ClInclude Include="OpenGLBackend\OpenGLUtilities.h" />
+    <ClInclude Include="PointLight.h" />
+    <ClInclude Include="SceneObject.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="View\View.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\BezierShaderProgram.glsl" />
