@@ -268,10 +268,80 @@ GLuint makeTessellationShaderProgram(const string& fileName, const string& title
 
     return shaderProgram;
 }
+class Camera final
+{
+public:
+    Vector3 m_position = Vector3(0.0f,0.0f,-4.0f);
+    Vector3 m_target = Vector3(0.0f,0.0f,0.0f);
+    Vector3 m_up     = Vector3(0.0f,1.0f,0.0f);
 
-float viewerZOffset = 2.0f; //Ugly
-float viewerZAngle = 0.0f;
-Vector2 viewerPanOffset;
+    float m_near = 1.0;
+    float m_far  = 1000.0f;
+    Vector2 m_field = Vector2(1.0f,1.0f);
+
+    Matrix4x4 makeViewMatrix() const
+    {
+        const auto target = m_target;
+        const auto position = m_position;
+        const auto forward = normalize(target - position);
+        const auto right = normalize(cross(forward, m_up));
+        const auto up = cross(right, forward);
+
+        return
+        {
+                right[0]  , right[1]  , right[2]  , -dot(right  ,position),
+                up[0]     , up[1]     , up[2]     , -dot(up     ,position),
+                forward[0], forward[1], forward[2], -dot(forward,position),
+                0.0f      , 0.0f      , 0.0f      , 1.0f
+        };
+    }
+
+    Matrix4x4 makeProjectionMatrix() const
+    {
+        array<int, 4> viewport;
+        glGetIntegerv(GL_VIEWPORT, viewport.data());
+
+        const float vpw = static_cast<float>(viewport[2]);
+        const float vph = static_cast<float>(viewport[3]);
+        const float ar = vpw / vph;
+        const auto horizontal = (vpw >= vph);
+        const float w = m_field[0] * (horizontal ? ar : 1);
+        const float h = m_field[1] * (horizontal ? 1 : 1 / ar);
+
+        const float n = m_near;
+        const float f = m_far;
+        const float d = f - n;
+        return 
+        {
+            2 * n / w, 0.0f, 0.0f, 0.0f,
+            0.0f, 2 * n / h, 0.0f, 0.0f,
+            0.0f, 0.0f, (f + n) / d, -2 * f * n / d,
+            0.0f, 0.0f, 1.0f, 0.0f
+        };
+    }
+};
+
+Camera sceneCamera;
+
+//float viewerZOffset = 2.0f; //Ugly
+//float viewerZAngle = 0.0f;
+//Vector2 viewerPanOffset;
+//Matrix4x4 patchModelMatrix = makeTranslationMatrix(Vector3(-1.5f, 0.0f, -1.5f));
+
+bool needUpdate = true;
+void requestUpdate()
+{
+    needUpdate = true;
+}
+bool updateNeeded()
+{
+    return needUpdate;
+}
+
+void updateFinished()
+{
+    needUpdate = false;
+}
 
 
 GLuint insertMesh(const Mesh& mesh)
@@ -335,19 +405,7 @@ GLuint insertMesh(const Mesh& mesh)
     return vao;
 }
 
-Matrix4x4 makeViewMatrix(const Vector3& viewerPosition, const Vector3& target, const Vector3& up)
-{
-    const auto forward = normalize(target - viewerPosition);
-    const auto right = cross(forward, up);
 
-    return 
-    {
-            right  [0], right  [1], right  [2], -dot(right  ,viewerPosition),
-            up     [0], up     [1], up     [2], -dot(up     ,viewerPosition),
-            forward[0], forward[1], forward[2], -dot(forward,viewerPosition),
-            0.0f      ,0.0f       , 0.0f      , 1.0f
-    };
-}
 void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
 {
     ////////////////////////////////////
@@ -399,12 +457,17 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
     int frameIndex = 0;
     while (!glfwWindowShouldClose(window)) 
     {
+        if (!updateNeeded())
+        {
+            glfwPollEvents();
+            continue;
+        }
         // wipe the drawing surface clear
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         checkGLErrors();
 
         //Setup the view matrix
-        const auto cosx = cosf(viewerZAngle);
+/*        const auto cosx = cosf(viewerZAngle);
         const auto sinx = sinf(viewerZAngle);
         const Vector3 viewerPosition = 
             modelCenter
@@ -413,31 +476,10 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         const Vector3 up(0.0f, 1.0f, 0.0f);
         const Vector3 target = modelCenter;
         const auto forward = normalize(target - viewerPosition);
-        const auto right = cross(forward, up);
-        const auto viewMatrix = makeViewMatrix(viewerPosition, target, up);
+        const auto right = cross(forward, up);*/
+        const auto viewMatrix = sceneCamera.makeViewMatrix();// (viewerPosition, target, up);
                 
-        array<int, 4> viewport;
-        glGetIntegerv(GL_VIEWPORT,viewport.data());
-        const float cw = 1;// viewport[2];
-        const float ch = 1;// viewport[3];
-
-        const float vpw = static_cast<float>(viewport[2]);
-        const float vph = static_cast<float>(viewport[3]);
-        const float ar = vpw / vph;
-        const auto horizontal = (vpw >= vph);
-        const float w = horizontal ? ch * ar : cw;
-        const float h = horizontal ? ch      : cw / ar;
-
-        const float n = 1.0f;
-        const float f = 100000.0f;
-        const float d = f - n;
-        Matrix4x4 projectionMatrix =
-        {
-            2*n/w, 0.0f, 0.0f, 0.0f,
-            0.0f, 2*n/h, 0.0f, 0.0f,
-            0.0f, 0.0f, (f+n)/d, -2*f*n/d,
-            0.0f, 0.0f, 1.0f, 0.0f
-        };
+        const auto projectionMatrix = sceneCamera.makeProjectionMatrix();
 
 
         //////////////////////
@@ -498,36 +540,26 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
             glPatchParameteri(GL_PATCH_VERTICES, 16);
             checkGLErrors();
 
-            const Matrix4x4 modelMatrix = unitMatrix4x4;// makeTranslationMatrix(Vector3(90.0f, 0.0f, 18.0f));
+            const Matrix4x4 modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
+            const Vector3 target(0.0f, 0.0f, 0.0f);
 
-            const auto cosx = cosf(viewerZAngle);
-            const auto sinx = sinf(viewerZAngle);
-            const Vector3 target(1.5f, 0.0f, 1.5f);
-            const Vector3 viewerPosition =
-                  target
-                + (Vector3(cosx, 0, sinx) * (1.0f + viewerZOffset))
-                ;
-
-
-//            const Vector3 viewerPosition(1.5f, 1.5f, -3.0f);
-            const Vector3 up(0.0f, 1.0f, 0.0f);
-            const auto viewMatrix = makeViewMatrix(viewerPosition, target, up);
+            const auto viewMatrix = sceneCamera.makeViewMatrix();
 
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
 
-            const Vector3 light0Position = target + Vector3(20.0f,  1000.0f, -20.0f);
+            const Vector3 light0Position = target + Vector3(100.0f,  0.0f, 0.0f);
             const Vector3 light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
             glUniform3fv(glGetUniformLocation(shaderProgram, "light0Position"), 1, light0Position.data());
             glUniform3fv(glGetUniformLocation(shaderProgram, "light0Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
-            glUniform1f(glGetUniformLocation(shaderProgram, "light0SpecularExponent"), 50.0f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "light0SpecularExponent"), 1000.0f);
             glUniform3fv(glGetUniformLocation(shaderProgram, "light1Position"), 1, light1Position.data());
             glUniform3fv(glGetUniformLocation(shaderProgram, "light1Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
             glUniform1f(glGetUniformLocation(shaderProgram, "light1SpecularExponent"), 100.0f);
             checkGLErrors();
 
-            glUniform3fv(glGetUniformLocation(shaderProgram, "viewerPosition"), 1, viewerPosition.data());
+            glUniform3fv(glGetUniformLocation(shaderProgram, "viewerPosition"), 1, sceneCamera.m_position.data());
             checkGLErrors();
 
             const Vector3 frontColor(1.0f, 0.0f, 1.0f);
@@ -600,7 +632,7 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
                 glUniform1f(glGetUniformLocation(meshShaderProgram, "light1SpecularExponent"), 100.0f);
                 checkGLErrors();
 
-                glUniform3fv(glGetUniformLocation(meshShaderProgram, "viewerPosition"), 1, viewerPosition.data());
+                glUniform3fv(glGetUniformLocation(meshShaderProgram, "viewerPosition"), 1, sceneCamera.m_position.data());
                 checkGLErrors();
 
                 glBindVertexArray(vao);
@@ -702,15 +734,22 @@ void testOpenGL0(GLFWwindow* const window, const Mesh& mesh)
         }
  
         frameIndex++;
+        updateFinished();
     }
 
 }
 
 float toFloat(const double d) { return static_cast<float>(d); }
-void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+void glfwScrollCallback(GLFWwindow* window, double dxoffsetD, double yoffsetD)
 {
-    constexpr float factor = 50.0f;
-    viewerZOffset = clamp(viewerZOffset - toFloat(yoffset), -0.0f, 10.0f);
+    const auto dy = toFloat(yoffsetD);
+    constexpr float factor = 1.0f;
+    const auto forward = sceneCamera.m_target - sceneCamera.m_position;
+    const auto distance = length(forward);
+    constexpr float minimalDistance = 2.0f;
+    const auto newDistance = max(distance-dy*factor,minimalDistance);
+    sceneCamera.m_position = sceneCamera.m_target - normalize(forward) * newDistance;
+    requestUpdate();
 }
 
 bool oldPosValid = false;
@@ -725,11 +764,24 @@ void glfwMousePosCallback(GLFWwindow* window, double xpos, double ypos)
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
         {
             constexpr float factor = 0.02f;
-            viewerZAngle += factor * delta[0];
+            auto viewMatrix = sceneCamera.makeViewMatrix();
+            const auto forwardLength = length(sceneCamera.m_target - sceneCamera.m_position);
+            auto viewMatrixInverse = transpose(viewMatrix);
+//            viewMatrix.at(2,3) -= forwardLength; //Move target to origin
+            for (int i = 0; i < 3; ++i)
+            {
+                viewMatrixInverse.at(i, 3) = sceneCamera.m_position[i]; // sceneCamera.m_target[i];
+                viewMatrixInverse.at(3, i) = 0.0f;
+            }
+
+            const auto rotationMatrix = makeXRotationMatrix(factor * delta[1]) * makeYRotationMatrix(factor * delta[0]);
+            sceneCamera.m_position = makeNonHomogenous(viewMatrixInverse * rotationMatrix * viewMatrix * makeHomogenous(sceneCamera.m_position));
+            requestUpdate();
+
         }
         else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
         {
-            viewerPanOffset += delta;
+//            viewerPanOffset += delta;
         }
     }
     oldPos = newPos;

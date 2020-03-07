@@ -70,18 +70,4 @@ void main()
     emitVertexData(midVertex);
     emitVertexData(nvs[2]);
     emitVertexData(nvs[0]);
-
-/*
-    emitVertexData(nvs[0]);
-    emitVertexData(nvs[1]);
-    emitVertexData(midVertex);
-    emitVertexData(nvs[2]);
-    emitVertexData(nvs[0]);
-    emitVertexData(ovs[0]);
-    emitVertexData(nvs[1]);
-    emitVertexData(ovs[1]);
-    emitVertexData(nvs[2]);
-    emitVertexData(ovs[0]);
-    emitVertexData(nvs[0]);
-    */
 }

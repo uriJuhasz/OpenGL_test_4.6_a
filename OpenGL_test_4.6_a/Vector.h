@@ -115,8 +115,17 @@ inline float length(const Vector3& v)
     return sqrtf(dot(v, v));
 }
 
-inline Vector3 normalize(const Vector3& v)
+template<unsigned int D>inline Vector<D> normalize(const Vector<D>& v)
 {
     return v / length(v);
 }
 
+inline Vector4 makeHomogenous(const Vector3& v)
+{
+    return Vector4(v[0], v[1], v[2], 1.0f);
+}
+
+inline Vector3 makeNonHomogenous(const Vector4& v)
+{
+    return Vector3(v[0], v[1], v[2]);
+}
