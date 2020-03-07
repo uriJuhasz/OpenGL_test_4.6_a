@@ -3,7 +3,7 @@
 #include "Utilities/Exception.h"
 
 #pragma warning(push, 0) 
-/* assimp include files. These three are usually needed. */
+#pragma warning (disable:26812)
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

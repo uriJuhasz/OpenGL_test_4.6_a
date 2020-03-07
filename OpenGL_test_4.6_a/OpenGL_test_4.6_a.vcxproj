@@ -189,8 +189,12 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Backend\BackendShaderProgram.cpp" />
+    <ClCompile Include="Backend\BackendStandardShaderProgram.cpp" />
+    <ClCompile Include="Backend\BackendTesselationShaderProgram.cpp" />
     <ClCompile Include="Backend\BackendContext.cpp" />
     <ClCompile Include="Backend\BackendWindow.cpp" />
+    <ClCompile Include="OpenGLBackend\private\OpenGLShaderProgram.cpp" />
     <ClCompile Include="Utilities\Exception.cpp" />
     <ClCompile Include="Utilities\Misc.cpp" />
     <ClCompile Include="OpenGLBackend\OpenGLBackend.cpp" />
@@ -209,8 +213,12 @@
     <ClCompile Include="View\View.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Backend\BackendShaderProgram.h" />
+    <ClInclude Include="Backend\BackendStandardShaderProgram.h" />
+    <ClInclude Include="Backend\BackendTesselationShaderProgram.h" />
     <ClInclude Include="Backend\BackendContext.h" />
     <ClInclude Include="Backend\BackendWindow.h" />
+    <ClInclude Include="OpenGLBackend\private\OpenGLShaderProgram.h" />
     <ClInclude Include="Utilities\Exception.h" />
     <ClInclude Include="Utilities\Misc.h" />
     <ClInclude Include="OpenGLBackend\OpenGLBackend.h" />

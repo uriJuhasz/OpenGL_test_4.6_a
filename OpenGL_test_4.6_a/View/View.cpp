@@ -4,6 +4,7 @@
 
 #include "Backend/ViewInterface.h"
 #include "Backend/BackendWindow.h"
+#include "Backend/BackendContext.h"
 
 #include "OpenGLBackend/OpenGLUtilities.h"
 
@@ -36,7 +37,9 @@ public:
     void setMesh(unique_ptr<Mesh> m) override { m_mesh = move(m); }
 
     unique_ptr<Mesh> m_mesh;
-    GLuint m_meshShaderProgram = 0, m_meshEdgeShaderProgram = 0, m_lineShaderProgram = 0;
+    unique_ptr<BackendShaderProgram> m_meshShaderProgram;
+    unique_ptr<BackendShaderProgram> m_meshEdgeShaderProgram;
+    unique_ptr<BackendShaderProgram> m_lineShaderProgram;
     GLuint m_meshVAO = 0;
 
     array<Vector3, 2> m_meshBoundingBox;
@@ -99,10 +102,11 @@ void ViewImpl::setupScene()
     ////////////////////////////////////////////////////////////////
     //Shaders
     ////////////////////////////////////////////////////////////////
-    setShaderBasePath(shaderBasePath);
-    m_meshShaderProgram = makeShaderProgram("MeshVertexShader.glsl", "MeshFragmentShader.glsl", "MeshGeometryShader.glsl", "mesh");
-    m_meshEdgeShaderProgram = makeShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "EdgeGeometryShader.glsl", "edge");
-    m_lineShaderProgram = makeShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "", "line");
+    auto& backendContext = m_backendWindow.getContext();
+    backendContext.setShaderBasePath(shaderBasePath);
+    m_meshShaderProgram = backendContext.makeStandardShaderProgram("MeshVertexShader.glsl", "MeshGeometryShader.glsl", "MeshFragmentShader.glsl", "mesh");
+    m_meshEdgeShaderProgram = backendContext.makeStandardShaderProgram("EdgeVertexShader.glsl", "EdgeGeometryShader.glsl", "EdgeFragmentShader.glsl", "edge");
+    m_lineShaderProgram = backendContext.makeStandardShaderProgram("LineVertexShader.glsl", "", "LineFragmentShader.glsl", "line");
 
 
     const auto& vertices = mesh.m_vertices;
@@ -135,14 +139,11 @@ void ViewImpl::setupScene()
 }
 void ViewImpl::renderScene()
 {
-    // wipe the drawing surface clear
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    checkGLErrors();
 
     const auto sceneCamera = m_sceneCamera;
     const auto viewMatrix = sceneCamera.makeViewMatrix();// (viewerPosition, target, up);
 
-    const auto viewportDimensions = glGetViewportDimensions();
+    const auto viewportDimensions = m_backendWindow.getViewportDimensions();
     const auto projectionMatrix = sceneCamera.makeProjectionMatrix(viewportDimensions[0] / viewportDimensions[1]);
 
     //////////////////////
@@ -150,29 +151,24 @@ void ViewImpl::renderScene()
     constexpr bool renderSphere = false;
     if (renderSphere)
     {
-        const auto tcsShader = makeSingleShader(GL_TESS_CONTROL_SHADER, "SphereTesselationControlShader2.glsl", "Sphere_TCS");
-        const auto tesShader = makeSingleShader(GL_TESS_EVALUATION_SHADER, "SphereTesselationEvaluationShader2.glsl", "Sphere_TES");
-        const auto vertexShader = makeSingleShader(GL_VERTEX_SHADER, "SphereTesselationVertexShader.glsl", "Sphere_Vertex");
-        const auto fragmentShader = makeSingleShader(GL_FRAGMENT_SHADER, "SphereTesselationFragmentShader.glsl", "Sphere_Fragment");
+        auto& context = m_backendWindow.getContext();
+        const auto shaderProgramPtr = context.makeTessellationShaderProgram(
+            "SphereTesselationVertexShader.glsl",
+            "SphereTesselationControlShader2.glsl",
+            "SphereTesselationEvaluationShader2.glsl",
+            "",
+            "SphereTesselationFragmentShader.glsl",
+            "Sphere"
+        );
 
-        const auto shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, tcsShader);
-        glAttachShader(shaderProgram, tesShader);
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-        checkGLErrors();
+        auto& shaderProgram = *shaderProgramPtr;
 
-        glUseProgram(shaderProgram);
-        checkGLErrors();
+        shaderProgram.setParameter("uDetail", 10.0f);
 
-        glUniform1f(glGetUniformLocation(shaderProgram, "uDetail"), 10.0f);
-
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, unitMatrix4x4.data());
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
-
-        checkGLErrors();
+        const auto modelMatrix = unitMatrix4x4;
+        shaderProgram.setParameter("modelMatrix", modelMatrix);
+        shaderProgram.setParameter("viewMatrix", viewMatrix);
+        shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
         glDisable(GL_CULL_FACE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -188,10 +184,9 @@ void ViewImpl::renderScene()
     constexpr bool showBezierPatch = true;
     if (showBezierPatch)
     {
-        const auto shaderProgram = makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
-        checkGLErrors();
-        glUseProgram(shaderProgram);
-        checkGLErrors();
+        auto& context = m_backendWindow.getContext();
+        const auto shaderProgramPtr = context.makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
+        auto& shaderProgram = *shaderProgramPtr;
 
         const auto numPatchVertices = 16;
         glPatchParameteri(GL_PATCH_VERTICES, numPatchVertices);
@@ -213,7 +208,6 @@ void ViewImpl::renderScene()
             glBufferData(GL_ARRAY_BUFFER, patchParameters.size() * sizeof(patchParameters[0]), patchParameters.data(), GL_STATIC_DRAW);
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-            checkGLErrors();
         }
 
         const Matrix4x4 modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
@@ -221,62 +215,55 @@ void ViewImpl::renderScene()
 
         const auto viewMatrix = sceneCamera.makeViewMatrix();
 
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+        shaderProgram.setParameter("modelMatrix", modelMatrix);
+        shaderProgram.setParameter("viewMatrix", viewMatrix);
+        shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
         const Vector3 light0Position = target + Vector3(100.0f, 0.0f, 0.0f);
         const Vector3 light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "light0Position"), 1, light0Position.data());
-        glUniform3fv(glGetUniformLocation(shaderProgram, "light0Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
-        glUniform1f(glGetUniformLocation(shaderProgram, "light0SpecularExponent"), 1000.0f);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "light1Position"), 1, light1Position.data());
-        glUniform3fv(glGetUniformLocation(shaderProgram, "light1Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
-        glUniform1f(glGetUniformLocation(shaderProgram, "light1SpecularExponent"), 100.0f);
-        checkGLErrors();
+        shaderProgram.setParameter("light0Position", m_light0Position);
+        shaderProgram.setParameter("light0Color", Vector3(1.0f, 1.0f, 1.0f));
+        shaderProgram.setParameter("light0SpecularExponent", 10.0f);
+        shaderProgram.setParameter("light1Position", m_light1Position);
+        shaderProgram.setParameter("light1Color", Vector3(1.0f, 1.0f, 1.0f));
+        shaderProgram.setParameter("light1SpecularExponent", 100.0f);
 
-        glUniform3fv(glGetUniformLocation(shaderProgram, "viewerPosition"), 1, sceneCamera.m_position.data());
-        checkGLErrors();
+        shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
 
         const Vector3 frontColor(1.0f, 0.0f, 1.0f);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "frontColor"), 1, frontColor.data());
+        shaderProgram.setParameter("frontColor", frontColor);
         const Vector3 backColor(0.1f, 0.3f, 0.3f);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "backColor"), 1, backColor.data());
-        checkGLErrors();
+        shaderProgram.setParameter("backColor", backColor);
 
-        glUniform1f(glGetUniformLocation(shaderProgram, "tessellationLevel"), 64.0f);
-        checkGLErrors();
-
+        shaderProgram.setParameter("tessellationLevel", 64.0f);
 
         glDisable(GL_CULL_FACE);
         constexpr bool showPatchFaces = true;
         if (showPatchFaces)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// LINE);
-            glUniform1i(glGetUniformLocation(shaderProgram, "edgeMode"), 0);
+            shaderProgram.setParameter("edgeMode", 0);
             glDepthFunc(GL_LESS);
 
             glBindVertexArray(vao);
             glDrawArrays(GL_PATCHES, 0, 16);
-            checkGLErrors();
         }
         constexpr bool showPatchEdges = true;
         if (showPatchEdges)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glUniform1i(glGetUniformLocation(shaderProgram, "edgeMode"), 1);
+            shaderProgram.setParameter("edgeMode", 1);
             glLineWidth(1.0f);
             glDepthFunc(GL_LEQUAL);
             glEnable(GL_POLYGON_OFFSET_LINE);
             glPolygonOffset(-1.0, 0.0);
             glBindVertexArray(vao);
             glDrawArrays(GL_PATCHES, 0, 16);
-            checkGLErrors();
         }
     }
     //////////////////////
     //Render mesh
-    constexpr bool renderMesh = false;
+    constexpr bool renderMesh = true;
     if (renderMesh)
     {
         const auto modelMatrix = unitMatrix4x4;
@@ -287,44 +274,37 @@ void ViewImpl::renderScene()
         constexpr bool renderMeshFaces = true;
         if (renderMeshFaces)
         {
-            const auto meshShaderProgram = m_meshShaderProgram;
-            glUseProgram(meshShaderProgram);
-            checkGLErrors();
+            auto& shaderProgram = *m_meshShaderProgram;
 
-            glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(meshShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
-            checkGLErrors();
+            shaderProgram.setParameter("modelMatrix", modelMatrix);
+            shaderProgram.setParameter("viewMatrix", viewMatrix);
+            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
-            glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Position"), 1, m_light0Position.data());
-            glUniform3fv(glGetUniformLocation(meshShaderProgram, "light0Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
-            glUniform1f(glGetUniformLocation(meshShaderProgram, "light0SpecularExponent"), 10.0f);
-            glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Position"), 1, m_light1Position.data());
-            glUniform3fv(glGetUniformLocation(meshShaderProgram, "light1Color"), 1, Vector3(1.0f, 1.0f, 1.0f).data());
-            glUniform1f(glGetUniformLocation(meshShaderProgram, "light1SpecularExponent"), 100.0f);
-            checkGLErrors();
+            shaderProgram.setParameter("light0Position", m_light0Position);
+            shaderProgram.setParameter("light0Color", Vector3(1.0f, 1.0f, 1.0f));
+            shaderProgram.setParameter("light0SpecularExponent", 10.0f);
+            shaderProgram.setParameter("light1Position", m_light1Position);
+            shaderProgram.setParameter("light1Color", Vector3(1.0f, 1.0f, 1.0f));
+            shaderProgram.setParameter("light1SpecularExponent", 100.0f);
 
-            glUniform3fv(glGetUniformLocation(meshShaderProgram, "viewerPosition"), 1, sceneCamera.m_position.data());
-            checkGLErrors();
+            shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
 
             glBindVertexArray(m_meshVAO);
-            checkGLErrors();
 
             glDepthFunc(GL_LESS);
             glPolygonMode(GL_FRONT, GL_FILL);
             glEnable(GL_CULL_FACE);
             glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
-            checkGLErrors();
         }
 
-        constexpr bool renderWireframe = false;
+        constexpr bool renderWireframe = true;
         if (renderWireframe)
         {
-            const auto edgeShaderProgram = m_meshEdgeShaderProgram;
-            glUseProgram(edgeShaderProgram);
-            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
+            auto& shaderProgram = *m_meshEdgeShaderProgram;
+            shaderProgram.setParameter("modelMatrix", modelMatrix);
+            shaderProgram.setParameter("viewMatrix", viewMatrix);
+            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+
 
             glLineWidth(1.0f);
             //        glEnable(GL_BLEND);
@@ -334,28 +314,23 @@ void ViewImpl::renderScene()
             //        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
             //        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
             //        glDisable(GL_CULL_FACE);
-            const Vector3 edgeColor(1.0f, 1.0f, 1.0f);
-            glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, edgeColor.data());
-            checkGLErrors();
+            shaderProgram.setParameter("edgeColor", Vector3(1.0f, 1.0f, 1.0f));
 
             glPolygonMode(GL_FRONT, GL_LINE);
             glDepthFunc(GL_LEQUAL);
             glEnable(GL_POLYGON_OFFSET_LINE);
             glPolygonOffset(-1.0, 0.0);
             glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
-            checkGLErrors();
         }
         ///////////////////////
         //Bounding box
-        constexpr bool showBoundingBox = false;
+        constexpr bool showBoundingBox = true;
         if (showBoundingBox)
         {
-            const auto lineShaderProgram = m_lineShaderProgram;
-            glUseProgram(lineShaderProgram);
-            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "modelMatrix"), 1, true, modelMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
-            glUniformMatrix4fv(glGetUniformLocation(lineShaderProgram, "projectionMatrix"), 1, true, projectionMatrix.data());
-            checkGLErrors();
+            auto& shaderProgram = *m_lineShaderProgram;
+            shaderProgram.setParameter("modelMatrix", modelMatrix);
+            shaderProgram.setParameter("viewMatrix", viewMatrix);
+            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
             const auto bb = m_meshBoundingBox;
             const array<Vector3, 8> boundingBoxVertices = {

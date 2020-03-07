@@ -16,13 +16,4 @@ GLuint insertMesh(const Mesh& mesh);
 
 Vector2 glGetViewportDimensions();
 
-void setShaderBasePath(const string& path);
-string loadShader(const string& fileName);
-GLuint makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title);
-GLuint makeShaderProgram(const string& vertexShaderFilename, const string& fragmentShaderFilename, const string& geometryShaderFilename, const string& title);
-GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource);
-GLuint makeTessellationShaderProgram(const string& fileName, const string& title);
-
-
-
 

@@ -16,7 +16,7 @@ using namespace std;
 class GLFWWindow final : public OpenGLWindow
 {
 public:
-    explicit GLFWWindow(const OpenGLContext& context, const std::string& title = "")
+    explicit GLFWWindow(OpenGLContext& context, const std::string& title = "")
         : m_context(context)
         , m_view(nullptr)
     {
@@ -62,6 +62,8 @@ public:
         }
     }
 
+    OpenGLContext& getContext() override { return m_context; }
+
 public:
     array<int, 2> getFramebufferSize() const
     {
@@ -69,6 +71,11 @@ public:
         glfwGetFramebufferSize(m_window, &width, &height);
         return { width,height };
     }
+    Vector2 getViewportDimensions() const
+    {
+        return glGetViewportDimensions();
+    }
+
     operator bool() const { return m_window != nullptr; }
 
 public:
@@ -94,6 +101,10 @@ public:
                 continue;
             }
 
+            // wipe the drawing surface clear
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            checkGLErrors();
+
             m_view->renderScene();
 
             // put the stuff we've been drawing onto the display
@@ -110,7 +121,7 @@ public:
     }
 
 private:
-    const OpenGLContext& m_context;
+    OpenGLContext& m_context;
     GLFWwindow* m_window = nullptr;
     static const int c_defaultWidth = 800;
     static const int c_defaultHeight = 800;
@@ -255,7 +266,7 @@ void GLFWWindow::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int 
     }
 }
 
-OpenGLWindow* OpenGLWindow::make(const OpenGLContext& context)
+OpenGLWindow* OpenGLWindow::make(OpenGLContext& context)
 {
     return new GLFWWindow(context);
 }

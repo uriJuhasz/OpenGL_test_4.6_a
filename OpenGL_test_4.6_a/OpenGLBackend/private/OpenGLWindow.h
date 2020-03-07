@@ -7,5 +7,5 @@
 class OpenGLWindow : public BackendWindow
 {
 public:
-	static OpenGLWindow* make(const OpenGLContext&);
+	static OpenGLWindow* make(OpenGLContext&);
 };
