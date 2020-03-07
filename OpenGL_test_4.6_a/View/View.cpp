@@ -31,8 +31,6 @@ public:
     void mouseWheelCallback(const Vector2& wheelDelta) override;
     void mouseMoveCallback(const Vector2& delta, const Vector2& oldPos, const Vector2& newPos) override;
 
-protected:
-
 public:
 
     void setMesh(unique_ptr<Mesh> m) override { m_mesh = move(m); }
@@ -68,19 +66,6 @@ ViewImpl::~ViewImpl()
     m_backendWindow.registerView(nullptr);
 }
 
-string loadShader(const string& fileName)
-{
-    ifstream f(fileName);
-    string r;
-    if (f)
-    {
-        stringstream buffer;
-        buffer << f.rdbuf();
-        r = buffer.str();
-    }
-
-    return r;
-}
 
 template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
 {
@@ -94,79 +79,6 @@ template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
 }
 
 static const string shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\shaders\)";
-GLuint makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title)
-{
-    const auto shader = glCreateShader(shaderType);
-    const auto shaderSource = loadShader(shaderBasePath + shaderPath);
-    const auto shaderSourcePtr = shaderSource.c_str();
-    glShaderSource(shader, 1, &shaderSourcePtr, nullptr);
-    glCompileShader(shader);
-    checkShaderErrors(title, shader);
-
-    checkGLErrors();
-    return shader;
-}
-GLuint makeShaderProgram(const string& vertexShaderFilename, const string& fragmentShaderFilename, const string& geometryShaderFilename, const string& title)
-{
-    const auto shaderProgram = glCreateProgram();
-
-    glAttachShader(shaderProgram, makeSingleShader(GL_VERTEX_SHADER, vertexShaderFilename, title + "_Vertex"));
-    glAttachShader(shaderProgram, makeSingleShader(GL_FRAGMENT_SHADER, fragmentShaderFilename, title + "_Fragment"));
-
-    if (!geometryShaderFilename.empty())
-    {
-        glAttachShader(shaderProgram, makeSingleShader(GL_GEOMETRY_SHADER, geometryShaderFilename, title + "_Geometry"));
-    }
-
-
-    glLinkProgram(shaderProgram);
-    checkShaderProgramErrors(title, shaderProgram);
-
-    checkGLErrors();
-
-    return shaderProgram;
-}
-
-GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
-{
-    const auto shader = glCreateShader(shaderType);
-    const auto ccString = string(
-        (shaderType == GL_VERTEX_SHADER) ? "VS" :
-        (shaderType == GL_TESS_CONTROL_SHADER) ? "TCS" :
-        (shaderType == GL_TESS_EVALUATION_SHADER) ? "TES" :
-        (shaderType == GL_GEOMETRY_SHADER) ? "GS" :
-        (shaderType == GL_FRAGMENT_SHADER) ? "FS" :
-        "");
-    const auto defineString = "#version 430\n#define COMPILING_" + ccString + "\n";
-    array<const char*, 2> ptrs = {
-        defineString.c_str(),
-        shaderSource.c_str()
-    };
-    glShaderSource(shader, 2, ptrs.data(), nullptr);
-    glCompileShader(shader);
-    checkShaderErrors(ccString, shader);
-
-    checkGLErrors();
-    return shader;
-}
-
-GLuint makeTessellationShaderProgram(const string& fileName, const string& title)
-{
-    const auto shaderSource = loadShader(shaderBasePath + fileName);
-    const auto shaderProgram = glCreateProgram();
-
-    glAttachShader(shaderProgram, makeSingleShaderCC(GL_VERTEX_SHADER, shaderSource));
-    glAttachShader(shaderProgram, makeSingleShaderCC(GL_TESS_CONTROL_SHADER, shaderSource));
-    glAttachShader(shaderProgram, makeSingleShaderCC(GL_TESS_EVALUATION_SHADER, shaderSource));
-    glAttachShader(shaderProgram, makeSingleShaderCC(GL_GEOMETRY_SHADER, shaderSource));
-    glAttachShader(shaderProgram, makeSingleShaderCC(GL_FRAGMENT_SHADER, shaderSource));
-    glLinkProgram(shaderProgram);
-    checkShaderProgramErrors(title, shaderProgram);
-
-    checkGLErrors();
-
-    return shaderProgram;
-}
 
 void ViewImpl::setupScene()
 {
@@ -187,12 +99,11 @@ void ViewImpl::setupScene()
     ////////////////////////////////////////////////////////////////
     //Shaders
     ////////////////////////////////////////////////////////////////
-    const auto meshShaderProgram = makeShaderProgram("MeshVertexShader.glsl", "MeshFragmentShader.glsl", "MeshGeometryShader.glsl", "mesh");
-    const auto edgeShaderProgram = makeShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "EdgeGeometryShader.glsl", "edge");
-    const auto lineShaderProgram = makeShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "", "line");
-    m_meshShaderProgram = meshShaderProgram;
-    m_meshEdgeShaderProgram = edgeShaderProgram;
-    m_lineShaderProgram = lineShaderProgram;
+    setShaderBasePath(shaderBasePath);
+    m_meshShaderProgram = makeShaderProgram("MeshVertexShader.glsl", "MeshFragmentShader.glsl", "MeshGeometryShader.glsl", "mesh");
+    m_meshEdgeShaderProgram = makeShaderProgram("EdgeVertexShader.glsl", "EdgeFragmentShader.glsl", "EdgeGeometryShader.glsl", "edge");
+    m_lineShaderProgram = makeShaderProgram("LineVertexShader.glsl", "LineFragmentShader.glsl", "", "line");
+
 
     const auto& vertices = mesh.m_vertices;
     const auto numVertices = mesh.numVertices();
@@ -256,7 +167,6 @@ void ViewImpl::renderScene()
         checkGLErrors();
 
         glUniform1f(glGetUniformLocation(shaderProgram, "uDetail"), 10.0f);
-        //            glUniform1f(glGetUniformLocation(shaderProgram, "uScale"), 100.0f);
 
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, true, unitMatrix4x4.data());
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, true, viewMatrix.data());
