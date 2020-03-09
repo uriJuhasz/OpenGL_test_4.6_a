@@ -21,8 +21,8 @@ public:
 
 	void setParameter(const std::string& name, const int value) override;
 
-private:
 	GLuint m_shaderProgramID;
+private:
 };
 
 class OpenGLStandardShaderProgram

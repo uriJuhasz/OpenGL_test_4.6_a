@@ -2,6 +2,9 @@
 
 #include "ViewInterface.h"
 #include "BackendContext.h"
+#include "BackendMesh.h"
+
+#include "Geometry/Mesh.h"
 
 #include <array>
 
@@ -39,6 +42,6 @@ public:
     virtual void requestUpdate() = 0;
 
 public:
-
+    virtual BackendMesh* makeBackendMesh(const Mesh&) = 0;
 };
 

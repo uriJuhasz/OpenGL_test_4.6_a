@@ -1,22 +1,28 @@
 #include "OpenGLWindow.h"
 #include "OpenGLContext.h"
+#include "OpenGLMesh.h"
 
 #include "OpenGLBackend/OpenGLUtilities.h"
 
 #include "Utilities/Exception.h"
 #include "Utilities/Misc.h"
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#ifdef _WIN32
+#include <GL/wglew.h>
+#endif
 
+#include <cassert>
 #include <vector>
 #include <iostream>
 
 using namespace std;
 
-class GLFWWindow final : public OpenGLWindow
+class OpenGLWindowImpl final : public OpenGLWindow
 {
 public:
-    explicit GLFWWindow(OpenGLContext& context, const std::string& title = "")
+    explicit OpenGLWindowImpl(OpenGLContext& context, const std::string& title = "")
         : m_context(context)
         , m_view(nullptr)
     {
@@ -46,7 +52,7 @@ public:
         }
     }
 
-    ~GLFWWindow()
+    ~OpenGLWindowImpl()
     {
         if (m_window)
         {
@@ -73,7 +79,11 @@ public:
     }
     Vector2 getViewportDimensions() const
     {
-        return glGetViewportDimensions();
+        array<int, 4> viewport;
+        glGetIntegerv(GL_VIEWPORT, viewport.data());
+        const float vpw = static_cast<float>(viewport[2] - viewport[0]);
+        const float vph = static_cast<float>(viewport[3] - viewport[1]);
+        return Vector2(vpw, vph);
     }
 
     operator bool() const { return m_window != nullptr; }
@@ -155,6 +165,41 @@ public:
         glewExperimental = GL_TRUE;
         glewInit();
 
+        //Look at GPUs
+#ifdef _WIN32
+        {
+            if (WGLEW_NV_gpu_affinity)
+            {
+                for (UINT gpu = 0; true; ++gpu)
+                {
+                    HGPUNV hGPU = 0;
+                    if (!wglEnumGpusNV(gpu, &hGPU))
+                        break;
+
+                    GPU_DEVICE gpuDevice;
+                    gpuDevice.cb = sizeof(gpuDevice);
+                    const bool found = wglEnumGpuDevicesNV(hGPU, 0, &gpuDevice);
+                    assert(found);
+
+                    std::cout << "GPU " << gpu << ": " << gpuDevice.DeviceString;
+
+                    if (gpuDevice.Flags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
+                    {
+                        const RECT& rect = gpuDevice.rcVirtualScreen;
+                        std::cout << " used on [" << rect.left << ' ' << rect.top << ' '
+                            << rect.right - rect.left << ' '
+                            << rect.bottom - rect.top << ']';
+                    }
+                    else
+                        std::cout << " offline";
+
+                    std::cout << std::endl;
+                }
+            }
+            else
+                cout << " Cannot select GPU";
+        }
+#endif
         // get version info
         cout << endl;
 
@@ -183,7 +228,21 @@ public:
         cout << "  OpenGL max combined shader storage blocks: " << glGetUInt(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS) << endl;
 
         cout << endl;
+
+        ////////////////////////////////////
+        //General scene setup
+        glEnable(GL_DEBUG_OUTPUT);
+
+        glEnable(GL_DEPTH_TEST); // enable z buffer
+
+
     };
+
+public:
+    OpenGLMesh* makeBackendMesh(const Mesh& mesh) override
+    {
+        return new OpenGLMesh(mesh);
+    }
 
 private:
     Vector2 m_oldMousePos;
@@ -233,8 +292,8 @@ private:
     }
 
 private:
-    static vector<pair<const GLFWwindow*, GLFWWindow*>> s_allWindows;
-    static GLFWWindow* findWindow(const GLFWwindow* wtf)
+    static vector<pair<const GLFWwindow*, OpenGLWindowImpl*>> s_allWindows;
+    static OpenGLWindowImpl* findWindow(const GLFWwindow* wtf)
     {
         for (const auto& p : s_allWindows)
             if (p.first == wtf)
@@ -243,22 +302,22 @@ private:
     }
 };
 
-vector<pair<const GLFWwindow*, GLFWWindow*>> GLFWWindow::s_allWindows = {};
+vector<pair<const GLFWwindow*, OpenGLWindowImpl*>> OpenGLWindowImpl::s_allWindows = {};
 
 
 
-void GLFWWindow::glfwScrollCallback(GLFWwindow* glfwWindow, double dxoffsetD, double yoffsetD)
+void OpenGLWindowImpl::glfwScrollCallback(GLFWwindow* glfwWindow, double dxoffsetD, double yoffsetD)
 {
     if (const auto windowPtr = findWindow(glfwWindow))
         windowPtr->mouseWheelCallback(Vector2(toFloat(dxoffsetD), toFloat(yoffsetD)));
 }
-void GLFWWindow::glfwMousePosCallback(GLFWwindow* glfwWindow, double xpos, double ypos)
+void OpenGLWindowImpl::glfwMousePosCallback(GLFWwindow* glfwWindow, double xpos, double ypos)
 {
     const Vector2 newPos(toFloat(xpos), toFloat(ypos));
     if (const auto windowPtr = findWindow(glfwWindow))
         windowPtr->mouseMoveCallback(newPos);
 }
-void GLFWWindow::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void OpenGLWindowImpl::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_ESCAPE)
     {
@@ -268,5 +327,5 @@ void GLFWWindow::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int 
 
 OpenGLWindow* OpenGLWindow::make(OpenGLContext& context)
 {
-    return new GLFWWindow(context);
+    return new OpenGLWindowImpl(context);
 }

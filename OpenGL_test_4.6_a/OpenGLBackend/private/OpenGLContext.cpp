@@ -70,7 +70,7 @@ GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
 
 class GLFWContext;
 
-class GLFWWindow;
+class OpenGLWindowImpl;
 class GLFWContext final : public OpenGLContext
 {
 private:

@@ -6,7 +6,7 @@
 #include "Backend/BackendWindow.h"
 #include "Backend/BackendContext.h"
 
-#include "OpenGLBackend/OpenGLUtilities.h"
+//#include "OpenGLBackend/OpenGLUtilities.h"
 
 #include <GL/glew.h>
 
@@ -37,10 +37,10 @@ public:
     void setMesh(unique_ptr<Mesh> m) override { m_mesh = move(m); }
 
     unique_ptr<Mesh> m_mesh;
-    unique_ptr<BackendShaderProgram> m_meshShaderProgram;
-    unique_ptr<BackendShaderProgram> m_meshEdgeShaderProgram;
+    unique_ptr<BackendStandardShaderProgram> m_meshShaderProgram;
+    unique_ptr<BackendStandardShaderProgram> m_meshEdgeShaderProgram;
     unique_ptr<BackendShaderProgram> m_lineShaderProgram;
-    GLuint m_meshVAO = 0;
+    unique_ptr<BackendMesh> m_backendMesh;
 
     array<Vector3, 2> m_meshBoundingBox;
 
@@ -85,20 +85,13 @@ static const string shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_
 
 void ViewImpl::setupScene()
 {
-    ////////////////////////////////////
-    //General scene setup
-    glEnable(GL_DEBUG_OUTPUT);
-
-    // tell GL to only draw onto a pixel if the shape is closer to the viewer
-    glEnable(GL_DEPTH_TEST); // enable depth-testing
-
     /////////////////////////////////////////
     /////////////////////////////////////////
     //Mesh setup
     //Vertex buffers
     const auto& mesh = *m_mesh;
-    const auto vao = insertMesh(mesh);
-    m_meshVAO = vao;
+    m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
+
     ////////////////////////////////////////////////////////////////
     //Shaders
     ////////////////////////////////////////////////////////////////
@@ -107,6 +100,8 @@ void ViewImpl::setupScene()
     m_meshShaderProgram = backendContext.makeStandardShaderProgram("MeshVertexShader.glsl", "MeshGeometryShader.glsl", "MeshFragmentShader.glsl", "mesh");
     m_meshEdgeShaderProgram = backendContext.makeStandardShaderProgram("EdgeVertexShader.glsl", "EdgeGeometryShader.glsl", "EdgeFragmentShader.glsl", "edge");
     m_lineShaderProgram = backendContext.makeStandardShaderProgram("LineVertexShader.glsl", "", "LineFragmentShader.glsl", "line");
+    m_backendMesh->setFaceShader(m_meshShaderProgram.get());
+    m_backendMesh->setEdgeShader(m_meshEdgeShaderProgram.get());
 
 
     const auto& vertices = mesh.m_vertices;
@@ -190,7 +185,7 @@ void ViewImpl::renderScene()
 
         const auto numPatchVertices = 16;
         glPatchParameteri(GL_PATCH_VERTICES, numPatchVertices);
-        GLuint vao = 0;
+        GLuint patchVertexArrayObject = 0;
         {
             const array<Vector3, 16> patchParameters = {
                 Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),
@@ -198,8 +193,8 @@ void ViewImpl::renderScene()
                 Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
                 Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
             };
-            glGenVertexArrays(1, &vao);
-            glBindVertexArray(vao);
+            glGenVertexArrays(1, &patchVertexArrayObject);
+            glBindVertexArray(patchVertexArrayObject);
 
             //Vertex positions
             GLuint vertexBuffer = 0;
@@ -245,7 +240,7 @@ void ViewImpl::renderScene()
             shaderProgram.setParameter("edgeMode", 0);
             glDepthFunc(GL_LESS);
 
-            glBindVertexArray(vao);
+            glBindVertexArray(patchVertexArrayObject);
             glDrawArrays(GL_PATCHES, 0, 16);
         }
         constexpr bool showPatchEdges = true;
@@ -257,7 +252,7 @@ void ViewImpl::renderScene()
             glDepthFunc(GL_LEQUAL);
             glEnable(GL_POLYGON_OFFSET_LINE);
             glPolygonOffset(-1.0, 0.0);
-            glBindVertexArray(vao);
+            glBindVertexArray(patchVertexArrayObject);
             glDrawArrays(GL_PATCHES, 0, 16);
         }
     }
@@ -289,12 +284,7 @@ void ViewImpl::renderScene()
 
             shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
 
-            glBindVertexArray(m_meshVAO);
-
-            glDepthFunc(GL_LESS);
-            glPolygonMode(GL_FRONT, GL_FILL);
-            glEnable(GL_CULL_FACE);
-            glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
+            m_backendMesh->render(true, false);
         }
 
         constexpr bool renderWireframe = true;
@@ -304,23 +294,11 @@ void ViewImpl::renderScene()
             shaderProgram.setParameter("modelMatrix", modelMatrix);
             shaderProgram.setParameter("viewMatrix", viewMatrix);
             shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-
-            glLineWidth(1.0f);
-            //        glEnable(GL_BLEND);
-            //        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            //        glEnable(GL_LINE_SMOOTH);
-            //        glEnable(GL_POLYGON_SMOOTH);
-            //        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-            //        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-            //        glDisable(GL_CULL_FACE);
             shaderProgram.setParameter("edgeColor", Vector3(1.0f, 1.0f, 1.0f));
 
-            glPolygonMode(GL_FRONT, GL_LINE);
-            glDepthFunc(GL_LEQUAL);
-            glEnable(GL_POLYGON_OFFSET_LINE);
-            glPolygonOffset(-1.0, 0.0);
-            glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, 0);
+            m_backendMesh->render(false, true);
+
+
         }
         ///////////////////////
         //Bounding box
@@ -359,7 +337,6 @@ void ViewImpl::renderScene()
                 glBegin(GL_LINES);
                 glVertex3fv(v0.data());
                 glVertex3fv(v1.data());
-                //                    glVertex3f(v1[0], v1[1], v1[2]);
                 glEnd();
             }
         }

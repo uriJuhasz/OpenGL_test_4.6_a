@@ -12,8 +12,4 @@ void checkShaderErrors(const string& shaderType, const GLuint s);
 void checkShaderProgramErrors(const string& shaderType, const GLuint p);
 void checkGLErrors();
 
-GLuint insertMesh(const Mesh& mesh);
-
-Vector2 glGetViewportDimensions();
-
 
