@@ -17,13 +17,13 @@ string toString(const vector<char>& v)
     return r;
 }
 
-GLint glGetUInt(GLenum e)
+GLint glsGetUInt(GLenum e)
 {
     GLint r;
     glGetIntegerv(e, &r);
     return r;
 }
-void checkShaderErrors(const string& shaderType, const GLuint s)
+void glsCheckShaderErrors(const string& shaderType, const GLuint s)
 {
     int infoLength;
     glGetShaderiv(s, GL_INFO_LOG_LENGTH, &infoLength);
@@ -35,7 +35,7 @@ void checkShaderErrors(const string& shaderType, const GLuint s)
         cerr << shaderType << " shader log: " << endl << infoString;
     }
 }
-void checkShaderProgramErrors(const string& shaderType, const GLuint p)
+void glsCheckShaderProgramErrors(const string& shaderType, const GLuint p)
 {
     int infoLength;
     glGetProgramiv(p, GL_INFO_LOG_LENGTH, &infoLength);
@@ -48,7 +48,7 @@ void checkShaderProgramErrors(const string& shaderType, const GLuint p)
     }
 }
 
-void checkGLErrors()
+void glsCheckErrors()
 {
     GLenum err = glGetError();
     if (err != GL_NO_ERROR)
@@ -60,4 +60,34 @@ void checkGLErrors()
     }
 }
 
+GLuint glsGenAndBindBuffer(GLenum bufferType)
+{
+    GLuint buffer = 0;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(bufferType, buffer);
+    return buffer;
+}
 
+template<unsigned int D> GLuint glsMakeBuffer(const vector<Vector<D>>& vs, const int attributeIndex)
+{
+    const auto buffer = glsGenAndBindBuffer(GL_ARRAY_BUFFER);
+    glBufferData(GL_ARRAY_BUFFER, vs.size() * sizeof(vs[0]), vs.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(attributeIndex);
+    glVertexAttribPointer(attributeIndex, D, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glsCheckErrors();
+
+    return buffer;
+}
+
+
+GLuint glsGenAndBindVertexArray()
+{
+    GLuint vao = 0;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    return vao;
+}
+
+template GLuint glsMakeBuffer<2>(const vector<Vector<2>>& vs, const int attributeIndex);
+template GLuint glsMakeBuffer<3>(const vector<Vector<3>>& vs, const int attributeIndex);
+template GLuint glsMakeBuffer<4>(const vector<Vector<4>>& vs, const int attributeIndex);

@@ -19,7 +19,7 @@ public:
 
 private:
 	void insertMesh(const Mesh& mesh);
-	template<unsigned int D> GLuint makeBuffer(const vector<Vector<D>>& vs, const int attributeIndex);
+	template<unsigned int D> GLuint makeAndRegisterBuffer(const vector<Vector<D>>& vs, const int attributeIndex);
 
 private:
 	int m_numFaces = 0;

@@ -189,6 +189,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Backend\BackendGraphicPrimitive.cpp" />
+    <ClCompile Include="Backend\BackendPatch.cpp" />
     <ClCompile Include="Backend\BackendMesh.cpp" />
     <ClCompile Include="Backend\BackendShaderProgram.cpp" />
     <ClCompile Include="Backend\BackendStandardShaderProgram.cpp" />
@@ -197,6 +199,8 @@
     <ClCompile Include="Backend\BackendWindow.cpp" />
     <ClCompile Include="OpenGLBackend\private\OpenGLShaderProgram.cpp" />
     <ClCompile Include="OpenGLBackend\private\OpenGLMesh.cpp" />
+    <ClCompile Include="Geometry\Patch.cpp" />
+    <ClCompile Include="OpenGLBackend\private\OpenGLPatch.cpp" />
     <ClCompile Include="Utilities\Exception.cpp" />
     <ClCompile Include="Utilities\Misc.cpp" />
     <ClCompile Include="OpenGLBackend\OpenGLBackend.cpp" />
@@ -211,10 +215,12 @@
     <ClCompile Include="Scene\PointLight.cpp" />
     <ClCompile Include="Scene\SceneObject.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
-    <ClCompile Include="Backend\ViewInterface.cpp" />
+    <ClCompile Include="Backend\BackendViewInterface.cpp" />
     <ClCompile Include="View\View.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Backend\BackendGraphicPrimitive.h" />
+    <ClInclude Include="Backend\BackendPatch.h" />
     <ClInclude Include="Backend\BackendMesh.h" />
     <ClInclude Include="Backend\BackendShaderProgram.h" />
     <ClInclude Include="Backend\BackendStandardShaderProgram.h" />
@@ -223,6 +229,8 @@
     <ClInclude Include="Backend\BackendWindow.h" />
     <ClInclude Include="OpenGLBackend\private\OpenGLShaderProgram.h" />
     <ClInclude Include="OpenGLBackend\private\OpenGLMesh.h" />
+    <ClInclude Include="Geometry\Patch.h" />
+    <ClInclude Include="OpenGLBackend\private\OpenGLPatch.h" />
     <ClInclude Include="Utilities\Exception.h" />
     <ClInclude Include="Utilities\Misc.h" />
     <ClInclude Include="OpenGLBackend\OpenGLBackend.h" />
@@ -238,7 +246,7 @@
     <ClInclude Include="Scene\PointLight.h" />
     <ClInclude Include="Scene\SceneObject.h" />
     <ClInclude Include="Scene\Scene.h" />
-    <ClInclude Include="Backend\ViewInterface.h" />
+    <ClInclude Include="Backend\BackendViewInterface.h" />
     <ClInclude Include="View\View.h" />
   </ItemGroup>
   <ItemGroup>

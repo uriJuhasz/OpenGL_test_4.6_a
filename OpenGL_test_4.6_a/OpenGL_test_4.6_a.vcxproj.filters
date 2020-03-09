@@ -51,9 +51,6 @@
     <ClCompile Include="Backend\BackendWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Backend\ViewInterface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenGLBackend\OpenGLBackend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -85,6 +82,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpenGLBackend\private\OpenGLMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Backend\BackendPatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Backend\BackendViewInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\Patch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLBackend\private\OpenGLPatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Backend\BackendGraphicPrimitive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -128,9 +140,6 @@
     <ClInclude Include="Backend\BackendWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Backend\ViewInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OpenGLBackend\OpenGLBackend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -162,6 +171,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenGLBackend\private\OpenGLMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\BackendPatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\BackendViewInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Patch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLBackend\private\OpenGLPatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\BackendGraphicPrimitive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

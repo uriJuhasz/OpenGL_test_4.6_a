@@ -2,13 +2,13 @@
 
 #include "Math/Vector.h"
 
-class ViewInterface
+class BackendViewInterface
 {
 protected:
-    ViewInterface() {}
+    BackendViewInterface() {}
     
 public:
-    virtual ~ViewInterface() {}
+    virtual ~BackendViewInterface() {}
 
     virtual void setupScene() = 0;
     virtual void renderScene() = 0;

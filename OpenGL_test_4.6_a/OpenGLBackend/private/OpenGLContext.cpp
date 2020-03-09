@@ -61,9 +61,9 @@ GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
     };
     glShaderSource(shader, 2, ptrs.data(), nullptr);
     glCompileShader(shader);
-    checkShaderErrors(ccString, shader);
+    glsCheckShaderErrors(ccString, shader);
 
-    checkGLErrors();
+    glsCheckErrors();
     return shader;
 }
 
@@ -132,9 +132,9 @@ public:
         makeAndAttachShader(shaderProgram, GL_FRAGMENT_SHADER, fragmentShaderFilename, title);
 
         glLinkProgram(shaderProgram);
-        checkShaderProgramErrors(title, shaderProgram);
+        glsCheckShaderProgramErrors(title, shaderProgram);
 
-        checkGLErrors();
+        glsCheckErrors();
 
         return make_unique<OpenGLStandardShaderProgram>(shaderProgram);
     }
@@ -151,9 +151,9 @@ public:
         glAttachShader(shaderProgram, makeSingleShaderCC(GL_GEOMETRY_SHADER, shaderSource));
         glAttachShader(shaderProgram, makeSingleShaderCC(GL_FRAGMENT_SHADER, shaderSource));
         glLinkProgram(shaderProgram);
-        checkShaderProgramErrors(title, shaderProgram);
+        glsCheckShaderProgramErrors(title, shaderProgram);
 
-        checkGLErrors();
+        glsCheckErrors();
 
         return make_unique<OpenGLTessellationShaderProgram>(shaderProgram);
     }
@@ -173,9 +173,9 @@ public:
         makeAndAttachShader(shaderProgram, GL_GEOMETRY_SHADER, geometryShaderFilename, title);
         makeAndAttachShader(shaderProgram, GL_FRAGMENT_SHADER, fragmentShaderFilename, title);
         glLinkProgram(shaderProgram);
-        checkShaderProgramErrors(title, shaderProgram);
+        glsCheckShaderProgramErrors(title, shaderProgram);
 
-        checkGLErrors();
+        glsCheckErrors();
 
         return make_unique<OpenGLTessellationShaderProgram>(shaderProgram);
     }
@@ -187,9 +187,9 @@ public:
         const auto shaderSourcePtr = shaderSource.c_str();
         glShaderSource(shader, 1, &shaderSourcePtr, nullptr);
         glCompileShader(shader);
-        checkShaderErrors(title, shader);
+        glsCheckShaderErrors(title, shader);
 
-        checkGLErrors();
+        glsCheckErrors();
         return shader;
     }
     void makeAndAttachShader(const GLuint shaderProgram, const GLenum shaderType, const string& shaderFileName, const string& title)

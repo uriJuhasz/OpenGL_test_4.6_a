@@ -1,17 +1,19 @@
+#include <GL/glew.h>
+#ifdef _WIN32
+#include <GL/wglew.h>
+#endif
+#include <GLFW/glfw3.h>
+
 #include "OpenGLWindow.h"
 #include "OpenGLContext.h"
 #include "OpenGLMesh.h"
+#include "OpenGLPatch.h"
 
 #include "OpenGLBackend/OpenGLUtilities.h"
 
 #include "Utilities/Exception.h"
 #include "Utilities/Misc.h"
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#ifdef _WIN32
-#include <GL/wglew.h>
-#endif
 
 #include <cassert>
 #include <vector>
@@ -89,7 +91,7 @@ public:
     operator bool() const { return m_window != nullptr; }
 
 public:
-    void registerView(ViewInterface* view) override
+    void registerView(BackendViewInterface* view) override
     {
         m_view = view;
     }
@@ -113,14 +115,14 @@ public:
 
             // wipe the drawing surface clear
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            checkGLErrors();
+            glsCheckErrors();
 
             m_view->renderScene();
 
             // put the stuff we've been drawing onto the display
             glfwSwapBuffers(m_window);
 
-            checkGLErrors();
+            glsCheckErrors();
 
             frameIndex++;
             updateFinished();
@@ -136,7 +138,7 @@ private:
     static const int c_defaultWidth = 800;
     static const int c_defaultHeight = 800;
 
-    ViewInterface* m_view;
+    BackendViewInterface* m_view;
 
 public:
     bool isLeftMouseButtonPressed() const
@@ -219,13 +221,13 @@ public:
             for (int i = 0; i < numBinaryShaderFormats; ++i)
                 cout << "   " << ((binaryFormats[i] == GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR" : "Unknown" + to_string(binaryFormats[i])) << endl;
         }
-        cout << "  OpenGL max tessellation level: " << glGetUInt(GL_MAX_TESS_GEN_LEVEL) << endl;
-        cout << "  OpenGL max patch vertices: " << glGetUInt(GL_MAX_PATCH_VERTICES) << endl;
-        cout << "  OpenGL max geometry output vertices: " << glGetUInt(GL_MAX_GEOMETRY_OUTPUT_VERTICES) << endl;
-        cout << "  OpenGL max geometry output components: " << glGetUInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS) << endl;
+        cout << "  OpenGL max tessellation level: " << glsGetUInt(GL_MAX_TESS_GEN_LEVEL) << endl;
+        cout << "  OpenGL max patch vertices: " << glsGetUInt(GL_MAX_PATCH_VERTICES) << endl;
+        cout << "  OpenGL max geometry output vertices: " << glsGetUInt(GL_MAX_GEOMETRY_OUTPUT_VERTICES) << endl;
+        cout << "  OpenGL max geometry output components: " << glsGetUInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS) << endl;
         cout << endl;
-        cout << "  OpenGL max shader storage block size     : " << glGetUInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) << endl;
-        cout << "  OpenGL max combined shader storage blocks: " << glGetUInt(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS) << endl;
+        cout << "  OpenGL max shader storage block size     : " << glsGetUInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) << endl;
+        cout << "  OpenGL max combined shader storage blocks: " << glsGetUInt(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS) << endl;
 
         cout << endl;
 
@@ -242,6 +244,11 @@ public:
     OpenGLMesh* makeBackendMesh(const Mesh& mesh) override
     {
         return new OpenGLMesh(mesh);
+    }
+
+    OpenGLPatch* makeBackendPatch(const Patch& patch) override
+    {
+        return new OpenGLPatch(patch);
     }
 
 private:

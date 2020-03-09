@@ -1,10 +1,12 @@
 #pragma once
 
-#include "ViewInterface.h"
+#include "BackendViewInterface.h"
 #include "BackendContext.h"
 #include "BackendMesh.h"
+#include "BackendPatch.h"
 
 #include "Geometry/Mesh.h"
+#include "Geometry/Patch.h"
 
 #include <array>
 
@@ -26,7 +28,7 @@ public:
     virtual BackendContext& getContext() = 0;
     
 public:
-    virtual void registerView(ViewInterface* view) = 0;
+    virtual void registerView(BackendViewInterface* view) = 0;
 
 public:
     virtual std::array<int, 2> getFramebufferSize() const = 0;
@@ -43,5 +45,6 @@ public:
 
 public:
     virtual BackendMesh* makeBackendMesh(const Mesh&) = 0;
+    virtual BackendPatch* makeBackendPatch(const Patch&) = 0;
 };
 

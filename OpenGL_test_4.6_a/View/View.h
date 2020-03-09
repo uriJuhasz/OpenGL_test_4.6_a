@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Backend/ViewInterface.h"
+#include "Backend/BackendViewInterface.h"
 #include "Backend/BackendWindow.h"
 
 #include "Geometry/Mesh.h"
 
 #include <memory>
 
-class View : public ViewInterface
+class View : public BackendViewInterface
 {
 public:
     static View* makeView(BackendWindow& backendWindow);
