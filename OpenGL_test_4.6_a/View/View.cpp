@@ -47,6 +47,11 @@ public: //Bezier patch
     unique_ptr<BackendPatch> m_backendBezierPatch;
     unique_ptr<BackendTesselationShaderProgram> m_bezierShaderProgram;
 
+public: //Sphere
+    unique_ptr<Patch> m_spherePatch;
+    unique_ptr<BackendPatch> m_backendSpherePatch;
+    unique_ptr<BackendTesselationShaderProgram> m_sphereShaderProgram;
+
 public: //Scene parameters
     Vector3 m_light0Position, m_light1Position;
 
@@ -115,7 +120,6 @@ void ViewImpl::setupScene()
         m_backendMesh->setEdgeShader(m_meshEdgeShaderProgram.get());
 
         const auto modelMatrix = unitMatrix4x4;
-
         {
             auto& shaderProgram = *m_meshFaceShaderProgram;
 
@@ -195,8 +199,38 @@ void ViewImpl::setupScene()
         shaderProgram.setParameter("backColor", backColor);
 
         shaderProgram.setParameter("tessellationLevel", 64.0f);
-
     }
+
+    ////////////////////////////////////////////////////////////////
+    //Sphere
+    constexpr bool renderSphere = true;
+    if (renderSphere)
+    {
+        const vector<Vector4> patchParameters = {
+            Vector4(20.0f, 0.0f, 0.0f, 10.0f),
+            Vector4(0.0f, 0.0f, -50.0f, 50.0f)
+        };
+        m_spherePatch.reset(new Patch(1, make_unique<VertexArray4f>(patchParameters)));
+        m_backendSpherePatch.reset(m_backendWindow.makeBackendPatch(*m_spherePatch));
+        m_sphereShaderProgram = backendContext.makeTessellationShaderProgram(
+            "SphereTesselationVertexShader.glsl",
+            "SphereTesselationControlShader2.glsl",
+            "SphereTesselationEvaluationShader2.glsl",
+            "",
+            "SphereTesselationFragmentShader.glsl",
+            "Sphere"
+        );
+
+        auto& shaderProgram = *m_sphereShaderProgram;
+
+        shaderProgram.setParameter("uDetail", 10.0f);
+
+        const auto modelMatrix = unitMatrix4x4;
+        shaderProgram.setParameter("modelMatrix", modelMatrix);
+
+        m_backendSpherePatch->setEdgeShader(m_sphereShaderProgram.get());
+    }
+
 }
 void ViewImpl::renderScene()
 {
@@ -211,32 +245,11 @@ void ViewImpl::renderScene()
     constexpr bool renderSphere = true;
     if (renderSphere)
     {
-        auto& context = m_backendWindow.getContext();
-        const auto shaderProgramPtr = context.makeTessellationShaderProgram(
-            "SphereTesselationVertexShader.glsl",
-            "SphereTesselationControlShader2.glsl",
-            "SphereTesselationEvaluationShader2.glsl",
-            "",
-            "SphereTesselationFragmentShader.glsl",
-            "Sphere"
-        );
-
-        auto& shaderProgram = *shaderProgramPtr;
-
-        shaderProgram.setParameter("uDetail", 10.0f);
-
-        const auto modelMatrix = unitMatrix4x4;
-        shaderProgram.setParameter("modelMatrix", modelMatrix);
+        auto& shaderProgram = *m_sphereShaderProgram;
         shaderProgram.setParameter("viewMatrix", viewMatrix);
         shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
-        glDisable(GL_CULL_FACE);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glPatchParameteri(GL_PATCH_VERTICES, 1); // #of vertices in each patch
-        glBegin(GL_PATCHES);
-        glVertex4f(20.0f, 0.0f, 0.0f, 10.0f);
-//        glVertex4f(0.0f, 0.0f, -50.0f, 50.0f);
-        glEnd();
+        m_backendSpherePatch->render(false, true);
     }
 
     //////////////////////
