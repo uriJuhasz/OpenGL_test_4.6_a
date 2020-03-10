@@ -305,36 +305,11 @@ void ViewImpl::renderScene()
             shaderProgram.setParameter("edgeColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 
             const auto bb = m_meshBoundingBox;
-            const array<Vector3, 8> boundingBoxVertices = {
-                Vector3(bb[0][0],bb[0][1],bb[0][2]),
-                Vector3(bb[1][0],bb[0][1],bb[0][2]),
-                Vector3(bb[1][0],bb[1][1],bb[0][2]),
-                Vector3(bb[0][0],bb[1][1],bb[0][2]),
-                Vector3(bb[0][0],bb[0][1],bb[1][2]),
-                Vector3(bb[1][0],bb[0][1],bb[1][2]),
-                Vector3(bb[1][0],bb[1][1],bb[1][2]),
-                Vector3(bb[0][0],bb[1][1],bb[1][2])
-            };
-
-            const array<int, 24> bbEdges = {
-                0,1, 1,2, 2,3, 3,0,
-                4,5, 5,6, 6,7, 7,4,
-                0,4, 1,5, 2,6, 3,7
-            };
-
-            glDepthFunc(GL_LESS);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDisable(GL_CULL_FACE);
-            glLineWidth(2.0f);
-            glUseProgram(9);
-
             glBegin(GL_LINES);
-            for (int e = 0; e < 12; ++e)
+            for (int i = 0; i < 2; ++i)
             {
-                const auto v0 = boundingBoxVertices[bbEdges[2 * e + 0]];
-                const auto v1 = boundingBoxVertices[bbEdges[2 * e + 1]];
-                glVertex3fv(v0.data());
-                glVertex3fv(v1.data());
+                glVertex3fv(bb[0].data());
+                glVertex3fv(bb[1].data());
             }
             glEnd();
         }
