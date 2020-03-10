@@ -102,7 +102,7 @@ void ViewImpl::setupScene()
     //Setup lights
     {
         const Vector3 target(0.0f, 0.0f, 0.0f);
-        m_light0Position = target + Vector3(100.0f, 0.0f, 0.0f);
+        m_light0Position = target + Vector3(0.0f, 100.0f, 0.0f);
         m_light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
     }
 
@@ -113,14 +113,12 @@ void ViewImpl::setupScene()
         const auto& mesh = *m_mesh;
         m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
 
-        m_meshFaceShaderProgram = backendContext.makeStandardShaderProgram("MeshVertexShader.glsl", "MeshGeometryShader.glsl", "MeshFragmentShader.glsl", "mesh");
-        m_meshEdgeShaderProgram = backendContext.makeStandardShaderProgram("EdgeVertexShader.glsl", "EdgeGeometryShader.glsl", "EdgeFragmentShader.glsl", "edge");
-        m_meshBoundingboxShaderProgram = backendContext.makeStandardShaderProgram("LineVertexShader.glsl", "", "LineFragmentShader.glsl", "line");
-        m_backendMesh->setFaceShader(m_meshFaceShaderProgram.get());
-        m_backendMesh->setEdgeShader(m_meshEdgeShaderProgram.get());
 
         const auto modelMatrix = unitMatrix4x4;
         {
+            m_meshFaceShaderProgram = backendContext.makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");// "MeshVertexShader.glsl", "MeshGeometryShader.glsl", "MeshFragmentShader.glsl", "mesh");
+            m_backendMesh->setFaceShader(m_meshFaceShaderProgram.get());
+
             auto& shaderProgram = *m_meshFaceShaderProgram;
 
             shaderProgram.setParameter("modelMatrix", modelMatrix);
@@ -133,6 +131,8 @@ void ViewImpl::setupScene()
             shaderProgram.setParameter("light1SpecularExponent", 100.0f);
         }
         {
+            m_meshEdgeShaderProgram = backendContext.makeStandardShaderProgram("MeshEdgeShaderProgram.glsl", "meshEdge"); //"EdgeVertexShader.glsl", "EdgeGeometryShader.glsl", "EdgeFragmentShader.glsl", "edge");
+            m_backendMesh->setEdgeShader(m_meshEdgeShaderProgram.get());
             auto& shaderProgram = *m_meshEdgeShaderProgram;
             const auto modelMatrix = unitMatrix4x4;
 
@@ -142,6 +142,11 @@ void ViewImpl::setupScene()
         }
 
         {
+            m_meshBoundingboxShaderProgram = backendContext.makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBoxLine");
+            auto& shaderProgram = *m_meshFaceShaderProgram;
+
+            shaderProgram.setParameter("modelMatrix", modelMatrix);
+
             const auto& vertices = mesh.m_vertices;
             const auto numVertices = mesh.numVertices();
             array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
@@ -158,8 +163,8 @@ void ViewImpl::setupScene()
                 }
             }
             m_meshBoundingBox = boundingBox;
-            const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
-            const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
+//            const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
+//            const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
         }
     }
 
@@ -203,27 +208,18 @@ void ViewImpl::setupScene()
 
     ////////////////////////////////////////////////////////////////
     //Sphere
-    constexpr bool renderSphere = true;
-    if (renderSphere)
     {
         const vector<Vector4> patchParameters = {
             Vector4(20.0f, 0.0f, 0.0f, 10.0f),
-            Vector4(0.0f, 0.0f, -50.0f, 50.0f)
+            Vector4(0.0f, 0.0f, -50.0f, 30.0f)
         };
         m_spherePatch.reset(new Patch(1, make_unique<VertexArray4f>(patchParameters)));
         m_backendSpherePatch.reset(m_backendWindow.makeBackendPatch(*m_spherePatch));
-        m_sphereShaderProgram = backendContext.makeTessellationShaderProgram(
-            "SphereTesselationVertexShader.glsl",
-            "SphereTesselationControlShader2.glsl",
-            "SphereTesselationEvaluationShader2.glsl",
-            "",
-            "SphereTesselationFragmentShader.glsl",
-            "Sphere"
-        );
+        m_sphereShaderProgram = backendContext.makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
 
         auto& shaderProgram = *m_sphereShaderProgram;
 
-        shaderProgram.setParameter("uDetail", 10.0f);
+        shaderProgram.setParameter("uDetail", 30.0f);
 
         const auto modelMatrix = unitMatrix4x4;
         shaderProgram.setParameter("modelMatrix", modelMatrix);
@@ -322,17 +318,25 @@ void ViewImpl::renderScene()
                 0,4, 1,5, 2,6, 3,7
             };
 
+            glDepthFunc(GL_LESS);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glDisable(GL_CULL_FACE);
+            glLineWidth(2.0f);
+
+            glBegin(GL_LINES);
             for (int e = 0; e < 12; ++e)
             {
                 const auto v0 = boundingBoxVertices[bbEdges[2 * e + 0]];
                 const auto v1 = boundingBoxVertices[bbEdges[2 * e + 1]];
-                glLineWidth(2.0f);
-                glColor3f(1.0f, 0.0f, 0.0f);
-                glBegin(GL_LINES);
                 glVertex3fv(v0.data());
                 glVertex3fv(v1.data());
-                glEnd();
             }
+            glEnd();
+
+            glBegin(GL_LINES);
+                glVertex3f(-1.0, -1.0f, -1.0f);
+                glVertex3f( 1.0,  1.0f,  1.0f);
+            glEnd();
         }
     }
 }

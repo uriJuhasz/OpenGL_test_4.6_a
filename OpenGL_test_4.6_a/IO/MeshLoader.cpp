@@ -1,6 +1,7 @@
 #include "MeshLoader.h"
 
 #include "Utilities/Exception.h"
+#include "Utilities/Misc.h"
 
 #pragma warning(push, 0) 
 #pragma warning (disable:26812)
@@ -14,8 +15,6 @@
 
 using namespace std;
 
-static int toInt(const size_t in) { return static_cast<int>(in); }
-static int toInt(const unsigned int in) { return static_cast<int>(in); }
 class AISceneHolder final
 {
 public:
@@ -35,8 +34,8 @@ unique_ptr<Mesh> MeshLoader::loadMesh(const string& fileName)
 {
 	unique_ptr<Mesh> result;
 
-	const auto aiStdStream = aiGetPredefinedLogStream(aiDefaultLogStream_STDOUT, nullptr);
-	aiAttachLogStream(&aiStdStream);
+//	const auto aiStdStream = aiGetPredefinedLogStream(aiDefaultLogStream_STDOUT, nullptr);
+//	aiAttachLogStream(&aiStdStream);
 //	const auto aiErrStream = aiGetPredefinedLogStream(aiDefaultLogStream_STDERR, nullptr);
 //	aiAttachLogStream(&aiErrStream);
 

@@ -96,6 +96,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableSpecificWarnings>26451</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,10 +119,14 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <DisableSpecificWarnings>26451</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;Shell32.lib;glew32.lib;glu32.lib;assimp-vc142-mt.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Code\glew-2.1.0\lib\Release\x64;C:\Code\glfw-3.3.2.bin.WIN64\lib-vc2019;C:\Code\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries />
@@ -148,6 +153,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableSpecificWarnings>26451</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -174,6 +180,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <DisableSpecificWarnings>26451</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -251,20 +258,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\BezierShaderProgram.glsl" />
-    <None Include="shaders\EdgeFragmentShader.glsl" />
-    <None Include="shaders\EdgeGeometryShader.glsl" />
-    <None Include="shaders\EdgeVertexShader.glsl" />
-    <None Include="shaders\LineFragmentShader.glsl" />
-    <None Include="shaders\LineVertexShader.glsl" />
-    <None Include="shaders\MeshFragmentShader.glsl" />
-    <None Include="shaders\MeshGeometryShader.glsl" />
-    <None Include="shaders\MeshVertexShader.glsl" />
-    <None Include="shaders\SphereTesselationControlShader.glsl" />
-    <None Include="shaders\SphereTesselationControlShader2.glsl" />
-    <None Include="shaders\SphereTesselationEvaluationShader.glsl" />
-    <None Include="shaders\SphereTesselationEvaluationShader2.glsl" />
-    <None Include="shaders\SphereTesselationFragmentShader.glsl" />
-    <None Include="shaders\SphereTesselationVertexShader.glsl" />
+    <None Include="shaders\BoundingBoxShaderProgram.glsl" />
+    <None Include="shaders\MeshEdgeShaderProgram.glsl" />
+    <None Include="shaders\MeshFaceShaderProgram.glsl" />
+    <None Include="shaders\SphereShaderProgram.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />

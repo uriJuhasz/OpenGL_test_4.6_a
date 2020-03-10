@@ -22,19 +22,10 @@ public:
 public:
     virtual void setShaderBasePath(const std::string& path) = 0;
     virtual std::unique_ptr<BackendStandardShaderProgram> makeStandardShaderProgram(
-        const std::string& vertexShaderFilename,
-        const std::string& geometryShaderFilename,
-        const std::string& fragmentShaderFilename,
-        const std::string& title) = 0;
-    virtual std::unique_ptr<BackendTesselationShaderProgram> makeTessellationShaderProgram(
         const std::string& fileName,
         const std::string& title) = 0;
     virtual std::unique_ptr<BackendTesselationShaderProgram> makeTessellationShaderProgram(
-        const std::string& vertexShaderFilename,
-        const std::string& tesselationControlShaderFilename,
-        const std::string& tesselationEvaluationShaderFilename,
-        const std::string& geometryShaderFilename,
-        const std::string& fragmentShaderFilename,
+        const std::string& fileName,
         const std::string& title) = 0;
 };
 

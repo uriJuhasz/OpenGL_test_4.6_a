@@ -71,7 +71,7 @@ GLuint glsGenAndBindBuffer(GLenum bufferType)
 template<unsigned int D> GLuint glsMakeBuffer(const vector<Vector<D>>& vs, const int attributeIndex)
 {
     const auto buffer = glsGenAndBindBuffer(GL_ARRAY_BUFFER);
-    glBufferData(GL_ARRAY_BUFFER, vs.size() * sizeof(vs[0]), vs.data(), GL_STATIC_DRAW);
+    glNamedBufferData(buffer, vs.size() * sizeof(vs[0]), vs.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(attributeIndex);
     glVertexAttribPointer(attributeIndex, D, GL_FLOAT, GL_FALSE, 0, nullptr);
     glsCheckErrors();

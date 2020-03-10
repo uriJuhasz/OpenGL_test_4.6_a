@@ -219,21 +219,23 @@ public:
             glGetIntegerv(GL_SHADER_BINARY_FORMATS, binaryFormats.data());
             cout << " OpenGL Binary formats:" << endl;
             for (int i = 0; i < numBinaryShaderFormats; ++i)
-                cout << "   " << ((binaryFormats[i] == GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR" : "Unknown" + to_string(binaryFormats[i])) << endl;
+                cout << "   " << ((binaryFormats[i] == GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR-V" : "Unknown" + to_string(binaryFormats[i])) << endl;
         }
         cout << "  OpenGL max tessellation level: " << glsGetUInt(GL_MAX_TESS_GEN_LEVEL) << endl;
         cout << "  OpenGL max patch vertices: " << glsGetUInt(GL_MAX_PATCH_VERTICES) << endl;
         cout << "  OpenGL max geometry output vertices: " << glsGetUInt(GL_MAX_GEOMETRY_OUTPUT_VERTICES) << endl;
         cout << "  OpenGL max geometry output components: " << glsGetUInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS) << endl;
         cout << endl;
-        cout << "  OpenGL max shader storage block size     : " << glsGetUInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) << endl;
+        cout << "  OpenGL max shader storage block size     : " << (glsGetUInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE)/1024) << "KB" << endl;
         cout << "  OpenGL max combined shader storage blocks: " << glsGetUInt(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS) << endl;
 
         cout << endl;
 
         ////////////////////////////////////
-        //General scene setup
+        //General OpenGL setup
         glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback(openGLMessageCallback, this);
+
 
         glEnable(GL_DEPTH_TEST); // enable z buffer
 
@@ -250,7 +252,15 @@ public:
     {
         return new OpenGLPatch(patch);
     }
-
+private:
+    static void openGLMessageCallback(
+        GLenum source,
+        GLenum type,
+        GLuint id,
+        GLenum severity,
+        GLsizei length,
+        const GLchar* message,
+        const void* userParam);
 private:
     Vector2 m_oldMousePos;
     bool m_oldMousePosValid = false;
@@ -336,3 +346,72 @@ OpenGLWindow* OpenGLWindow::make(OpenGLContext& context)
 {
     return new OpenGLWindowImpl(context);
 }
+
+
+/////////////////////////////////////////////////////////////////////////////
+
+string getOpenGLErrorSourceTypeString(const GLenum source)
+{
+    switch (source)
+    {
+        case GL_DEBUG_SOURCE_API: return "API";
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: return "WINDOW SYSTEM";
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: return "SHADER COMPILER";
+        case GL_DEBUG_SOURCE_THIRD_PARTY: return "THIRD PARTY";
+        case GL_DEBUG_SOURCE_APPLICATION: return "APPLICATION";
+        case GL_DEBUG_SOURCE_OTHER: return "OTHER";
+        default: return "unknown";
+    }
+}
+string getOpenGLErrorTypeString(const GLenum errorType)
+{
+    switch (errorType)
+    {
+        case GL_DEBUG_TYPE_ERROR: return "ERROR";
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "DEPRECATED_BEHAVIOR";
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: return "UNDEFINED_BEHAVIOR";
+        case GL_DEBUG_TYPE_PORTABILITY: return "PORTABILITY";
+        case GL_DEBUG_TYPE_PERFORMANCE: return "PERFORMANCE";
+        case GL_DEBUG_TYPE_MARKER: return "MARKER";
+        case GL_DEBUG_TYPE_OTHER: return "OTHER";
+        default:return "Unknown";
+    }
+}
+
+string getOpenGLErrorSeverityString(const GLenum errorType)
+{
+    switch (errorType)
+    {
+    case GL_DEBUG_SEVERITY_NOTIFICATION: return "NOTIFICATION";
+    case GL_DEBUG_SEVERITY_LOW: return "LOW";
+    case GL_DEBUG_SEVERITY_MEDIUM: return "MEDIUM";
+    case GL_DEBUG_SEVERITY_HIGH: return "HIGH";
+    default:return "Unknown";
+    }
+}
+
+void OpenGLWindowImpl::openGLMessageCallback(
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar* message,
+    const void* userParam)
+{
+    if (id == 131185)
+        return; //Ignore warning on using Video memory
+    const auto* windowPtr = reinterpret_cast<const OpenGLWindowImpl*>(userParam);
+//    if (windowPtr)
+//        std::cerr<< "In window: " << windowPtr->
+    const auto sourceTypeString = getOpenGLErrorSourceTypeString(source);
+    const auto errorTypeString = getOpenGLErrorTypeString(type);
+    const auto severityString = getOpenGLErrorSeverityString(severity);
+
+    std::cerr << "OpenGL Message - source: " << sourceTypeString << ", type: " << errorTypeString << ", severity: " << severityString << ", id: " << id << ": " << message << '\n';
+    if (severity != GL_DEBUG_SEVERITY_NOTIFICATION && type != GL_DEBUG_TYPE_PERFORMANCE)
+    {
+        std::cerr << "";
+    }
+}
+

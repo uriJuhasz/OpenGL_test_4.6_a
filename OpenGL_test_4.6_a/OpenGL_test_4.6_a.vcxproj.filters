@@ -190,21 +190,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\EdgeFragmentShader.glsl" />
-    <None Include="shaders\EdgeGeometryShader.glsl" />
-    <None Include="shaders\EdgeVertexShader.glsl" />
-    <None Include="shaders\LineFragmentShader.glsl" />
-    <None Include="shaders\LineVertexShader.glsl" />
-    <None Include="shaders\MeshFragmentShader.glsl" />
-    <None Include="shaders\MeshGeometryShader.glsl" />
-    <None Include="shaders\SphereTesselationControlShader.glsl" />
-    <None Include="shaders\SphereTesselationControlShader2.glsl" />
-    <None Include="shaders\SphereTesselationEvaluationShader.glsl" />
-    <None Include="shaders\SphereTesselationEvaluationShader2.glsl" />
-    <None Include="shaders\SphereTesselationFragmentShader.glsl" />
-    <None Include="shaders\SphereTesselationVertexShader.glsl" />
-    <None Include="shaders\MeshVertexShader.glsl" />
     <None Include="shaders\BezierShaderProgram.glsl" />
+    <None Include="shaders\SphereShaderProgram.glsl" />
+    <None Include="shaders\MeshFaceShaderProgram.glsl" />
+    <None Include="shaders\MeshEdgeShaderProgram.glsl" />
+    <None Include="shaders\BoundingBoxShaderProgram.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />

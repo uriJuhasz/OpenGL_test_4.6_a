@@ -46,7 +46,6 @@ string loadShader(const string& fileName)
 
 GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
 {
-    const auto shader = glCreateShader(shaderType);
     const auto ccString = string(
         (shaderType == GL_VERTEX_SHADER) ? "VS" :
         (shaderType == GL_TESS_CONTROL_SHADER) ? "TCS" :
@@ -54,17 +53,32 @@ GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
         (shaderType == GL_GEOMETRY_SHADER) ? "GS" :
         (shaderType == GL_FRAGMENT_SHADER) ? "FS" :
         "");
-    const auto defineString = "#version 430\n#define COMPILING_" + ccString + "\n";
-    array<const char*, 2> ptrs = {
-        defineString.c_str(),
-        shaderSource.c_str()
-    };
-    glShaderSource(shader, 2, ptrs.data(), nullptr);
-    glCompileShader(shader);
-    glsCheckShaderErrors(ccString, shader);
+    const auto defineName = "COMPILING_" + ccString;
+    if (shaderSource.find(defineName) != std::string::npos)
+    {
+        const auto shader = glCreateShader(shaderType);
+        const auto defineString = "#version 430\n#define COMPILING_" + ccString + "\n";
+        array<const char*, 2> ptrs = {
+            defineString.c_str(),
+            shaderSource.c_str()
+        };
+        glShaderSource(shader, 2, ptrs.data(), nullptr);
+        glCompileShader(shader);
+        glsCheckShaderErrors(ccString, shader);
 
-    glsCheckErrors();
-    return shader;
+        glsCheckErrors();
+        return shader;
+    }
+    else
+    {
+        return 0;
+    }
+}
+void makeAndAttachSingleShaderCC(const GLuint shaderProgramID, const GLenum shaderType, const string& shaderSource)
+{
+    const auto shaderID = makeSingleShaderCC(shaderType, shaderSource);
+    if (shaderID!=0)
+        glAttachShader(shaderProgramID, shaderID);
 }
 
 
@@ -120,22 +134,21 @@ public:
         m_shaderBasePath = path;
     }
     std::unique_ptr<BackendStandardShaderProgram> makeStandardShaderProgram(
-        const string& vertexShaderFilename,
-        const string& geometryShaderFilename,
-        const string& fragmentShaderFilename,
+        const string& fileName,
         const string& title) override
     {
+        const auto shaderSource = loadShader(m_shaderBasePath + fileName);
         const auto shaderProgram = glCreateProgram();
 
-        makeAndAttachShader(shaderProgram, GL_VERTEX_SHADER, vertexShaderFilename, title);
-        makeAndAttachShader(shaderProgram, GL_GEOMETRY_SHADER, geometryShaderFilename, title);
-        makeAndAttachShader(shaderProgram, GL_FRAGMENT_SHADER, fragmentShaderFilename, title);
-
+        makeAndAttachSingleShaderCC(shaderProgram, GL_VERTEX_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgram, GL_GEOMETRY_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgram, GL_FRAGMENT_SHADER, shaderSource);
         glLinkProgram(shaderProgram);
         glsCheckShaderProgramErrors(title, shaderProgram);
 
         glsCheckErrors();
 
+        std::cerr << "  Shader " << title << " : " << shaderProgram << endl;
         return make_unique<OpenGLStandardShaderProgram>(shaderProgram);
     }
     std::unique_ptr<BackendTesselationShaderProgram> makeTessellationShaderProgram(
@@ -145,33 +158,11 @@ public:
         const auto shaderSource = loadShader(m_shaderBasePath + fileName);
         const auto shaderProgram = glCreateProgram();
 
-        glAttachShader(shaderProgram, makeSingleShaderCC(GL_VERTEX_SHADER, shaderSource));
-        glAttachShader(shaderProgram, makeSingleShaderCC(GL_TESS_CONTROL_SHADER, shaderSource));
-        glAttachShader(shaderProgram, makeSingleShaderCC(GL_TESS_EVALUATION_SHADER, shaderSource));
-        glAttachShader(shaderProgram, makeSingleShaderCC(GL_GEOMETRY_SHADER, shaderSource));
-        glAttachShader(shaderProgram, makeSingleShaderCC(GL_FRAGMENT_SHADER, shaderSource));
-        glLinkProgram(shaderProgram);
-        glsCheckShaderProgramErrors(title, shaderProgram);
-
-        glsCheckErrors();
-
-        return make_unique<OpenGLTessellationShaderProgram>(shaderProgram);
-    }
-    std::unique_ptr<BackendTesselationShaderProgram> makeTessellationShaderProgram(
-        const string& vertexShaderFilename,
-        const string& tesselationControlShaderFilename,
-        const string& tesselationEvaluationShaderFilename,
-        const string& geometryShaderFilename,
-        const string& fragmentShaderFilename,
-        const string& title) override
-    {
-        const auto shaderProgram = glCreateProgram();
-
-        makeAndAttachShader(shaderProgram, GL_VERTEX_SHADER, vertexShaderFilename, title);
-        makeAndAttachShader(shaderProgram, GL_TESS_CONTROL_SHADER, tesselationControlShaderFilename, title);
-        makeAndAttachShader(shaderProgram, GL_TESS_EVALUATION_SHADER, tesselationEvaluationShaderFilename, title);
-        makeAndAttachShader(shaderProgram, GL_GEOMETRY_SHADER, geometryShaderFilename, title);
-        makeAndAttachShader(shaderProgram, GL_FRAGMENT_SHADER, fragmentShaderFilename, title);
+        makeAndAttachSingleShaderCC(shaderProgram, GL_VERTEX_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgram, GL_TESS_CONTROL_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgram, GL_TESS_EVALUATION_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgram, GL_GEOMETRY_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgram, GL_FRAGMENT_SHADER, shaderSource);
         glLinkProgram(shaderProgram);
         glsCheckShaderProgramErrors(title, shaderProgram);
 
