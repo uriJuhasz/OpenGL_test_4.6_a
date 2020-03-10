@@ -37,8 +37,10 @@ public: //Mesh
     unique_ptr<Mesh> m_mesh;
     unique_ptr<BackendStandardShaderProgram> m_meshFaceShaderProgram;
     unique_ptr<BackendStandardShaderProgram> m_meshEdgeShaderProgram;
-    unique_ptr<BackendShaderProgram> m_meshBoundingboxShaderProgram;
     unique_ptr<BackendMesh> m_backendMesh;
+
+    unique_ptr<BackendShaderProgram> m_meshBoundingboxShaderProgram;
+    GLuint m_meshBoundingBoxVertexArrayObjectID = 0;
 
     array<Vector3, 2> m_meshBoundingBox;
 
@@ -140,28 +142,63 @@ void ViewImpl::setupScene()
         }
 
         {
+            {
+                const auto& vertices = mesh.m_vertices;
+                const auto numVertices = mesh.numVertices();
+                array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
+                {
+                    const auto& vertices = mesh.m_vertices;
+                    for (int vi = 1; vi < numVertices; ++vi)
+                    {
+                        const auto& vertex = vertices[vi];
+                        for (int i = 0; i < 3; ++i)
+                        {
+                            boundingBox[0][i] = min(boundingBox[0][i], vertex[i]);
+                            boundingBox[1][i] = max(boundingBox[1][i], vertex[i]);
+                        }
+                    }
+                }
+                m_meshBoundingBox = boundingBox;
+            }
+
+            GLuint vertexArrayObjectID = 0;
+            {
+                glCreateVertexArrays(1, &vertexArrayObjectID);
+                glBindVertexArray(vertexArrayObjectID);
+            }
+            {
+                const auto values = vector<Vector3>{ m_meshBoundingBox[0],m_meshBoundingBox[1] };
+                const int numValues = values.size();
+                const auto valueSize = sizeof(values[0]);
+                const auto attributeIndex = 0;
+                const auto D = 3;
+                GLuint bufferID = 0;
+                glCreateBuffers(1, &bufferID);
+                glNamedBufferStorage(bufferID, numValues * valueSize, values.data(), 0);
+                glVertexArrayVertexBuffer(vertexArrayObjectID, attributeIndex, bufferID, 0, valueSize);
+                glEnableVertexArrayAttrib(vertexArrayObjectID, attributeIndex);
+                glVertexArrayAttribFormat(vertexArrayObjectID, attributeIndex, D, GL_FLOAT, GL_FALSE, 0);
+                glVertexArrayAttribBinding(vertexArrayObjectID, attributeIndex, attributeIndex);
+            }
+
+            {
+                const array<int, 2> indexArray = {0,1};
+                const auto indexSize = sizeof(indexArray[0]);
+                const auto numIndices = indexArray.size();
+                GLuint indexBufferID;
+                glCreateBuffers(1, &indexBufferID);
+                glNamedBufferStorage(indexBufferID, numIndices * indexSize, indexArray.data(), GL_DYNAMIC_STORAGE_BIT);
+                glVertexArrayElementBuffer(vertexArrayObjectID, indexBufferID);
+            }
+            m_meshBoundingBoxVertexArrayObjectID = vertexArrayObjectID;
+
             m_meshBoundingboxShaderProgram = backendContext.makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBoxLine");
             auto& shaderProgram = *m_meshBoundingboxShaderProgram;
 
             shaderProgram.setParameter("modelMatrix", modelMatrix);
 
-            const auto& vertices = mesh.m_vertices;
-            const auto numVertices = mesh.numVertices();
-            array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
-            {
-                const auto& vertices = mesh.m_vertices;
-                for (int vi = 1; vi < numVertices; ++vi)
-                {
-                    const auto& vertex = vertices[vi];
-                    for (int i = 0; i < 3; ++i)
-                    {
-                        boundingBox[0][i] = min(boundingBox[0][i], vertex[i]);
-                        boundingBox[1][i] = max(boundingBox[1][i], vertex[i]);
-                    }
-                }
-            }
-            m_meshBoundingBox = boundingBox;
-//            const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
+
+            //            const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
 //            const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
         }
     }
@@ -296,22 +333,14 @@ void ViewImpl::renderScene()
         constexpr bool showBoundingBox = true;
         if (showBoundingBox)
         {
-            glBindVertexArray(0);
-            glUseProgram(9);
+            glBindVertexArray(m_meshBoundingBoxVertexArrayObjectID);
             auto& shaderProgram = *m_meshBoundingboxShaderProgram;
             shaderProgram.setParameter("viewMatrix", viewMatrix);
             shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
             shaderProgram.setParameter("edgeColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 
-            const auto bb = m_meshBoundingBox;
-            glBegin(GL_LINES);
-            for (int i = 0; i < 2; ++i)
-            {
-                glVertex3fv(bb[0].data());
-                glVertex3fv(bb[1].data());
-            }
-            glEnd();
+            glDrawArrays(GL_LINES, 0, 2);
         }
     }
 }
