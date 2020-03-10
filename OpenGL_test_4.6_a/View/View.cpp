@@ -110,65 +110,6 @@ void ViewImpl::setupScene()
         m_light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
     }
 
-    ////////////////////////////////////////////////////////////////
-    //Bezier patch
-    {
-        const array<Vector3, 16> patchParameters = {
-            Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),
-            Vector3(0,1,1), Vector3(1,-2,1), Vector3(2, 1,1), Vector3(3, 0,1),
-            Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
-            Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
-        };
-        m_bezierPatch.reset(new Patch(16, make_unique<VertexArray3f>(vector<Vector3>(patchParameters.cbegin(),patchParameters.cend()))));
-        m_backendBezierPatch.reset(m_backendWindow.makeBackendPatch(*m_bezierPatch));
-        m_bezierShaderProgram = backendContext.makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
-        m_backendBezierPatch->setFaceShader(m_bezierShaderProgram.get());
-        m_backendBezierPatch->setEdgeShader(m_bezierShaderProgram.get());
-        auto& shaderProgram = *m_bezierShaderProgram;
-
-        const Matrix4x4 modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
-        shaderProgram.setParameter("modelMatrix", modelMatrix);
-
-        const Vector3 target(0.0f, 0.0f, 0.0f);
-
-        const Vector3 light0Position = target + Vector3(100.0f, 0.0f, 0.0f);
-        const Vector3 light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
-        shaderProgram.setParameter("light0Position", m_light0Position);
-        shaderProgram.setParameter("light0Color", Vector3(1.0f, 1.0f, 1.0f));
-        shaderProgram.setParameter("light0SpecularExponent", 10.0f);
-        shaderProgram.setParameter("light1Position", m_light1Position);
-        shaderProgram.setParameter("light1Color", Vector3(1.0f, 1.0f, 1.0f));
-        shaderProgram.setParameter("light1SpecularExponent", 100.0f);
-
-        const Vector3 frontColor(1.0f, 0.0f, 1.0f);
-        shaderProgram.setParameter("frontColor", frontColor);
-        const Vector3 backColor(0.1f, 0.3f, 0.3f);
-        shaderProgram.setParameter("backColor", backColor);
-
-        shaderProgram.setParameter("tessellationLevel", 64.0f);
-    }
-
-    ////////////////////////////////////////////////////////////////
-    //Sphere
-    {
-        const vector<Vector4> patchParameters = {
-            Vector4(20.0f, 0.0f, 0.0f, 10.0f),
-            Vector4(0.0f, 0.0f, -50.0f, 30.0f)
-        };
-        m_spherePatch.reset(new Patch(1, make_unique<VertexArray4f>(patchParameters)));
-        m_backendSpherePatch.reset(m_backendWindow.makeBackendPatch(*m_spherePatch));
-        m_sphereShaderProgram = backendContext.makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
-
-        auto& shaderProgram = *m_sphereShaderProgram;
-
-        shaderProgram.setParameter("uDetail", 30.0f);
-
-        const auto modelMatrix = unitMatrix4x4;
-        shaderProgram.setParameter("modelMatrix", modelMatrix);
-
-        m_backendSpherePatch->setEdgeShader(m_sphereShaderProgram.get());
-    }
-
     /////////////////////////////////////////
     /////////////////////////////////////////
     //Mesh setup
@@ -264,9 +205,69 @@ void ViewImpl::setupScene()
         }
     }
 
+    ////////////////////////////////////////////////////////////////
+    //Bezier patch
+    {
+        const array<Vector3, 16> patchParameters = {
+            Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),
+            Vector3(0,1,1), Vector3(1,-2,1), Vector3(2, 1,1), Vector3(3, 0,1),
+            Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
+            Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
+        };
+        m_bezierPatch.reset(new Patch(16, make_unique<VertexArray3f>(vector<Vector3>(patchParameters.cbegin(), patchParameters.cend()))));
+        m_backendBezierPatch.reset(m_backendWindow.makeBackendPatch(*m_bezierPatch));
+        m_bezierShaderProgram = backendContext.makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
+        m_backendBezierPatch->setFaceShader(m_bezierShaderProgram.get());
+        m_backendBezierPatch->setEdgeShader(m_bezierShaderProgram.get());
+        auto& shaderProgram = *m_bezierShaderProgram;
+
+        const Matrix4x4 modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
+        shaderProgram.setParameter("modelMatrix", modelMatrix);
+
+        const Vector3 target(0.0f, 0.0f, 0.0f);
+
+        const Vector3 light0Position = target + Vector3(100.0f, 0.0f, 0.0f);
+        const Vector3 light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
+        shaderProgram.setParameter("light0Position", m_light0Position);
+        shaderProgram.setParameter("light0Color", Vector3(1.0f, 1.0f, 1.0f));
+        shaderProgram.setParameter("light0SpecularExponent", 10.0f);
+        shaderProgram.setParameter("light1Position", m_light1Position);
+        shaderProgram.setParameter("light1Color", Vector3(1.0f, 1.0f, 1.0f));
+        shaderProgram.setParameter("light1SpecularExponent", 100.0f);
+
+        const Vector3 frontColor(1.0f, 0.0f, 1.0f);
+        shaderProgram.setParameter("frontColor", frontColor);
+        const Vector3 backColor(0.1f, 0.3f, 0.3f);
+        shaderProgram.setParameter("backColor", backColor);
+
+        shaderProgram.setParameter("maxTessellationLevel", (float)backendContext.getMaxTessellationLevel());
+    }
+
+    ////////////////////////////////////////////////////////////////
+    //Sphere
+    {
+        const vector<Vector4> patchParameters = {
+            Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+//            Vector4(0.0f, 0.0f, -50.0f, 30.0f)
+        };
+        m_spherePatch.reset(new Patch(1, make_unique<VertexArray4f>(patchParameters)));
+        m_backendSpherePatch.reset(m_backendWindow.makeBackendPatch(*m_spherePatch));
+        m_sphereShaderProgram = backendContext.makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
+
+        auto& shaderProgram = *m_sphereShaderProgram;
+
+        shaderProgram.setParameter("uDetail", 30.0f);
+        const auto modelMatrix = unitMatrix4x4;
+        shaderProgram.setParameter("modelMatrix", modelMatrix);
+
+        m_backendSpherePatch->setEdgeShader(m_sphereShaderProgram.get());
+    }
 }
+using std::clamp;
+
 void ViewImpl::renderScene()
 {
+    const auto& backendContext = m_backendWindow.getContext();
     const auto sceneCamera = m_sceneCamera;
     const auto viewMatrix = sceneCamera.makeViewMatrix();// (viewerPosition, target, up);
 
@@ -281,6 +282,40 @@ void ViewImpl::renderScene()
         auto& shaderProgram = *m_sphereShaderProgram;
         shaderProgram.setParameter("viewMatrix", viewMatrix);
         shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+
+        {
+            const auto maxTessellationLevel = backendContext.getMaxTessellationLevel();
+            shaderProgram.setParameter("maxTessellationLevel", maxTessellationLevel);
+            const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
+            shaderProgram.setParameter("pixelWidth", pixelWidth);
+
+            const auto center = Vector3(0.0f, 0.0f, 0.0f);
+            const auto radius = 1.0f;
+            const auto modelMatrix = unitMatrix4x4;
+            const auto centerInViewCoordinates = mulHomogeneous(viewMatrix * modelMatrix, center);
+            const auto p0 = centerInViewCoordinates + Vector3(-radius, 0, 0);
+            const auto p1 = centerInViewCoordinates + Vector3(+radius, 0, 0);
+            const auto p0CC = projectionMatrix*makeHomogeneous(p0);
+            const auto p1CC = projectionMatrix*makeHomogeneous(p1);
+            constexpr float eps = 0.000001f;
+            if (fabs(p0CC[3]) > eps&& fabs(p1CC[3]) > eps)
+            {
+                const auto p0NDC = makeNonHomogeneous(p0CC * 1.0f/p0CC[3]);
+                const auto p1NDC = makeNonHomogeneous(p1CC * 1.0f/p1CC[3]);
+                const auto clipCoordinateDiameter = length(p1NDC - p0NDC);
+                const auto pixelDiameter = clipCoordinateDiameter * pixelWidth;
+                const auto desiredPixelsPerTriangle = 10.0f;
+                const auto tessellationLevel = clamp(pixelDiameter / desiredPixelsPerTriangle, 8.0f, (float)maxTessellationLevel);
+                cout << " Sphere: r=" << radius << endl;
+                cout << "   centerVC: " << centerInViewCoordinates << endl;
+                cout << "   p0CC,p1CC: " << p0CC << " - " << p1CC << endl;
+                cout << "   diameterCC: " << clipCoordinateDiameter << endl;
+                cout << "   diameterVC: " << pixelDiameter << " (pixelWidth = " << pixelWidth << ")" << endl;
+                cout << "   tessellationLevel: " << tessellationLevel << endl;
+            }
+            else
+                cout << "  Sphere rejected";
+        }
 
         m_backendSpherePatch->render(false, true);
     }
@@ -351,7 +386,7 @@ void ViewImpl::mouseWheelCallback(const Vector2& wheelDelta)
 {
     auto& sceneCamera = m_sceneCamera;
     const auto dy = wheelDelta[1];
-    constexpr float factor = 1.0f;
+    constexpr float factor = 3.0f;
     const auto forward = sceneCamera.m_target - sceneCamera.m_position;
     const auto distance = length(forward);
     constexpr float minimalDistance = 2.0f;

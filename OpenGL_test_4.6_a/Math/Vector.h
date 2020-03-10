@@ -93,23 +93,29 @@ template<unsigned int D>inline Vector<D> operator-(const Vector<D> a, const Vect
         r[i] = a[i] - b[i];
     return r;
 }
-inline Vector3 operator*(const Vector3 v, const float s)
+template<unsigned int D>inline Vector<D> operator*(const Vector<D> a, const float s)
 {
-    return Vector3(v[0] * s, v[1] * s, v[2] * s);
+    Vector<D> r;
+    for (int i = 0; i < D; ++i)
+        r[i] = a[i] * s;
+    return r;
 }
-inline Vector3 operator*(const float s, const Vector3 v)
+template<unsigned int D>inline Vector<D> operator*(const float s,const Vector<D> a)
 {
-    return Vector3(v[0] * s, v[1] * s, v[2] * s);
+    return a * s;
 }
-inline Vector3 operator/(const Vector3 v, const float s)
+template<unsigned int D>inline Vector<D> operator/(const Vector<D> a, const float s)
 {
-    return Vector3(v[0] / s, v[1] / s, v[2] / s);
+    Vector<D> r;
+    for (int i = 0; i < D; ++i)
+        r[i] = a[i] / s;
+    return r;
 }
 inline Vector3 cross(const Vector3 a, const Vector3 b)
 {
     return Vector3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]);
 }
-inline float length(const Vector3& v)
+template<unsigned int D>inline float length(const Vector<D>& v)
 {
     return sqrtf(dot(v, v));
 }

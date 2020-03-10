@@ -27,5 +27,8 @@ public:
     virtual std::unique_ptr<BackendTesselationShaderProgram> makeTessellationShaderProgram(
         const std::string& fileName,
         const std::string& title) = 0;
+
+public:
+    virtual int getMaxTessellationLevel() const = 0;
 };
 

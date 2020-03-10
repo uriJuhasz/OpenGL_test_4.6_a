@@ -122,6 +122,12 @@ public:
     operator bool() const override { return m_valid; }
 
 public:
+    int getMaxTessellationLevel() const override
+    {
+        return glsGetUInt(GL_MAX_TESS_GEN_LEVEL);
+    }
+
+public:
     BackendWindow* createWindow() override
     {
         return OpenGLWindow::make(*this);
