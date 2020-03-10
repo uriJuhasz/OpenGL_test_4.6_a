@@ -241,6 +241,7 @@ void ViewImpl::setupScene()
         shaderProgram.setParameter("backColor", backColor);
 
         shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
+        shaderProgram.setParameter("desiredPixelsPerTriangle", 20.0f);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -261,9 +262,9 @@ void ViewImpl::setupScene()
 
         const auto modelMatrix = unitMatrix4x4;
         shaderProgram.setParameter("modelMatrix", modelMatrix);
-        const auto maxTessellationLevel = backendContext.getMaxTessellationLevel();
-        shaderProgram.setParameter("maxTessellationLevel", maxTessellationLevel);
-
+        shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
+        shaderProgram.setParameter("desiredPixelsPerTriangle", 20.0f);
+        
         m_backendSpherePatch->setEdgeShader(m_sphereShaderProgram.get());
     }
 }
@@ -280,7 +281,7 @@ void ViewImpl::renderScene()
 
     //////////////////////
     //Patch sphere
-    constexpr bool renderSphere = false;
+    constexpr bool renderSphere = true;
     if (renderSphere)
     {
         auto& shaderProgram = *m_sphereShaderProgram;

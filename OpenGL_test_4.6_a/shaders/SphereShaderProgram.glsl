@@ -27,23 +27,25 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-uniform int maxTessellationLevel;
+uniform int maxTessellationLevel = 64;
 
 uniform int pixelWidth;
 
-const float desiredPixelsPerTriangle = 10.0f;
+uniform float desiredPixelsPerTriangle = 10.0f;
+
+vec3 wc2ndc(vec3 wc)
+{
+	vec4 cc = projectionMatrix*vec4(wc,1);
+	return cc.xyz / cc.w;
+}
 
 float calculateTessellationLevel(vec3 center, float radius)
 {
-	vec3 centerInViewCoordinates = (viewMatrix*modelMatrix*vec4(center,1)).xyz;
-	vec3 p0 = centerInViewCoordinates + vec3(-radius,0,0);
-	vec3 p1 = centerInViewCoordinates + vec3( radius,0,0);
-	vec4 p0CC = projectionMatrix*vec4(p0,1);
-	vec4 p1CC = projectionMatrix*vec4(p1,1);
-	vec3 p0NDC = p0CC.xyz / p0CC.w;
-	vec3 p1NDC = p1CC.xyz / p1CC.w;
+	vec3 centerVC = (viewMatrix*modelMatrix*vec4(center,1)).xyz;
+	vec3 p0NDC = wc2ndc(centerVC + vec3(-radius,0,0));
+	vec3 p1NDC = wc2ndc(centerVC + vec3(+radius,0,0));
 	float clipCoordinateDiameter = length(p0NDC - p1NDC);
-	float pixelDiameter = clipCoordinateDiameter * pixelWidth;
+	float pixelDiameter = clipCoordinateDiameter * pixelWidth / 2;
 
 	return clamp(pixelDiameter/desiredPixelsPerTriangle,2,maxTessellationLevel);
 }
