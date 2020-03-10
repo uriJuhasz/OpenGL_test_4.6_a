@@ -27,18 +27,14 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-uniform float uDetail;
-
 uniform int maxTessellationLevel;
 
 uniform int pixelWidth;
 
 const float desiredPixelsPerTriangle = 10.0f;
 
-void main( )
+float calculateTessellationLevel(vec3 center, float radius)
 {
-	vec3 center = vCenter[0];
-	float radius = vRadius[0];
 	vec3 centerInViewCoordinates = (viewMatrix*modelMatrix*vec4(center,1)).xyz;
 	vec3 p0 = centerInViewCoordinates + vec3(-radius,0,0);
 	vec3 p1 = centerInViewCoordinates + vec3( radius,0,0);
@@ -49,12 +45,19 @@ void main( )
 	float clipCoordinateDiameter = length(p0NDC - p1NDC);
 	float pixelDiameter = clipCoordinateDiameter * pixelWidth;
 
-	float tessellationLevel = clamp(pixelDiameter/desiredPixelsPerTriangle,8,maxTessellationLevel);
+	return clamp(pixelDiameter/desiredPixelsPerTriangle,2,maxTessellationLevel);
+}
+
+void main( )
+{
+	vec3 center = vCenter[0];
+	float radius = vRadius[0];
 
 	tcCenter = center;
 	tcRadius = radius;
 	gl_out[ gl_InvocationID ].gl_Position = gl_in[ 0 ].gl_Position; 
 	
+	float tessellationLevel = calculateTessellationLevel(center, radius);
 	gl_TessLevelOuter[0] = tessellationLevel;
 	gl_TessLevelOuter[1] = tessellationLevel;
 }

@@ -21,18 +21,60 @@ void main( )
 
 layout( vertices = 16 ) out;
 
-uniform float tessellationLevel;
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 
-void main( )
+uniform int maxTessellationLevel;
+
+uniform int pixelWidth;
+
+const float desiredPixelsPerTriangle = 20.0f;
+
+float calculateTessellationLevel(vec3 center, float radius)
+{
+	vec3 centerInViewCoordinates = (viewMatrix*modelMatrix*vec4(center,1)).xyz;
+	vec3 p0 = centerInViewCoordinates + vec3(-radius,0,0);
+	vec3 p1 = centerInViewCoordinates + vec3( radius,0,0);
+	vec4 p0CC = projectionMatrix*vec4(p0,1);
+	vec4 p1CC = projectionMatrix*vec4(p1,1);
+	vec3 p0NDC = p0CC.xyz / p0CC.w;
+	vec3 p1NDC = p1CC.xyz / p1CC.w;
+	float clipCoordinateDiameter = length(p0NDC - p1NDC);
+	float pixelDiameter = clipCoordinateDiameter * pixelWidth;
+
+	return clamp(pixelDiameter/desiredPixelsPerTriangle,2,maxTessellationLevel);
+}
+
+void main()
 {
 	gl_out[ gl_InvocationID ].gl_Position = gl_in[ gl_InvocationID ].gl_Position;
 
-	gl_TessLevelOuter[0] = tessellationLevel;
-	gl_TessLevelOuter[1] = tessellationLevel;
-	gl_TessLevelOuter[2] = tessellationLevel;
-	gl_TessLevelOuter[3] = tessellationLevel;
-	gl_TessLevelInner[0] = tessellationLevel;
-	gl_TessLevelInner[1] = tessellationLevel;
+	if (gl_InvocationID==0)
+	{
+		vec3 bbMin = gl_in[0].gl_Position.xyz;
+		vec3 bbMax = gl_in[0].gl_Position.xyz;
+		for (int i=1;i<16;++i)
+		{				
+			vec3 p = gl_in[i].gl_Position.xyz;
+			for (int j=0; j<3; ++j)
+			{
+				bbMin[j] = min(bbMin[j],p[j]);
+				bbMax[j] = max(bbMin[j],p[j]);
+			}
+		}
+	    vec3 bbCenter = (bbMin+bbMax)/2;
+	    float bbRadius = length(bbMax-bbMin)/2;
+
+		float tessellationLevel = calculateTessellationLevel(bbCenter, bbRadius);
+
+		gl_TessLevelOuter[0] = tessellationLevel;
+		gl_TessLevelOuter[1] = tessellationLevel;
+		gl_TessLevelOuter[2] = tessellationLevel;
+		gl_TessLevelOuter[3] = tessellationLevel;
+		gl_TessLevelInner[0] = tessellationLevel;
+		gl_TessLevelInner[1] = tessellationLevel;
+	}
 }
 #endif
 

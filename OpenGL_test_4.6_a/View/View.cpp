@@ -240,7 +240,7 @@ void ViewImpl::setupScene()
         const Vector3 backColor(0.1f, 0.3f, 0.3f);
         shaderProgram.setParameter("backColor", backColor);
 
-        shaderProgram.setParameter("maxTessellationLevel", (float)backendContext.getMaxTessellationLevel());
+        shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
     }
 
     ////////////////////////////////////////////////////////////////
@@ -248,7 +248,10 @@ void ViewImpl::setupScene()
     {
         const vector<Vector4> patchParameters = {
             Vector4(0.0f, 0.0f, 0.0f, 1.0f),
-//            Vector4(0.0f, 0.0f, -50.0f, 30.0f)
+            Vector4(-10.0f, 0.0f, 0.0f, 2.0f),
+            Vector4(10.0f, 0.0f, 0.0f, 5.0f),
+            Vector4(0.0f, 10.0f, 0.0f, 10.0f),
+            Vector4(0.0f, -10.0f, -.0f, 20.0f)
         };
         m_spherePatch.reset(new Patch(1, make_unique<VertexArray4f>(patchParameters)));
         m_backendSpherePatch.reset(m_backendWindow.makeBackendPatch(*m_spherePatch));
@@ -256,9 +259,10 @@ void ViewImpl::setupScene()
 
         auto& shaderProgram = *m_sphereShaderProgram;
 
-        shaderProgram.setParameter("uDetail", 30.0f);
         const auto modelMatrix = unitMatrix4x4;
         shaderProgram.setParameter("modelMatrix", modelMatrix);
+        const auto maxTessellationLevel = backendContext.getMaxTessellationLevel();
+        shaderProgram.setParameter("maxTessellationLevel", maxTessellationLevel);
 
         m_backendSpherePatch->setEdgeShader(m_sphereShaderProgram.get());
     }
@@ -276,7 +280,7 @@ void ViewImpl::renderScene()
 
     //////////////////////
     //Patch sphere
-    constexpr bool renderSphere = true;
+    constexpr bool renderSphere = false;
     if (renderSphere)
     {
         auto& shaderProgram = *m_sphereShaderProgram;
@@ -284,37 +288,8 @@ void ViewImpl::renderScene()
         shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
         {
-            const auto maxTessellationLevel = backendContext.getMaxTessellationLevel();
-            shaderProgram.setParameter("maxTessellationLevel", maxTessellationLevel);
             const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
             shaderProgram.setParameter("pixelWidth", pixelWidth);
-
-            const auto center = Vector3(0.0f, 0.0f, 0.0f);
-            const auto radius = 1.0f;
-            const auto modelMatrix = unitMatrix4x4;
-            const auto centerInViewCoordinates = mulHomogeneous(viewMatrix * modelMatrix, center);
-            const auto p0 = centerInViewCoordinates + Vector3(-radius, 0, 0);
-            const auto p1 = centerInViewCoordinates + Vector3(+radius, 0, 0);
-            const auto p0CC = projectionMatrix*makeHomogeneous(p0);
-            const auto p1CC = projectionMatrix*makeHomogeneous(p1);
-            constexpr float eps = 0.000001f;
-            if (fabs(p0CC[3]) > eps&& fabs(p1CC[3]) > eps)
-            {
-                const auto p0NDC = makeNonHomogeneous(p0CC * 1.0f/p0CC[3]);
-                const auto p1NDC = makeNonHomogeneous(p1CC * 1.0f/p1CC[3]);
-                const auto clipCoordinateDiameter = length(p1NDC - p0NDC);
-                const auto pixelDiameter = clipCoordinateDiameter * pixelWidth;
-                const auto desiredPixelsPerTriangle = 10.0f;
-                const auto tessellationLevel = clamp(pixelDiameter / desiredPixelsPerTriangle, 8.0f, (float)maxTessellationLevel);
-                cout << " Sphere: r=" << radius << endl;
-                cout << "   centerVC: " << centerInViewCoordinates << endl;
-                cout << "   p0CC,p1CC: " << p0CC << " - " << p1CC << endl;
-                cout << "   diameterCC: " << clipCoordinateDiameter << endl;
-                cout << "   diameterVC: " << pixelDiameter << " (pixelWidth = " << pixelWidth << ")" << endl;
-                cout << "   tessellationLevel: " << tessellationLevel << endl;
-            }
-            else
-                cout << "  Sphere rejected";
         }
 
         m_backendSpherePatch->render(false, true);
@@ -332,6 +307,11 @@ void ViewImpl::renderScene()
 
         shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
 
+        {
+            const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
+            shaderProgram.setParameter("pixelWidth", pixelWidth);
+        }
+
         shaderProgram.setParameter("edgeMode", 0);
         m_backendBezierPatch->render(true, false);
         shaderProgram.setParameter("edgeMode", 1);
@@ -339,7 +319,7 @@ void ViewImpl::renderScene()
     }
     //////////////////////
     //Render mesh
-    constexpr bool renderMesh = true;
+    constexpr bool renderMesh = false;
     if (renderMesh)
     {
         constexpr bool renderMeshFaces = true;
@@ -386,7 +366,7 @@ void ViewImpl::mouseWheelCallback(const Vector2& wheelDelta)
 {
     auto& sceneCamera = m_sceneCamera;
     const auto dy = wheelDelta[1];
-    constexpr float factor = 3.0f;
+    constexpr float factor = 1.0f;
     const auto forward = sceneCamera.m_target - sceneCamera.m_position;
     const auto distance = length(forward);
     constexpr float minimalDistance = 2.0f;
