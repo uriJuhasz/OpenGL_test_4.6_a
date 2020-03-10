@@ -39,12 +39,12 @@ void main()
 
 #ifdef COMPILING_FS
 
-uniform vec3 edgeColor;
+uniform vec4 edgeColor;
 
 out vec4 frag_color;
 
 void main() 
 {
-  frag_color = vec4(edgeColor,1);
+  frag_color = edgeColor;
 }
 #endif

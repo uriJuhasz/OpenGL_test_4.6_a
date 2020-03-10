@@ -137,6 +137,9 @@ public:
         const string& fileName,
         const string& title) override
     {
+        glBindVertexArray(0);
+        glUseProgram(0);
+
         const auto shaderSource = loadShader(m_shaderBasePath + fileName);
         const auto shaderProgram = glCreateProgram();
 
@@ -156,19 +159,21 @@ public:
         const string& title) override
     {
         const auto shaderSource = loadShader(m_shaderBasePath + fileName);
-        const auto shaderProgram = glCreateProgram();
+        const auto shaderProgramID = glCreateProgram();
 
-        makeAndAttachSingleShaderCC(shaderProgram, GL_VERTEX_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgram, GL_TESS_CONTROL_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgram, GL_TESS_EVALUATION_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgram, GL_GEOMETRY_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgram, GL_FRAGMENT_SHADER, shaderSource);
-        glLinkProgram(shaderProgram);
-        glsCheckShaderProgramErrors(title, shaderProgram);
+        makeAndAttachSingleShaderCC(shaderProgramID, GL_VERTEX_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgramID, GL_TESS_CONTROL_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgramID, GL_TESS_EVALUATION_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgramID, GL_GEOMETRY_SHADER, shaderSource);
+        makeAndAttachSingleShaderCC(shaderProgramID, GL_FRAGMENT_SHADER, shaderSource);
+        glLinkProgram(shaderProgramID);
+        glsCheckShaderProgramErrors(title, shaderProgramID);
 
         glsCheckErrors();
 
-        return make_unique<OpenGLTessellationShaderProgram>(shaderProgram);
+        std::cerr << "  Shader " << title << " : " << shaderProgramID << endl;
+
+        return make_unique<OpenGLTessellationShaderProgram>(shaderProgramID);
     }
 
     GLuint makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title)

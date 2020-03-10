@@ -21,7 +21,7 @@ OpenGLPatch::OpenGLPatch(const Patch& patch)
 {
     const auto& vertexVector = patch.getVertices();
     
-    m_vertexArrayObject = glsGenAndBindVertexArray();
+    m_vertexArrayObject = glsGenAndBindVertexArrayObject();
 
     m_numVertices = vertexVector.numVertices();
     m_numVerticesPerPatch = patch.getNumVerticesPerPatch();

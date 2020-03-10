@@ -28,6 +28,6 @@ private:
 	const OpenGLStandardShaderProgram* m_faceShader = nullptr;
 	const OpenGLStandardShaderProgram* m_edgeShader = nullptr;
 
-	vector<GLuint> m_buffers;
+	vector<GLuint> m_usedBufferIDs;
 };
 

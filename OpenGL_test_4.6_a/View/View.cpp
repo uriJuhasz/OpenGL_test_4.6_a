@@ -137,13 +137,11 @@ void ViewImpl::setupScene()
             const auto modelMatrix = unitMatrix4x4;
 
             shaderProgram.setParameter("modelMatrix", modelMatrix);
-
-            shaderProgram.setParameter("edgeColor", Vector3(1.0f, 1.0f, 1.0f));
         }
 
         {
             m_meshBoundingboxShaderProgram = backendContext.makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBoxLine");
-            auto& shaderProgram = *m_meshFaceShaderProgram;
+            auto& shaderProgram = *m_meshBoundingboxShaderProgram;
 
             shaderProgram.setParameter("modelMatrix", modelMatrix);
 
@@ -289,6 +287,8 @@ void ViewImpl::renderScene()
             shaderProgram.setParameter("viewMatrix", viewMatrix);
             shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
+            shaderProgram.setParameter("edgeColor", Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+
             m_backendMesh->render(false, true);
         }
         ///////////////////////
@@ -296,9 +296,13 @@ void ViewImpl::renderScene()
         constexpr bool showBoundingBox = true;
         if (showBoundingBox)
         {
+            glBindVertexArray(0);
+            glUseProgram(9);
             auto& shaderProgram = *m_meshBoundingboxShaderProgram;
             shaderProgram.setParameter("viewMatrix", viewMatrix);
             shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+
+            shaderProgram.setParameter("edgeColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 
             const auto bb = m_meshBoundingBox;
             const array<Vector3, 8> boundingBoxVertices = {
@@ -322,6 +326,7 @@ void ViewImpl::renderScene()
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glDisable(GL_CULL_FACE);
             glLineWidth(2.0f);
+            glUseProgram(9);
 
             glBegin(GL_LINES);
             for (int e = 0; e < 12; ++e)
@@ -331,11 +336,6 @@ void ViewImpl::renderScene()
                 glVertex3fv(v0.data());
                 glVertex3fv(v1.data());
             }
-            glEnd();
-
-            glBegin(GL_LINES);
-                glVertex3f(-1.0, -1.0f, -1.0f);
-                glVertex3f( 1.0,  1.0f,  1.0f);
             glEnd();
         }
     }

@@ -17,7 +17,7 @@ OpenGLMesh::OpenGLMesh(const Mesh& mesh)
 OpenGLMesh::~OpenGLMesh()
 {
     glDeleteVertexArrays(1, &m_vertexArrayObjectID);
-    for (const auto bufferId : m_buffers)
+    for (const auto bufferId : m_usedBufferIDs)
         glDeleteBuffers(1,&bufferId);
 }
 
@@ -27,7 +27,7 @@ void OpenGLMesh::setEdgeShader(const BackendStandardShaderProgram* edgeShader) {
 template<unsigned int D> GLuint OpenGLMesh::makeAndRegisterBuffer(const vector<Vector<D>>& vs, const int attributeIndex)
 {
     const auto buffer = glsMakeBuffer(vs, attributeIndex);
-    m_buffers.push_back(buffer);
+    m_usedBufferIDs.push_back(buffer);
     return buffer;
 }
 
@@ -35,9 +35,10 @@ void OpenGLMesh::render(const bool renderFaces, const bool renderEdges)
 {
     if (m_vertexArrayObjectID == 0)
         throw new Exception("BackendMesh: invalid mesh cache");
+    glBindVertexArray(m_vertexArrayObjectID);
+
     if (renderFaces && m_faceShader)
     {
-        glBindVertexArray(m_vertexArrayObjectID);
         glUseProgram(m_faceShader->m_shaderProgramID);
 
         glDepthFunc(GL_LESS);
@@ -47,9 +48,6 @@ void OpenGLMesh::render(const bool renderFaces, const bool renderEdges)
     }
     if (renderEdges && m_edgeShader)
     {
-        glBindVertexArray(m_vertexArrayObjectID);
-        glUseProgram(m_edgeShader->m_shaderProgramID);
-
         glLineWidth(1.0f);
         //        glEnable(GL_BLEND);
         //        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -63,7 +61,10 @@ void OpenGLMesh::render(const bool renderFaces, const bool renderEdges)
         glEnable(GL_POLYGON_OFFSET_LINE);
         glPolygonOffset(-1.0, 0.0);
 
-        glPolygonMode(GL_FRONT, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        glUseProgram(m_edgeShader->m_shaderProgramID);
+
         glDrawElements(GL_TRIANGLES, m_numFaces * 3, GL_UNSIGNED_INT, 0);
     }
 }
@@ -91,46 +92,23 @@ void OpenGLMesh::insertMesh(const Mesh& mesh)
 {
     const int numVertices = mesh.numVertices();
 
-    const auto vertexArrayObjectID = glsGenAndBindVertexArray();
+    const auto vertexArrayObjectID = glsGenAndBindVertexArrayObject();
 
     { //Vertex positions
-/*        const auto& vertices = mesh.m_vertices;
-
-        GLuint vertexBufferID = 0;
-        {
-            const auto& vs = vertices;
-            const auto attributeIndex = 0;
-            GLuint bufferID = 0;
-            const int D = 3;
-            const auto vertexSize = sizeof(vs[0]);
-            const auto numVertices = toInt(vertices.size());
-            glCreateBuffers(1, &bufferID);
-            glNamedBufferStorage(bufferID, vs.size() * sizeof(vs[0]), vs.data(), GL_DYNAMIC_STORAGE_BIT);
-            glVertexArrayVertexBuffer(vertexArrayObject, attributeIndex, bufferID, 0, vertexSize);
-            glEnableVertexArrayAttrib(vertexArrayObject, attributeIndex);
-            glVertexArrayAttribFormat(vertexArrayObject, attributeIndex, D, GL_FLOAT, GL_FALSE, 0);
-            glVertexArrayAttribBinding(vertexArrayObject, attributeIndex, attributeIndex);
-            glsCheckErrors();
-
-            vertexBufferID = bufferID;
-        }
-//        const auto vertexBuffer = glsMakeBuffer(vertices, 0);*/
         const auto vertexBufferID = attachBufferToAttribute(vertexArrayObjectID,0,mesh.m_vertices);
-        m_buffers.push_back(vertexBufferID);
+        m_usedBufferIDs.push_back(vertexBufferID);
     }
 
     { //Vertex normals
-        const auto& normals = mesh.m_normals;
-        assert(normals.size() == numVertices);
-        const auto normalBuffer = glsMakeBuffer(normals, 1);
-        m_buffers.push_back(normalBuffer);
+        assert(mesh.m_normals.size() == numVertices);
+        const auto normalBufferID = attachBufferToAttribute(vertexArrayObjectID, 1, mesh.m_normals);
+        m_usedBufferIDs.push_back(normalBufferID);
     }
 
     { //Vertex UV coords
-        const auto& uvCoords = mesh.m_textureCoords;
-        assert(uvCoords.size() == numVertices);
-        const auto uvcoordBuffer = glsMakeBuffer(uvCoords, 2);
-        m_buffers.push_back(uvcoordBuffer);
+        assert(mesh.m_textureCoords.size() == numVertices);
+        const auto uvcoordBufferID = attachBufferToAttribute(vertexArrayObjectID, 2, mesh.m_textureCoords);
+        m_usedBufferIDs.push_back(uvcoordBufferID);
     }
 
     {//Faces
