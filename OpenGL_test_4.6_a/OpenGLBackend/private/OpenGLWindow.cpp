@@ -18,6 +18,7 @@
 #include <cassert>
 #include <vector>
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 
@@ -32,8 +33,8 @@ public:
             throw new Exception("GLFWWindow: context is invalid");
         if (const auto window = glfwCreateWindow(c_defaultWidth, c_defaultHeight, title.c_str(), nullptr, nullptr))
         {
-            m_window = window;
-            s_allWindows.push_back({ m_window,this });
+            m_glfwWindow = window;
+            s_allWindows.push_back({ m_glfwWindow,this });
 
             glfwMakeContextCurrent(window);
             glfwMaximizeWindow(window);
@@ -56,17 +57,17 @@ public:
 
     ~OpenGLWindowImpl()
     {
-        if (m_window)
+        if (m_glfwWindow)
         {
             for (int i = 0; i < s_allWindows.size(); ++i) //Remove from list
             {
-                if (s_allWindows[i].first == m_window)
+                if (s_allWindows[i].first == m_glfwWindow)
                 {
                     s_allWindows[i] = s_allWindows.back();
                     s_allWindows.resize(s_allWindows.size() - 1);
                 }
             }
-            glfwDestroyWindow(m_window);
+            glfwDestroyWindow(m_glfwWindow);
         }
     }
 
@@ -76,7 +77,7 @@ public:
     array<int, 2> getFramebufferSize() const
     {
         int width, height;
-        glfwGetFramebufferSize(m_window, &width, &height);
+        glfwGetFramebufferSize(m_glfwWindow, &width, &height);
         return { width,height };
     }
     Vector2 getViewportDimensions() const
@@ -88,7 +89,7 @@ public:
         return Vector2(vpw, vph);
     }
 
-    operator bool() const { return m_window != nullptr; }
+    operator bool() const { return m_glfwWindow != nullptr; }
 
 public:
     void registerView(BackendViewInterface* view) override
@@ -105,13 +106,15 @@ public:
 
         int frameIndex = 0;
 
-        while (!glfwWindowShouldClose(m_window))
+        while (!glfwWindowShouldClose(m_glfwWindow))
         {
             if (!updateNeeded())
             {
                 glfwWaitEvents();
                 continue;
             }
+
+            const auto frameStartTime = chrono::high_resolution_clock::now();
 
             // wipe the drawing surface clear
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -120,7 +123,14 @@ public:
             m_view->renderScene();
 
             // put the stuff we've been drawing onto the display
-            glfwSwapBuffers(m_window);
+            glfwSwapBuffers(m_glfwWindow);
+
+            const auto frameEndTime = chrono::high_resolution_clock::now();
+            const auto frameTime = chrono::duration<double>(frameEndTime - frameStartTime).count();
+//            cout << "Frame time: " << frameTime * 1000.0f << "ms" << endl;
+            const auto fps = 1.0 / frameTime;
+            const auto title = "fps: " + to_string(fps) ;
+            glfwSetWindowTitle(m_glfwWindow, title.c_str());
 
             glsCheckErrors();
 
@@ -134,7 +144,7 @@ public:
 
 private:
     OpenGLContext& m_context;
-    GLFWwindow* m_window = nullptr;
+    GLFWwindow* m_glfwWindow = nullptr;
     static const int c_defaultWidth = 800;
     static const int c_defaultHeight = 800;
 
@@ -143,24 +153,24 @@ private:
 public:
     bool isLeftMouseButtonPressed() const
     {
-        return glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+        return glfwGetMouseButton(m_glfwWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
     }
     bool isMiddleMouseButtonPressed() const
     {
-        return glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
+        return glfwGetMouseButton(m_glfwWindow, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
     }
     bool isRightMouseButtonPressed() const
     {
-        return glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+        return glfwGetMouseButton(m_glfwWindow, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
     }
 
 public:
     void init() override
     {
-        if (!m_window)
+        if (!m_glfwWindow)
             return;
         int w, h;
-        glfwGetWindowSize(m_window, &w, &h);
+        glfwGetWindowSize(m_glfwWindow, &w, &h);
         glViewport(0, 0, w, h);
 
         // start GLEW extension handler
@@ -221,6 +231,8 @@ public:
             for (int i = 0; i < numBinaryShaderFormats; ++i)
                 cout << "   " << ((binaryFormats[i] == GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) ? " SPIR-V" : "Unknown" + to_string(binaryFormats[i])) << endl;
         }
+        
+        cout << "  OpenGL max vertex attributes: " << glsGetUInt(GL_MAX_VERTEX_ATTRIB_BINDINGS) << endl;
         cout << "  OpenGL max tessellation level: " << glsGetUInt(GL_MAX_TESS_GEN_LEVEL) << endl;
         cout << "  OpenGL max patch vertices: " << glsGetUInt(GL_MAX_PATCH_VERTICES) << endl;
         cout << "  OpenGL max geometry output vertices: " << glsGetUInt(GL_MAX_GEOMETRY_OUTPUT_VERTICES) << endl;

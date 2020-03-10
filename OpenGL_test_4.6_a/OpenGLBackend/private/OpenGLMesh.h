@@ -27,7 +27,5 @@ private:
 	GLuint m_vertexArrayObjectID = GL_INVALID_INDEX;
 	const OpenGLStandardShaderProgram* m_faceShader = nullptr;
 	const OpenGLStandardShaderProgram* m_edgeShader = nullptr;
-
-	vector<GLuint> m_usedBufferIDs;
 };
 

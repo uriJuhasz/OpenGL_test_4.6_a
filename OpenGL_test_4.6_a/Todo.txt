@@ -1,11 +1,19 @@
-Frame rate
+Adaptive patch tessellation
+
+Calculate topology for a mesh - show wireframe intelligently with removed edges.
+
+Polyline primitive
+Line segments primitive
+
+Fix OpenGLPatch to use DSA
+
+Implement Line thing or mesh with deleted edges
+
+Implement more patch primitives - torus, ellipsoid, cone, cylinder, (polycylinder?)
+
 
 Material class
-Shader class
-MeshResource class
+MeshSceneElement (Mesh+Material+visibility etc) class
 Mesh+Visualization class
 
-Geometry shader - e.g. split triangle
-Tesselation shader:
-   Sphere
-   NURBS patches
+NURBS shader

@@ -5,6 +5,14 @@
 #include "Utilities/Misc.h"
 
 #include <cassert>
+#include <iostream>
+
+static int glGetVertexAttribInt(const GLenum type, const int attributeIndex)
+{
+    GLint val;
+    glGetVertexAttribiv(attributeIndex, type, &val);
+    return val;
+}
 
 GLuint insertMesh(const Mesh& mesh);
 
@@ -16,20 +24,29 @@ OpenGLMesh::OpenGLMesh(const Mesh& mesh)
 
 OpenGLMesh::~OpenGLMesh()
 {
+    constexpr int c_maxVertexAttributes = 3;
+    if (m_vertexArrayObjectID)
+    {
+        glBindVertexArray(m_vertexArrayObjectID);
+        for (int i = 0; i < c_maxVertexAttributes; ++i)
+        {
+            if (glGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_ENABLED, i))
+            {
+                GLuint bufferID = glGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, 2);
+                glDeleteBuffers(1, &bufferID);
+            }
+            
+        }
+        GLuint vertexIndexBufferID = 0;
+        glGetVertexArrayiv(m_vertexArrayObjectID,GL_ELEMENT_ARRAY_BUFFER_BINDING, (GLint*)&vertexIndexBufferID);
+        std::cout << " Deleting vertex index buffer " << vertexIndexBufferID << std::endl;
+        glDeleteBuffers(1,&vertexIndexBufferID);
+    }
     glDeleteVertexArrays(1, &m_vertexArrayObjectID);
-    for (const auto bufferId : m_usedBufferIDs)
-        glDeleteBuffers(1,&bufferId);
 }
 
 void OpenGLMesh::setFaceShader(const BackendStandardShaderProgram* faceShader) { m_faceShader = dynamic_cast<const OpenGLStandardShaderProgram*>(faceShader); }
 void OpenGLMesh::setEdgeShader(const BackendStandardShaderProgram* edgeShader) { m_edgeShader = dynamic_cast<const OpenGLStandardShaderProgram*>(edgeShader); }
-
-template<unsigned int D> GLuint OpenGLMesh::makeAndRegisterBuffer(const vector<Vector<D>>& vs, const int attributeIndex)
-{
-    const auto buffer = glsMakeBuffer(vs, attributeIndex);
-    m_usedBufferIDs.push_back(buffer);
-    return buffer;
-}
 
 void OpenGLMesh::render(const bool renderFaces, const bool renderEdges)
 {
@@ -80,6 +97,7 @@ template<unsigned int D>static GLuint attachBufferToAttribute(
 
     GLuint bufferID = 0;
     glCreateBuffers(1, &bufferID);
+    std::cout << "  Created buffer " << bufferID << " for attribute " << attributeIndex << std::endl;
     glNamedBufferStorage(bufferID, numValues * valueSize, values.data(), 0);// GL_DYNAMIC_STORAGE_BIT);
     glVertexArrayVertexBuffer(vertexArrayObjectID, attributeIndex, bufferID, 0, valueSize);
     glEnableVertexArrayAttrib(vertexArrayObjectID, attributeIndex);
@@ -88,35 +106,29 @@ template<unsigned int D>static GLuint attachBufferToAttribute(
 
     return bufferID;
 }
+
 void OpenGLMesh::insertMesh(const Mesh& mesh)
 {
     const int numVertices = mesh.numVertices();
 
     const auto vertexArrayObjectID = glsGenAndBindVertexArrayObject();
 
-    { //Vertex positions
-        const auto vertexBufferID = attachBufferToAttribute(vertexArrayObjectID,0,mesh.m_vertices);
-        m_usedBufferIDs.push_back(vertexBufferID);
-    }
+    assert(mesh.m_normals.size() == numVertices);
+    assert(mesh.m_textureCoords.size() == numVertices);
 
-    { //Vertex normals
-        assert(mesh.m_normals.size() == numVertices);
-        const auto normalBufferID = attachBufferToAttribute(vertexArrayObjectID, 1, mesh.m_normals);
-        m_usedBufferIDs.push_back(normalBufferID);
-    }
-
-    { //Vertex UV coords
-        assert(mesh.m_textureCoords.size() == numVertices);
-        const auto uvcoordBufferID = attachBufferToAttribute(vertexArrayObjectID, 2, mesh.m_textureCoords);
-        m_usedBufferIDs.push_back(uvcoordBufferID);
-    }
+    const auto vertexBufferID = attachBufferToAttribute(vertexArrayObjectID,0,mesh.m_vertices);
+    const auto normalBufferID = attachBufferToAttribute(vertexArrayObjectID, 1, mesh.m_normals);
+    const auto uvcoordBufferID = attachBufferToAttribute(vertexArrayObjectID, 2, mesh.m_textureCoords);
 
     {//Faces
         const auto& faces = mesh.m_faces;
         const int numFaces = mesh.numFaces();
-        const auto fao = glsGenAndBindBuffer(GL_ELEMENT_ARRAY_BUFFER);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, numFaces * sizeof(faces[0]), faces.data(), GL_STATIC_DRAW);
-        glsCheckErrors();
+        const auto faceSize = sizeof(faces[0]);
+        GLuint indexBufferID;
+        glCreateBuffers(1, &indexBufferID);
+        glNamedBufferStorage(indexBufferID, numFaces * faceSize, faces.data(), GL_DYNAMIC_STORAGE_BIT);
+        glVertexArrayElementBuffer(vertexArrayObjectID, indexBufferID);
     }
+
     m_vertexArrayObjectID = vertexArrayObjectID;
 }
