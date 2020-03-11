@@ -252,10 +252,10 @@ void ViewImpl::setupScene()
     {
         const vector<Vector4> patchParameters = {
             Vector4(0.0f, 0.0f, 0.0f, 1.0f),
-            Vector4(-10.0f, 0.0f, 0.0f, 2.0f),
-            Vector4(10.0f, 0.0f, 0.0f, 5.0f),
-            Vector4(0.0f, 10.0f, 0.0f, 10.0f),
-            Vector4(0.0f, -10.0f, -.0f, 20.0f)
+            Vector4(-20.0f, 0.0f, 0.0f, 2.0f),
+            Vector4(20.0f, 0.0f, 0.0f, 5.0f),
+            Vector4(0.0f, 20.0f, 0.0f, 10.0f),
+            Vector4(0.0f, -30.0f, -.0f, 20.0f)
         };
         m_spherePatch.reset(new Patch(1, make_unique<VertexArray4f>(patchParameters)));
         m_backendSpherePatch.reset(m_backendWindow.makeBackendPatch(*m_spherePatch));
@@ -266,7 +266,7 @@ void ViewImpl::setupScene()
         const auto modelMatrix = unitMatrix4x4;
         shaderProgram.setParameter("modelMatrix", modelMatrix);
         shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
-        shaderProgram.setParameter("desiredPixelsPerTriangle", 20.0f);
+        shaderProgram.setParameter("desiredPixelsPerTriangle", 5.0f);
         
         m_backendSpherePatch->setEdgeShader(m_sphereShaderProgram.get());
     }

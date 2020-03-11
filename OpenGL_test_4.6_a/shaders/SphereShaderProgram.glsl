@@ -28,11 +28,11 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 uniform int maxTessellationLevel = 64;
+uniform int minTessellationLevel = 6;
 
 uniform int pixelWidth;
 
-uniform float desiredPixelsPerTriangle = 10.0f;
-
+uniform float desiredPixelsPerTriangle = 5.0f;
 vec3 wc2ndc(vec3 wc)
 {
 	vec4 cc = projectionMatrix*vec4(wc,1);
@@ -47,7 +47,7 @@ float calculateTessellationLevel(vec3 center, float radius)
 	float clipCoordinateDiameter = length(p0NDC - p1NDC);
 	float pixelDiameter = clipCoordinateDiameter * pixelWidth / 2;
 
-	return clamp(pixelDiameter/desiredPixelsPerTriangle,2,maxTessellationLevel);
+	return clamp(pixelDiameter/desiredPixelsPerTriangle,minTessellationLevel,maxTessellationLevel);
 }
 
 void main( )
@@ -75,6 +75,7 @@ patch in float tcRadius;
 patch in vec3 tcCenter;
 
 out vec3 teNormal;
+out vec4 teColor;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -84,26 +85,20 @@ const float pi = 3.14159265;
 
 void main( )
 {
-	vec3 p = gl_in[0].gl_Position.xyz;
-	float u0 = gl_TessCoord.x;
-	float u;
-	float v;
-	if (u0<0.5)
-	{
-	    u = u0*2;
-		v = gl_TessCoord.y;
-	}
-	else
-	{
-	    u = gl_TessCoord.y;
-		v = u0*2;
-	}
+	float u0 = gl_TessCoord.y;
+	float v0 = gl_TessCoord.x;
+
+	bool h = (u0<0.5);
+	float u = h ? u0*2 : v0;
+	float v = h ? v0   : 2*u0-1;
 	float phi = pi * ( u - .5 );
 	float theta = 2. * pi * ( v - .5 );
 	float cosphi = cos(phi);
 	vec3 pos = vec3( cosphi*cos(theta), sin(phi), cosphi*sin(theta) );
+
 	teNormal = normalize(pos);
-	pos *= ( tcRadius );
+	teColor = (u0<0.5) ? vec4(1,0,0,1) : vec4(0,0,1,0);
+	pos *= tcRadius;
 	pos += tcCenter;
 	gl_Position = projectionMatrix*viewMatrix*modelMatrix* vec4( pos,1. );
 }
@@ -112,10 +107,13 @@ void main( )
 
 #ifdef COMPILING_FS
 
+in vec3 teNormal;
+in vec4 teColor;
+
 out vec4 frag_color;
 
 void main() {
-  frag_color = vec4(1,1,1,1);
+  frag_color = teColor;
 }
 
 #endif
