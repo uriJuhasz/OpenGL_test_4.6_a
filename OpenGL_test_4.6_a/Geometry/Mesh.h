@@ -66,7 +66,7 @@ public:
     std::vector<EdgeIndex> m_vertexEdges;
     class VertexEdgeIndicesRange final
     {
-        friend class Mesh;
+    public:
         VertexEdgeIndicesRange()
             : m_first(0)
             , m_num(0)
