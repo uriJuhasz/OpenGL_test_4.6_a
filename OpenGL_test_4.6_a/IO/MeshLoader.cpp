@@ -45,7 +45,9 @@ unique_ptr<Mesh> MeshLoader::loadMesh(const string& fileName)
 		| aiProcess_SortByPType 
 		| aiProcess_GenSmoothNormals
 		| aiProcess_ValidateDataStructure
-	    | aiProcess_GenUVCoords);
+	    | aiProcess_GenUVCoords
+	    | aiProcess_JoinIdenticalVertices
+	);
 	if (scenePtr)
 	{
 		const auto& scene = *scenePtr;

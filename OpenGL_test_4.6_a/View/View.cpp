@@ -114,6 +114,9 @@ void ViewImpl::setupScene()
     /////////////////////////////////////////
     //Mesh setup
     {
+        {
+            m_mesh->calculateTopology();
+        }
         const auto& mesh = *m_mesh;
         m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
 

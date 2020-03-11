@@ -43,9 +43,15 @@ public:
 public:
     class Edge final
     {
+    public:
+        Edge(const int vi0,const int vi1,const int fi0,const int fi1)
+            : m_vis{ vi0,vi1 }, m_fis{ fi0,fi1 }
+        {}
         array<int, 2> m_vis;
         array<int, 2> m_fis;
     };
+
+    void calculateTopology();
 };
 
 #endif
