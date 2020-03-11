@@ -83,7 +83,8 @@ template<unsigned int D> GLuint glsMakeBuffer(const vector<Vector<D>>& vs, const
 GLuint glsGenAndBindVertexArrayObject()
 {
     GLuint vertexArrayObjectID = 0;
-    glCreateVertexArrays(1, &vertexArrayObjectID); 
+//    glCreateVertexArrays(1, &vertexArrayObjectID); 
+    glGenVertexArrays(1, &vertexArrayObjectID);
     glBindVertexArray(vertexArrayObjectID);
     return vertexArrayObjectID;
 }

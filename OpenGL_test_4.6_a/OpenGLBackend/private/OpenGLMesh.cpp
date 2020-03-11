@@ -7,6 +7,8 @@
 #include <cassert>
 #include <iostream>
 
+using std::vector;
+
 static int glGetVertexAttribInt(const GLenum type, const int attributeIndex)
 {
     GLint val;

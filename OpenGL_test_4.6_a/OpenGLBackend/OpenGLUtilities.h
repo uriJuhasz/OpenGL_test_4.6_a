@@ -13,7 +13,7 @@ void glsCheckErrors();
 GLuint glsGenAndBindBuffer(GLenum bufferType);
 
 GLuint glsGenAndBindVertexArrayObject();
-template<unsigned int D> GLuint glsMakeBuffer(const vector<Vector<D>>& vs, const int attributeIndex);
-template GLuint glsMakeBuffer<2>(const vector<Vector<2>>& vs, const int attributeIndex);
-template GLuint glsMakeBuffer<3>(const vector<Vector<3>>& vs, const int attributeIndex);
-template GLuint glsMakeBuffer<4>(const vector<Vector<4>>& vs, const int attributeIndex);
+template<unsigned int D> GLuint glsMakeBuffer(const std::vector<Vector<D>>& vs, const int attributeIndex);
+template GLuint glsMakeBuffer<2>(const std::vector<Vector<2>>& vs, const int attributeIndex);
+template GLuint glsMakeBuffer<3>(const std::vector<Vector<3>>& vs, const int attributeIndex);
+template GLuint glsMakeBuffer<4>(const std::vector<Vector<4>>& vs, const int attributeIndex);

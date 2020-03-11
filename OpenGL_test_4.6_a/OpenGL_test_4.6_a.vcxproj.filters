@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OpenGL_test_4.6_a.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Geometry\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -97,6 +94,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Backend\BackendGraphicPrimitive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsDebugOutputRedirect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -188,6 +191,9 @@
     <ClInclude Include="Backend\BackendGraphicPrimitive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WindowsDebugOutputRedirect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\BezierShaderProgram.glsl" />
@@ -195,6 +201,7 @@
     <None Include="shaders\MeshFaceShaderProgram.glsl" />
     <None Include="shaders\MeshEdgeShaderProgram.glsl" />
     <None Include="shaders\BoundingBoxShaderProgram.glsl" />
+    <None Include="shaders\BezierWireframeShaderProgram.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />

@@ -50,6 +50,7 @@ public: //Bezier patch
     unique_ptr<Patch> m_bezierPatch;
     unique_ptr<BackendPatch> m_backendBezierPatch;
     unique_ptr<BackendTesselationShaderProgram> m_bezierShaderProgram;
+    unique_ptr<BackendTesselationShaderProgram> m_bezierEdgeShaderProgram;
 
 public: //Sphere
     unique_ptr<Patch> m_spherePatch;
@@ -115,11 +116,37 @@ void ViewImpl::setupScene()
     //Mesh setup
     {
         {
-            m_mesh->calculateTopology();
+            for (int i=0; i<10; ++i)
+                m_mesh->calculateTopology();
         }
         const auto& mesh = *m_mesh;
         m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
 
+        {
+            const auto& vertices = mesh.m_vertices;
+            const auto numVertices = mesh.numVertices();
+            array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
+            {
+                const auto& vertices = mesh.m_vertices;
+                for (int vi = 1; vi < numVertices; ++vi)
+                {
+                    const auto& vertex = vertices[vi];
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        boundingBox[0][i] = min(boundingBox[0][i], vertex[i]);
+                        boundingBox[1][i] = max(boundingBox[1][i], vertex[i]);
+                    }
+                }
+            }
+            m_meshBoundingBox = boundingBox;
+
+            const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
+            const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
+
+            auto& camera = m_sceneCamera;
+            camera.m_target = modelCenter;
+            camera.m_position = modelCenter - Vector3(1.0f, 0.0f, 0.0f) * modelRadius * 1.5f;
+        }
 
         const auto modelMatrix = unitMatrix4x4;
         {
@@ -147,24 +174,6 @@ void ViewImpl::setupScene()
         }
 
         {
-            {
-                const auto& vertices = mesh.m_vertices;
-                const auto numVertices = mesh.numVertices();
-                array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
-                {
-                    const auto& vertices = mesh.m_vertices;
-                    for (int vi = 1; vi < numVertices; ++vi)
-                    {
-                        const auto& vertex = vertices[vi];
-                        for (int i = 0; i < 3; ++i)
-                        {
-                            boundingBox[0][i] = min(boundingBox[0][i], vertex[i]);
-                            boundingBox[1][i] = max(boundingBox[1][i], vertex[i]);
-                        }
-                    }
-                }
-                m_meshBoundingBox = boundingBox;
-            }
 
             GLuint vertexArrayObjectID = 0;
             {
@@ -201,10 +210,6 @@ void ViewImpl::setupScene()
             auto& shaderProgram = *m_meshBoundingboxShaderProgram;
 
             shaderProgram.setParameter("modelMatrix", modelMatrix);
-
-
-            //            const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
-//            const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
         }
     }
 
@@ -219,32 +224,45 @@ void ViewImpl::setupScene()
         };
         m_bezierPatch.reset(new Patch(16, make_unique<VertexArray3f>(vector<Vector3>(patchParameters.cbegin(), patchParameters.cend()))));
         m_backendBezierPatch.reset(m_backendWindow.makeBackendPatch(*m_bezierPatch));
-        m_bezierShaderProgram = backendContext.makeTessellationShaderProgram("BezierShaderProgram.glsl", "Bezier");
+
+        m_bezierShaderProgram = backendContext.makeTessellationShaderProgram("BezierShaderProgram.glsl", "BezierFace");
+        m_bezierEdgeShaderProgram = backendContext.makeTessellationShaderProgram("BezierWireframeShaderProgram.glsl", "BezierEdge");
         m_backendBezierPatch->setFaceShader(m_bezierShaderProgram.get());
-        m_backendBezierPatch->setEdgeShader(m_bezierShaderProgram.get());
-        auto& shaderProgram = *m_bezierShaderProgram;
+        m_backendBezierPatch->setEdgeShader(m_bezierEdgeShaderProgram.get());
 
         const Matrix4x4 modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
-        shaderProgram.setParameter("modelMatrix", modelMatrix);
+        {
+            auto& shaderProgram = *m_bezierShaderProgram;
 
-        const Vector3 target(0.0f, 0.0f, 0.0f);
+            shaderProgram.setParameter("modelMatrix", modelMatrix);
 
-        const Vector3 light0Position = target + Vector3(100.0f, 0.0f, 0.0f);
-        const Vector3 light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
-        shaderProgram.setParameter("light0Position", m_light0Position);
-        shaderProgram.setParameter("light0Color", Vector3(1.0f, 1.0f, 1.0f));
-        shaderProgram.setParameter("light0SpecularExponent", 10.0f);
-        shaderProgram.setParameter("light1Position", m_light1Position);
-        shaderProgram.setParameter("light1Color", Vector3(1.0f, 1.0f, 1.0f));
-        shaderProgram.setParameter("light1SpecularExponent", 100.0f);
+            const Vector3 target(0.0f, 0.0f, 0.0f);
 
-        const Vector3 frontColor(1.0f, 0.0f, 1.0f);
-        shaderProgram.setParameter("frontColor", frontColor);
-        const Vector3 backColor(0.1f, 0.3f, 0.3f);
-        shaderProgram.setParameter("backColor", backColor);
+            shaderProgram.setParameter("light0Position", m_light0Position);
+            shaderProgram.setParameter("light0Color", Vector3(1.0f, 1.0f, 1.0f));
+            shaderProgram.setParameter("light0SpecularExponent", 10.0f);
+            shaderProgram.setParameter("light1Position", m_light1Position);
+            shaderProgram.setParameter("light1Color", Vector3(1.0f, 1.0f, 1.0f));
+            shaderProgram.setParameter("light1SpecularExponent", 100.0f);
 
-        shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
-        shaderProgram.setParameter("desiredPixelsPerTriangle", 20.0f);
+            const Vector3 frontColor(1.0f, 0.0f, 1.0f);
+            shaderProgram.setParameter("frontColor", frontColor);
+            const Vector3 backColor(0.1f, 0.3f, 0.3f);
+            shaderProgram.setParameter("backColor", backColor);
+
+            shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
+            shaderProgram.setParameter("desiredPixelsPerTriangle", 20.0f);
+        }
+        {
+            auto& shaderProgram = *m_bezierEdgeShaderProgram;
+
+            shaderProgram.setParameter("modelMatrix", modelMatrix);
+
+            shaderProgram.setParameter("edgeColor", Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+
+            shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
+            shaderProgram.setParameter("desiredPixelsPerTriangle", 20.0f);
+        }
     }
 
     ////////////////////////////////////////////////////////////////
@@ -276,15 +294,22 @@ using std::clamp;
 void ViewImpl::renderScene()
 {
     const auto& backendContext = m_backendWindow.getContext();
-    const auto sceneCamera = m_sceneCamera;
-    const auto viewMatrix = sceneCamera.makeViewMatrix();// (viewerPosition, target, up);
-
     const auto viewportDimensions = m_backendWindow.getViewportDimensions();
+
+    const auto sceneCamera = m_sceneCamera;
+    const auto viewMatrix = sceneCamera.makeViewMatrix();
     const auto projectionMatrix = sceneCamera.makeProjectionMatrix(viewportDimensions[0] / viewportDimensions[1]);
 
     //////////////////////
+    constexpr bool renderSphere = false;
+    constexpr bool showBezierPatch = false;
+    constexpr bool renderMesh = true;
+    constexpr bool renderMeshFaces = renderMesh && true;
+    constexpr bool renderWireframe = renderMesh && false;
+    constexpr bool showBoundingBox = renderMesh && true;
+
+    //////////////////////
     //Patch sphere
-    constexpr bool renderSphere = true;
     if (renderSphere)
     {
         auto& shaderProgram = *m_sphereShaderProgram;
@@ -301,32 +326,40 @@ void ViewImpl::renderScene()
 
     //////////////////////
     //Bezier patch
-    constexpr bool showBezierPatch = true;
     if (showBezierPatch)
     {
-        auto& shaderProgram = *m_bezierShaderProgram;
-        const auto viewMatrix = sceneCamera.makeViewMatrix();
-        shaderProgram.setParameter("viewMatrix", viewMatrix);
-        shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-        shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
-
         {
-            const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
-            shaderProgram.setParameter("pixelWidth", pixelWidth);
-        }
+            auto& shaderProgram = *m_bezierShaderProgram;
+            shaderProgram.setParameter("viewMatrix", viewMatrix);
+            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
-        shaderProgram.setParameter("edgeMode", 0);
-        m_backendBezierPatch->render(true, false);
-        shaderProgram.setParameter("edgeMode", 1);
-        m_backendBezierPatch->render(false, true);
+            shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
+
+            {
+                const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
+                shaderProgram.setParameter("pixelWidth", pixelWidth);
+            }
+
+            m_backendBezierPatch->render(true, false);
+        }
+        {
+            auto& shaderProgram = *m_bezierEdgeShaderProgram;
+            shaderProgram.setParameter("viewMatrix", viewMatrix);
+            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+
+            {
+                const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
+                shaderProgram.setParameter("pixelWidth", pixelWidth);
+            }
+
+            m_backendBezierPatch->render(false, true);
+        }
     }
+    
     //////////////////////
     //Render mesh
-    constexpr bool renderMesh = false;
     if (renderMesh)
     {
-        constexpr bool renderMeshFaces = true;
         if (renderMeshFaces)
         {
             auto& shaderProgram = *m_meshFaceShaderProgram;
@@ -338,7 +371,6 @@ void ViewImpl::renderScene()
             m_backendMesh->render(true, false);
         }
 
-        constexpr bool renderWireframe = true;
         if (renderWireframe)
         {
             auto& shaderProgram = *m_meshEdgeShaderProgram;
@@ -351,7 +383,6 @@ void ViewImpl::renderScene()
         }
         ///////////////////////
         //Bounding box
-        constexpr bool showBoundingBox = true;
         if (showBoundingBox)
         {
             glBindVertexArray(m_meshBoundingBoxVertexArrayObjectID);

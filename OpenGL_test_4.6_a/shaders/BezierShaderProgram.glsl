@@ -183,11 +183,9 @@ uniform vec3 light1Position;
 uniform vec3 light1Color;
 uniform float light1SpecularExponent;
 
-uniform int edgeMode;
-
 layout (location=1) in VertexData gVertexData;
 
-out vec4 frag_color;
+out vec4 fragmentColor;
 
 vec3 calculateLight(vec3 lightPosition, vec3 lightColor, float lightSpecularExponent, vec3 baseColor, vec3 normal)
 {
@@ -220,19 +218,12 @@ void main()
 	if (radius<0.2)
 		discard;
 
-	if (edgeMode==1)
-	{
-		frag_color = vec4(1,1,1,1);
-	}
-	else
-	{
-		vec3 normal = normalize(gVertexData.normal) *(gl_FrontFacing ? 1 : -1);
+	vec3 normal = normalize(gVertexData.normal) *(gl_FrontFacing ? 1 : -1);
 
-		vec3 color = gl_FrontFacing ? calculateBaseColor(uvCoord) : vec3(1,1,1)-calculateBaseColor(uvCoord);//backColor;
+	vec3 color = gl_FrontFacing ? calculateBaseColor(uvCoord) : vec3(1,1,1)-calculateBaseColor(uvCoord);//backColor;
 
-		vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
-		vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);
-		frag_color = vec4(light0Component + light1Component ,1);
-	}
+	vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
+	vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);
+	fragmentColor = vec4(light0Component + light1Component ,1);
 }
 #endif

@@ -37,14 +37,29 @@ public:
             s_allWindows.push_back({ m_glfwWindow,this });
 
             glfwMakeContextCurrent(window);
-            glfwMaximizeWindow(window);
-            glfwSetWindowSizeCallback(window, glfwWindowResizeCallback);
-            glfwSetScrollCallback(window, glfwScrollCallback);
-            glfwSetCursorPosCallback(window, glfwMousePosCallback);
-            glfwSetKeyCallback(window, glfwKeyCallback);
+            const auto glewInitResult = glewInit();
+            const auto glewOk = (glewInitResult == GLEW_OK);
+            if (glewOk)
+            {
+                cout << "  Using GLEW " << glewGetString(GLEW_VERSION) << endl;
 
-            if (glfwRawMouseMotionSupported())
-                glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+                glfwMaximizeWindow(window);
+                glfwSetWindowSizeCallback(window, glfwWindowResizeCallback);
+                glfwSetScrollCallback(window, glfwScrollCallback);
+                glfwSetCursorPosCallback(window, glfwMousePosCallback);
+                glfwSetKeyCallback(window, glfwKeyCallback);
+
+                if (glfwRawMouseMotionSupported())
+                    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+            }
+            else
+            {
+
+                const auto errorMessage = string("GLEW init failed : ") + string(reinterpret_cast<const char*>(glewGetErrorString(glewInitResult)));
+                cerr << "!Error: " << errorMessage << endl;
+                throw new Exception(errorMessage);
+            }
+
         }
         else
         {
@@ -238,7 +253,8 @@ public:
         cout << "  OpenGL max geometry output vertices: " << glsGetUInt(GL_MAX_GEOMETRY_OUTPUT_VERTICES) << endl;
         cout << "  OpenGL max geometry output components: " << glsGetUInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS) << endl;
         cout << endl;
-        cout << "  OpenGL max shader storage block size     : " << (glsGetUInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE)/1024) << "KB" << endl;
+        cout << "  OpenGL max shader storage block size     : " << (glsGetUInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE)/(1024*1024)) << "MB" << endl;
+        cout << "  OpenGL max shader uniform block size     : " << (glsGetUInt(GL_MAX_UNIFORM_BLOCK_SIZE) / (1024)) << "KB" << endl;
         cout << "  OpenGL max combined shader storage blocks: " << glsGetUInt(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS) << endl;
 
         cout << endl;

@@ -8,6 +8,7 @@
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/Importer.hpp>
 #pragma warning(pop)
 
 #include <iostream>
@@ -39,15 +40,19 @@ unique_ptr<Mesh> MeshLoader::loadMesh(const string& fileName)
 //	const auto aiErrStream = aiGetPredefinedLogStream(aiDefaultLogStream_STDERR, nullptr);
 //	aiAttachLogStream(&aiErrStream);
 
-	//aiProcessPreset_TargetRealtime_MaxQuality
-	const auto scenePtr = aiImportFile(fileName.c_str(), 
-		  aiProcess_Triangulate 
-		| aiProcess_SortByPType 
+	Assimp::Importer importer;
+	importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_NORMALS);
+//aiProcessPreset_TargetRealtime_MaxQuality
+	const auto flags =
+		aiProcess_Triangulate
+		| aiProcess_SortByPType
 		| aiProcess_GenSmoothNormals
 		| aiProcess_ValidateDataStructure
-	    | aiProcess_GenUVCoords
-	    | aiProcess_JoinIdenticalVertices
-	);
+		| aiProcess_GenUVCoords
+		| aiProcess_JoinIdenticalVertices
+		| aiProcess_RemoveComponent;
+	const auto scenePtr = importer.ReadFile(fileName.c_str(), flags);
+//	const auto scenePtr = aiImportFile(fileName.c_str(), flags);
 	if (scenePtr)
 	{
 		const auto& scene = *scenePtr;
@@ -102,14 +107,24 @@ unique_ptr<Mesh> MeshLoader::loadMesh(const string& fileName)
 						}
 					}
 					{
-						assert(aiMesh.mNumUVComponents[0] == 2);
-						const auto& aiTextureCoords = aiMesh.mTextureCoords[0];
 						auto& textureCoords = mesh.m_textureCoords;
 						textureCoords.reserve(numVertices);
-						for (int vi = 0; vi < numVertices; ++vi)
+						if (aiMesh.mNumUVComponents[0] == 2)
 						{
-							const auto& aiTextureCoord = aiTextureCoords[vi];
-							textureCoords.emplace_back(aiTextureCoord[0], aiTextureCoord[1]);
+							const auto& aiTextureCoords = aiMesh.mTextureCoords[0];
+							for (int vi = 0; vi < numVertices; ++vi)
+							{
+								const auto& aiTextureCoord = aiTextureCoords[vi];
+								textureCoords.emplace_back(aiTextureCoord[0], aiTextureCoord[1]);
+							}
+						}
+						else
+						{
+							std::cerr << "UV coords not found" << endl;
+							for (int vi = 0; vi < numVertices; ++vi)
+							{
+								textureCoords.emplace_back(0.0f, 0.0f); //dummies
+							}
 						}
 					}
 					{

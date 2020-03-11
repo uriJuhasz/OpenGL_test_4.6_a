@@ -1,11 +1,13 @@
 #include "Mesh.h"
 
+#include "Utilities/Misc.h"
+
 #include <vector>
 #include <array>
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-
+#include <chrono>
 using namespace std;
 
 class IntRange final
@@ -44,11 +46,14 @@ inline int p1m3(const int i)
 }
 void Mesh::calculateTopology()
 {
+//	return;
 	const int numVertices = this->numVertices();
 	const int numFaces    = this->numFaces();
 	const auto& faces = m_faces;
 
 	cout << " calculate topology: F= " << numFaces << " V=" << numVertices << endl;
+	cout << " Step1";
+	const auto startTime = chrono::high_resolution_clock::now();
 	/////////////////////////////////////////////////
 	//Step1
 	vector<int> vertexNumFaces(numVertices, 0);
@@ -61,9 +66,14 @@ void Mesh::calculateTopology()
 			vertexNumFaces[f[fvi]]++;
 	}
 //	int maxNumEdges = numFaces * 3;
-
+	const auto step1EndTime = chrono::high_resolution_clock::now();
+	{
+		const auto step1Time = chrono::duration<double>(step1EndTime - startTime).count();
+		cout << " - " << round(step1Time * 1000) << "ms" << endl;
+	}
 	/////////////////////////////////////////////////
 	//Step2
+	cout << " Step2";
 	typedef pair<int, int> IntPair;
 	int lastIndex = 0;
 	vector<IntPair> vertexEdgesRange; vertexEdgesRange.reserve(numVertices);
@@ -85,8 +95,14 @@ void Mesh::calculateTopology()
 	};
 	vector<EdgeTableEntry> edgeTable(maxTotalEdges);
 
+	const auto step2EndTime = chrono::high_resolution_clock::now();
+	{
+		const auto step2Time = chrono::duration<double>(step2EndTime - step1EndTime).count();
+		cout << " - " << round(step2Time * 1000) << "ms" << endl;
+	}
 	/////////////////////////////////////////////////
 	//Step3
+	cout << " Step3";
 	for (int fi=0; fi<numFaces; ++fi)
 	{
 		const auto f = faces[fi].m_vis;
@@ -108,9 +124,15 @@ void Mesh::calculateTopology()
 		}
 	}
 	
+	const auto step3EndTime = chrono::high_resolution_clock::now();
+	{
+		const auto step3Time = chrono::duration<double>(step3EndTime - step2EndTime).count();
+		cout << " - " << round(step3Time * 1000) << "ms" << endl;
+	}
 	int numEdges = numFaces*3;
 	/////////////////////////////////////////////////
 	//Step4
+	cout << " Step4";
 	for (int vi = 0; vi < numVertices; ++vi)
 	{
 		auto& etis = vertexEdgesRange[vi];
@@ -141,24 +163,43 @@ void Mesh::calculateTopology()
 		etis.second = end;
 	}
 
-	cout << " edges: " << numEdges << " / " << numFaces * 3 << " Euler X (V+F-E)=" << numVertices - numEdges + numFaces << endl;
+	const auto step4EndTime = chrono::high_resolution_clock::now();
+	{
+		const auto step4Time = chrono::duration<double>(step4EndTime - step3EndTime).count();
+		cout << " - " << round(step4Time * 1000) << "ms" << endl;
+	}
 	
 	/////////////////////////////////////////////////
 	//Step5
+	cout << " Step5";
+		
 	class VertexEdges final
 	{
 	public:
 		void append(const int ei) { m_edgeIndices.push_back(ei); }
-		int num() const { return m_edgeIndices.size(); }
+		int num() const { return toInt(m_edgeIndices.size()); }
 		vector<int> m_edgeIndices;
 	};
-	vector<VertexEdges> vertexEdgess(numVertices);
-	class FaceEdges final
+
+	vector<int> vertexNumEdges(numVertices,0);
+//	std::vector<VertexEdgeIndicesRange> m_vertexEdgeIndicesRanges; 
+	
+	for (int vi = 0; vi < numVertices; ++vi)
 	{
-	public:
-		FaceEdges() : m_feis{ -1,-1,-1 } {}
-		array<int,3> m_feis;
-	};
+		const auto ver = vertexEdgesRange[vi];
+		const auto numVertexEdges = ver.second - ver.first;
+		vertexNumEdges[vi] += numVertexEdges;
+		for (int ii = ver.first; ii < ver.second; ++ii)
+			vertexNumEdges[edgeTable[ii].m_vi]++;
+	}
+	
+	vector<VertexEdges> vertexEdgess; vertexEdgess.reserve(numVertices);
+	for (int vi = 0; vi < numVertices; ++vi)
+	{
+		VertexEdges ve; ve.m_edgeIndices.reserve(vertexNumEdges[vi]);
+		vertexEdgess.push_back(move(ve));
+	}
+
 	vector<FaceEdges> faceEdges(numFaces);
 	vector<Edge> edges; edges.reserve(numEdges);
 	int curEdge = 0;
@@ -186,6 +227,13 @@ void Mesh::calculateTopology()
 			}
 		}
 	}
+	const auto step5EndTime = chrono::high_resolution_clock::now();
+	{
+		const auto step5Time = chrono::duration<double>(step5EndTime - step4EndTime).count();
+		cout << " - " << round(step5Time * 1000) << "ms" << endl;
+	}
+
+	cout << " edges: " << numEdges << " / " << numFaces * 3 << " Euler X (V+F-E)=" << numVertices - numEdges + numFaces << endl;
 	assert(edges.size() == numEdges);
 }
 

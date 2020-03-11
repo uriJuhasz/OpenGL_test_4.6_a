@@ -1,16 +1,15 @@
-Adaptive patch tessellation
-
 Calculate topology for a mesh - show wireframe intelligently with removed edges.
+Implement Line thing or mesh with deleted edges
+
+Sphere faces
 
 Polyline primitive
 Line segments primitive
 
 Fix OpenGLPatch to use DSA
 
-Implement Line thing or mesh with deleted edges
 
 Implement more patch primitives - torus, ellipsoid, cone, cylinder, (polycylinder?)
-
 
 Material class
 MeshSceneElement (Mesh+Material+visibility etc) class

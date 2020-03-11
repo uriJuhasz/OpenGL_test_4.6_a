@@ -1,16 +1,16 @@
+#include <GL/glew.h>
+
 #include "OpenGLContext.h"
 
 #include "OpenGLWindow.h"
 #include "OpenGLShaderProgram.h"
 #include "OpenGLBackend/OpenGLUtilities.h"
-//#include "OpenGLTesselationShaderProgram.h"
 
 #include "Utilities/Exception.h"
 
 #pragma warning (push,0)
 #include <GLFW/glfw3.h>
 #pragma warning (pop)
-
 
 #include <iostream>
 #include <fstream>

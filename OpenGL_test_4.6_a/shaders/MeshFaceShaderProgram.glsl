@@ -65,7 +65,12 @@ void main()
     vec3 normal = normalize(areaNormal);
 
     VertexData ovs[3] = { originalVertex[0], originalVertex[1], originalVertex[2] };
+    for (int i=0; i<3;++i)
+        emitVertexData(ovs[i]);
+//    emitVertexData(ovs[0]);
+//    emitVertexData(ovs[0]);
 
+/*
     VertexData realMid = VertexData(
         (ovs[0].position+ovs[1].position+ovs[2].position)/3,
         normalize(ovs[0].normal+ovs[1].normal+ovs[2].normal),
@@ -91,6 +96,7 @@ void main()
     emitVertexData(midVertex);
     emitVertexData(nvs[2]);
     emitVertexData(nvs[0]);
+    */
 }
 
 #endif
