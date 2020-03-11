@@ -44,12 +44,22 @@ inline int p1m3(const int i)
 {
 	return (i == 0) ? 1 : ((i == 1) ? 2 : 0);
 }
-void Mesh::calculateTopology()
+void calculateTopology1(Mesh& mesh)
 {
-	//	return;
-	const int numVertices = this->numVertices();
-	const int numFaces = this->numFaces();
-	const auto& faces = m_faces;
+	const auto& faces = mesh.m_faces;
+	const auto numVertices = mesh.numVertices();
+	const int numFaces = mesh.numFaces();
+
+	auto& faceEdges = mesh.m_faceEdges;
+	auto& edges = mesh.m_edges;
+	auto& allVertexEdgeLists = mesh.m_allVertexEdgeLists;
+	auto& vertexEdgeIndicesRanges = mesh.m_vertexEdgeIndicesRanges;
+
+	faceEdges.clear();
+	edges.clear();
+	allVertexEdgeLists.clear();
+	vertexEdgeIndicesRanges.clear();
+
 
 	cout << " calculate topology: F= " << numFaces << " V=" << numVertices << endl;
 	cout << " Step1";
@@ -185,11 +195,11 @@ void Mesh::calculateTopology()
 	/////////////////////////////////////////////////
 	//Step5
 	cout << " Step5";
-	vector<FaceEdges> faceEdges(numFaces);
-	vector<Edge> edges; edges.reserve(numEdges);
-	vector<EdgeIndex> allVertexEdges(numEdges*2);
-	std::vector<VertexEdgeIndicesRange> vertexEdgeIndicesRanges(numVertices);
 	{//Step5
+		faceEdges.resize(numFaces);
+		edges.reserve(numEdges);
+		allVertexEdgeLists.resize(numEdges * 2);
+		vertexEdgeIndicesRanges.resize(numVertices);
 
 		for (int vi = 0; vi < numVertices; ++vi)
 		{
@@ -204,10 +214,10 @@ void Mesh::calculateTopology()
 			for (int vi = 0; vi < numVertices; ++vi)
 			{
 				auto& veir = vertexEdgeIndicesRanges[vi];
-				assert(lastIndex < allVertexEdges.size());
+				assert(lastIndex < allVertexEdgeLists.size());
 				veir.m_first = lastIndex;
 				lastIndex += veir.m_num;
-				assert(lastIndex <= allVertexEdges.size());
+				assert(lastIndex <= allVertexEdgeLists.size());
 				veir.m_num = 0;
 			}
 		}
@@ -231,8 +241,8 @@ void Mesh::calculateTopology()
 					if (vi < numVertices - 1)
 						assert(wo < vertexEdgeIndicesRanges[vi + 1].m_first);
 					else
-						assert(wo < allVertexEdges.size());
-					allVertexEdges[wo] = ei;
+						assert(wo < allVertexEdgeLists.size());
+					allVertexEdgeLists[wo] = ei;
 				}
 				{
 					auto& oveir = vertexEdgeIndicesRanges[ovi];
@@ -242,8 +252,8 @@ void Mesh::calculateTopology()
 					if (ovi < numVertices - 1)
 						assert(wo < vertexEdgeIndicesRanges[ovi + 1].m_first);
 					else
-						assert(wo < allVertexEdges.size());
-					allVertexEdges[oveir.m_first + o] = ei;
+						assert(wo < allVertexEdgeLists.size());
+					allVertexEdgeLists[oveir.m_first + o] = ei;
 				}
 				for (int k = 0; k < 2; ++k)
 				{
@@ -267,5 +277,12 @@ void Mesh::calculateTopology()
 
 	cout << endl << " edges: " << numEdges << " / " << numFaces * 3 << " Euler X (V+F-E)=" << numVertices - numEdges + numFaces << endl;
 	assert(edges.size() == numEdges);
+
 }
+
+void Mesh::calculateTopology()
+{
+	calculateTopology1(*this);
+}
+
 

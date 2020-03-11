@@ -63,7 +63,7 @@ public:
 
     FaceEdgess m_faceEdges;
     Edges m_edges;
-    std::vector<EdgeIndex> m_vertexEdges;
+    std::vector<EdgeIndex> m_allVertexEdgeLists;
     class VertexEdgeIndicesRange final
     {
     public:
@@ -85,6 +85,8 @@ public:
     std::vector<VertexEdgeIndicesRange> m_vertexEdgeIndicesRanges;
 
     void calculateTopology();
+
+    void validateTopology();
 };
 
 #endif
