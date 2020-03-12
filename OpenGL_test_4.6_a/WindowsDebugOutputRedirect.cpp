@@ -13,13 +13,23 @@ class dbg_stream_for_cout
     : public stringbuf
 {
 public:
-    ~dbg_stream_for_cout() { sync(); }
+    dbg_stream_for_cout() : original(std::cout.rdbuf()) {}
+    ~dbg_stream_for_cout()  { sync(); }
     int sync()
     {
-        ::OutputDebugStringA(str().c_str());
+        if (true)
+        {
+            ::OutputDebugStringA(str().c_str());
+            if (false)
+            {
+                for (const auto c : str())
+                    original->sputc(c);
+            }
+        }
         str(std::string()); // Clear the string buffer
         return 0;
     }
+    std::streambuf* const original;
 };
 dbg_stream_for_cout g_DebugStreamFor_cout;
 dbg_stream_for_cout g_DebugStreamFor_cerr;

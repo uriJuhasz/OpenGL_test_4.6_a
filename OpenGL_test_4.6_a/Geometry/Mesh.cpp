@@ -5,8 +5,11 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+
 #include <cassert>
+
 #include <iostream>
+#include <iomanip>
 
 #include <chrono>
 
@@ -153,7 +156,9 @@ inline int p1m3(const int i)
 
 
 static double totalCT1Step1Time = 0.0;
+static double totalCT1Step2Time = 0.0;
 static double totalCT1Step3Time = 0.0;
+static double totalCT1Step4Time = 0.0;
 static double totalCT1Step5Time = 0.0;
 static double totalCT1Time = 0.0;
 static int    numCT1Runs = 0;
@@ -213,6 +218,7 @@ void calculateTopology1(Mesh& mesh)
 	const auto step2EndTime = chrono::high_resolution_clock::now();
 	{
 		const auto step2Time = chrono::duration<double>(step2EndTime - step1EndTime).count();
+		totalCT1Step2Time += step2Time;
 		cout << " - " << round(step2Time * 1000) << "ms" << endl;
 	}
 	/////////////////////////////////////////////////
@@ -226,7 +232,9 @@ void calculateTopology1(Mesh& mesh)
 		int m_vi;
 		array<int, 2> m_fiC;
 	};
-	vector<EdgeTableEntry> edgeTable(maxTotalEdges);
+
+	vector<EdgeTableEntry, UninitializedAllocator<EdgeTableEntry>> edgeTable(maxTotalEdges);
+//	vector<EdgeTableEntry> edgeTable(maxTotalEdges);
 	{//Step3
 		for (int fi = 0; fi < numFaces; ++fi)
 		{
@@ -246,6 +254,7 @@ void calculateTopology1(Mesh& mesh)
 				auto& ete = edgeTable[eti];
 				edgeTable[eti].m_vi = viS1;
 				edgeTable[eti].m_fiC[fii] = (fi << 2) + fei;
+				edgeTable[eti].m_fiC[1 - fii] = -1;
 			}
 		}
 	}
@@ -253,7 +262,7 @@ void calculateTopology1(Mesh& mesh)
 	{
 		const auto step3Time = chrono::duration<double>(step3EndTime - step2EndTime).count();
 		cout << " - " << round(step3Time * 1000) << "ms" << endl;
-		totalCT1Step1Time += step3Time;
+		totalCT1Step3Time += step3Time;
 	}
 	/////////////////////////////////////////////////
 	//Step4
@@ -318,6 +327,7 @@ void calculateTopology1(Mesh& mesh)
 	const auto step4EndTime = chrono::high_resolution_clock::now();
 	{
 		const auto step4Time = chrono::duration<double>(step4EndTime - step3EndTime).count();
+		totalCT1Step4Time += step4Time;
 		cout << " - " << round(step4Time * 1000) << "ms" << endl;
 	}
 	
@@ -442,7 +452,9 @@ public:
 };
 
 static double totalCT2Step1Time = 0.0;
+static double totalCT2Step2Time = 0.0;
 static double totalCT2Step3Time = 0.0;
+static double totalCT2Step4Time = 0.0;
 static double totalCT2Step5Time = 0.0;
 static double totalCT2Time = 0.0;
 static int    numCT2Runs = 0;
@@ -554,6 +566,7 @@ void calculateTopology2(Mesh& mesh)
 	const auto step2EndTime = chrono::high_resolution_clock::now();
 	{
 		const auto step2Time = chrono::duration<double>(step2EndTime - step1EndTime).count();
+		totalCT2Step2Time += step2Time;
 		cout << " - " << round(step2Time * 1000) << "ms" << endl;
 	}
 	/////////////////////////////////////////////////
@@ -668,6 +681,7 @@ void calculateTopology2(Mesh& mesh)
 	const auto step4EndTime = chrono::high_resolution_clock::now();
 	{
 		const auto step4Time = chrono::duration<double>(step4EndTime - step3EndTime).count();
+		totalCT2Step4Time += step4Time;
 		cout << " - " << round(step4Time * 1000) << "ms" << endl;
 	}
 
@@ -765,66 +779,152 @@ void calculateTopology2(Mesh& mesh)
 		allVertexEdgeListsM.resize(numEdges * 2);
 
 		const auto& step5Data = step5DataM;
-		for_each(execution::par, vertexRange.begin(), vertexRange.end(),
-			[&step5DataM,&vertexEdgesRange, &edgeTable, &edgesM,&faceEdgesM, &allVertexEdgeListsM](const int vi) {
-				const auto& s5Data = step5DataM[vi];
-				const auto& etis = vertexEdgesRange[vi];
-				const auto first = etis.m_first;
-				const auto last = etis.m_last.load();
-				int ei = s5Data.m_firstOwnEI;
-				auto myWriteOffet = s5Data.m_nextOwn;
-				for (int vei = first; vei < last; ++vei)
-				{
-					const auto ete = edgeTable[vei];
-					const auto ovi = ete.m_vi;
-					const array<int, 2> fis = { ete.m_fiC[0] == -1 ? -1 : ete.m_fiC[0] >> 2, ete.m_fiC[1] == -1 ? -1 : ete.m_fiC[1] >> 2 };
-
-					//Edge
-					edgesM[ei] = Mesh::Edge(vi, ovi, fis[0], fis[1]);
-
-					//Own vertex edge
+		constexpr bool useManualThreads = false;
+		if (useManualThreads)
+		{ //Manual threads
+			const auto numHardwareThreads = std::thread::hardware_concurrency();
+			const int numThreads = numHardwareThreads / 2;// +1;
+			cout << " Using " << numThreads << " / " << numHardwareThreads << " threads" << endl;
+			vector<thread> threads;
+			threads.reserve(numThreads);
+			const int num = numVertices;
+			const int numPerThread = num / numThreads;
+			for (int threadIndex = 0; threadIndex < numThreads; ++threadIndex)
+			{
+				const auto rangeStart = numPerThread * threadIndex;
+				const auto rangeEnd = (threadIndex == numThreads - 1) ? num : (rangeStart + numPerThread);
+				const array<int, 2> range = { rangeStart,rangeEnd };
+				threads.emplace_back(
+					[&step5DataM, &vertexEdgesRange, &edgeTable, &edgesM, &faceEdgesM, &allVertexEdgeListsM](const auto range)
 					{
-#ifndef NDEBUG
-						const auto veir = vertexEdgeIndicesRangesM[vi];
-						assert(myWriteOffet >= veir.m_first);
-						if (vi < numVertices - 1)
-							assert(myWriteOffet < vertexEdgeIndicesRangesM[vi + 1].m_first);
-						else
-							assert(myWriteOffet < allVertexEdgeListsM.size());
-#endif
-						allVertexEdgeListsM[myWriteOffet] = ei;
-						myWriteOffet++;
-				}
-
-					//Other vertex edge
-					{
-						const int otherWriteOffset = step5DataM[ovi].m_nextOther++; //Atomic
-#ifndef NDEBUG
-						const auto oveir = vertexEdgeIndicesRangesM[ovi];
-						assert(otherWriteOffset >= oveir.m_first);
-						if (ovi < numVertices - 1)
-							assert(otherWriteOffset < vertexEdgeIndicesRangesM[ovi + 1].m_first);
-						else
-							assert(otherWriteOffset < allVertexEdgeListsM.size());
-#endif
-						allVertexEdgeListsM[otherWriteOffset] = ei;
-					}
-
-					//Face edges - minus duplicates
-					for (int k = 0; k < 2; ++k)
-					{
-						const auto fi = fis[k];
-						const auto fei = ete.m_fiC[k] & 3;
-						if (fi != -1)
+						for (int vi = range[0]; vi < range[1]; ++vi)
 						{
-							faceEdgesM[fi].m_feis[fei] = ei;
+							const auto& s5Data = step5DataM[vi];
+							const auto& etis = vertexEdgesRange[vi];
+							const auto first = etis.m_first;
+							const auto last = etis.m_last.load();
+							int ei = s5Data.m_firstOwnEI;
+							auto myWriteOffet = s5Data.m_nextOwn;
+							for (int vei = first; vei < last; ++vei)
+							{
+								const auto ete = edgeTable[vei];
+								const auto ovi = ete.m_vi;
+								const array<int, 2> fis = { ete.m_fiC[0] == -1 ? -1 : ete.m_fiC[0] >> 2, ete.m_fiC[1] == -1 ? -1 : ete.m_fiC[1] >> 2 };
+
+								//Edge
+								edgesM[ei] = Mesh::Edge(vi, ovi, fis[0], fis[1]);
+
+								//Own vertex edge
+								{
+#ifndef NDEBUG
+									const auto veir = vertexEdgeIndicesRangesM[vi];
+									assert(myWriteOffet >= veir.m_first);
+									if (vi < numVertices - 1)
+										assert(myWriteOffet < vertexEdgeIndicesRangesM[vi + 1].m_first);
+									else
+										assert(myWriteOffet < allVertexEdgeListsM.size());
+#endif
+									allVertexEdgeListsM[myWriteOffet] = ei;
+									myWriteOffet++;
+								}
+
+								//Other vertex edge
+								{
+									const int otherWriteOffset = step5DataM[ovi].m_nextOther++; //Atomic
+#ifndef NDEBUG
+									const auto oveir = vertexEdgeIndicesRangesM[ovi];
+									assert(otherWriteOffset >= oveir.m_first);
+									if (ovi < numVertices - 1)
+										assert(otherWriteOffset < vertexEdgeIndicesRangesM[ovi + 1].m_first);
+									else
+										assert(otherWriteOffset < allVertexEdgeListsM.size());
+#endif
+									allVertexEdgeListsM[otherWriteOffset] = ei;
+								}
+
+								//Face edges - minus duplicates
+								for (int k = 0; k < 2; ++k)
+								{
+									const auto fi = fis[k];
+									const auto fei = ete.m_fiC[k] & 3;
+									if (fi != -1)
+									{
+										faceEdgesM[fi].m_feis[fei] = ei;
+									}
+								}
+
+								ei++;
+							}
 						}
 					}
+				,range);
 
-					ei++;
 			}
-		});
+			for (auto& t : threads)
+				t.join();
+		}
+		else
+		{
+			for_each(execution::par, vertexRange.begin(), vertexRange.end(),
+				[&step5DataM, &vertexEdgesRange, &edgeTable, &edgesM, &faceEdgesM, &allVertexEdgeListsM](const int vi) {
+					const auto& s5Data = step5DataM[vi];
+					const auto& etis = vertexEdgesRange[vi];
+					const auto first = etis.m_first;
+					const auto last = etis.m_last.load();
+					int ei = s5Data.m_firstOwnEI;
+					auto myWriteOffet = s5Data.m_nextOwn;
+					for (int vei = first; vei < last; ++vei)
+					{
+						const auto ete = edgeTable[vei];
+						const auto ovi = ete.m_vi;
+						const array<int, 2> fis = { ete.m_fiC[0] == -1 ? -1 : ete.m_fiC[0] >> 2, ete.m_fiC[1] == -1 ? -1 : ete.m_fiC[1] >> 2 };
 
+						//Edge
+						edgesM[ei] = Mesh::Edge(vi, ovi, fis[0], fis[1]);
+
+						//Own vertex edge
+						{
+#ifndef NDEBUG
+							const auto veir = vertexEdgeIndicesRangesM[vi];
+							assert(myWriteOffet >= veir.m_first);
+							if (vi < numVertices - 1)
+								assert(myWriteOffet < vertexEdgeIndicesRangesM[vi + 1].m_first);
+							else
+								assert(myWriteOffet < allVertexEdgeListsM.size());
+#endif
+							allVertexEdgeListsM[myWriteOffet] = ei;
+							myWriteOffet++;
+						}
+
+						//Other vertex edge
+						{
+							const int otherWriteOffset = step5DataM[ovi].m_nextOther++; //Atomic
+#ifndef NDEBUG
+							const auto oveir = vertexEdgeIndicesRangesM[ovi];
+							assert(otherWriteOffset >= oveir.m_first);
+							if (ovi < numVertices - 1)
+								assert(otherWriteOffset < vertexEdgeIndicesRangesM[ovi + 1].m_first);
+							else
+								assert(otherWriteOffset < allVertexEdgeListsM.size());
+#endif
+							allVertexEdgeListsM[otherWriteOffset] = ei;
+						}
+
+						//Face edges - minus duplicates
+						for (int k = 0; k < 2; ++k)
+						{
+							const auto fi = fis[k];
+							const auto fei = ete.m_fiC[k] & 3;
+							if (fi != -1)
+							{
+								faceEdgesM[fi].m_feis[fei] = ei;
+							}
+						}
+
+						ei++;
+					}
+				});
+		}
 		const auto step53EndTime = chrono::high_resolution_clock::now();
 		{
 			const auto step53Time = chrono::duration<double>(step53EndTime - step52EndTime).count();
@@ -857,28 +957,36 @@ void calculateTopology2(Mesh& mesh)
 
 void Mesh::calculateTopology()
 {
-	for (int i = 0; i < 50; ++i)
+	for (int i = 0; i < 200; ++i)
 	{
-		clearTopology();
-		calculateTopology1(*this);
-		validateTopology();
+//		clearTopology();
+//		calculateTopology1(*this);
+//		validateTopology();
 
 		clearTopology();
 		calculateTopology2(*this);
-		validateTopology();
+//		validateTopology();
 	}
-
-	cout << " Average CT1 Step1 time: " << totalCT1Step1Time / numCT1Runs * 1000.0 << "ms" << endl;
-	cout << " Average CT2 Step1 time: " << totalCT2Step1Time / numCT2Runs * 1000.0 << "ms" << endl;
-
-	cout << " Average CT1 Step3 time: " << totalCT1Step3Time / numCT1Runs * 1000.0 << "ms" << endl;
-	cout << " Average CT2 Step3 time: " << totalCT2Step3Time / numCT2Runs * 1000.0 << "ms" << endl;
-
-	cout << " Average CT1 Step5 time: " << totalCT1Step5Time / numCT1Runs * 1000.0 << "ms" << endl;
-	cout << " Average CT2 Step5 time: " << totalCT2Step5Time / numCT2Runs * 1000.0 << "ms" << endl;
-
-	cout << " Average CT1 total time: " << totalCT1Time / numCT1Runs * 1000.0 << "ms" << endl;
-	cout << " Average CT2 total time: " << totalCT2Time / numCT2Runs * 1000.0 << "ms" << endl;
+	cout.precision(1);
+	cout.flags(ios_base::right | ios_base::fixed);
+//	cout << "  Average CT1 Step1 time: " << setw(6) << totalCT1Step1Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << "  Average CT2 Step1 time: " << setw(6) << totalCT2Step1Time / numCT2Runs * 1000.0 << "ms" << endl;
+//	cout << "  Improvement: " << 100.0 * (totalCT2Step1Time / totalCT1Step1Time) << "%" << endl;
+//	cout << "  Average CT1 Step2 time: " << setw(6) << totalCT1Step2Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << "  Average CT2 Step2 time: " << setw(6) << totalCT2Step2Time / numCT2Runs * 1000.0 << "ms" << endl;
+//	cout << "  Improvement: " << 100.0 * (totalCT2Step2Time / totalCT1Step2Time) << "%" << endl;
+//	cout << "  Average CT1 Step3 time: " << setw(6) << totalCT1Step3Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << "  Average CT2 Step3 time: " << setw(6) << totalCT2Step3Time / numCT2Runs * 1000.0 << "ms" << endl;
+//	cout << "  Improvement: " << 100.0 * (totalCT2Step3Time / totalCT1Step3Time) << "%" << endl;
+//	cout << "  Average CT1 Step4 time: " << setw(6) << totalCT1Step4Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << "  Average CT2 Step4 time: " << setw(6) << totalCT2Step4Time / numCT2Runs * 1000.0 << "ms" << endl;
+//	cout << "  Improvement: " << 100.0 * (totalCT2Step4Time / totalCT1Step4Time) << "%" << endl;
+//	cout << "  Average CT1 Step5 time: " << setw(6) << totalCT1Step5Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << "  Average CT2 Step5 time: " << setw(6) << totalCT2Step5Time / numCT2Runs * 1000.0 << "ms" << endl;
+//	cout << "  Improvement: " << 100.0 * (totalCT2Step5Time / totalCT1Step5Time) << "%" << endl;
+//	cout << " Average CT1 total time: " << setw(6) << totalCT1Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << " Average CT2 total time: " << setw(6) << totalCT2Time / numCT2Runs * 1000.0 << "ms" << endl;
+//	cout << "  Improvement: " << 100.0 * (totalCT2Time / totalCT1Time) << "%";
 }
 
 #ifdef _DEBUG

@@ -17,7 +17,7 @@ using std::unique_ptr;
 
 int main()
 {
-    WindowsDebugOutputRedirect::redirect();
+//    WindowsDebugOutputRedirect::redirect();
     cout << "Start" << endl;
     cout << endl;
 //    const auto fileName = R"(C:\Users\rossd\Downloads\3d\Cat_v1_L2.123c6a1c5523-ac23-407e-9fbb-d0649ffb5bcb\12161_Cat_v1_L2.obj)";

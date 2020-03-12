@@ -86,9 +86,8 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
@@ -98,6 +97,11 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
       <DisableSpecificWarnings>26451</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,6 +110,7 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;Shell32.lib;glew32.lib;glu32.lib;assimp-vc142-mt.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Code\glew-2.1.0\lib\Release\x64;C:\Code\glfw-3.3.2.bin.WIN64\lib-vc2019;C:\Code\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y C:\Code\Assimp-5.0.1\bin\assimp-vc142-mt.dll $(TargetDir)
