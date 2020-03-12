@@ -99,8 +99,8 @@ template<unsigned int D>static GLuint attachBufferToAttribute(
 
     GLuint bufferID = 0;
     glCreateBuffers(1, &bufferID);
-    std::cout << "  Created buffer " << bufferID << " for attribute " << attributeIndex << std::endl;
-    glNamedBufferStorage(bufferID, numValues * valueSize, values.data(), 0);// GL_DYNAMIC_STORAGE_BIT);
+//    std::cout << "  Created buffer " << bufferID << " for attribute " << attributeIndex << std::endl;
+    glNamedBufferStorage(bufferID, numValues * valueSize, values.data(), 0);
     glVertexArrayVertexBuffer(vertexArrayObjectID, attributeIndex, bufferID, 0, valueSize);
     glEnableVertexArrayAttrib(vertexArrayObjectID, attributeIndex);
     glVertexArrayAttribFormat(vertexArrayObjectID, attributeIndex, D, GL_FLOAT, GL_FALSE, 0);

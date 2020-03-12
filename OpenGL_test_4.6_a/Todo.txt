@@ -1,4 +1,11 @@
-Calculate topology for a mesh - show wireframe intelligently with removed edges.
+No-initialize allocator for calculateTopology.
+Parallelize stage 5
+Use explicit threads to parallelize
+Per-vertex - own edges vs secondary edges
+
+resize event, start - request update
+
+Show wireframe intelligently with removed edges.
 Implement Line thing or mesh with deleted edges
 
 Sphere faces
@@ -6,8 +13,7 @@ Sphere faces
 Polyline primitive
 Line segments primitive
 
-Fix OpenGLPatch to use DSA
-
+Fix OpenGLPatch to use DSA (Doesn't work in Intel OpenGL 4.0)
 
 Implement more patch primitives - torus, ellipsoid, cone, cylinder, (polycylinder?)
 

@@ -13,6 +13,8 @@
 #include <iterator>
 using namespace std;
 
+using std::cout;
+
 class IntRange final
 {
 public:
@@ -144,10 +146,6 @@ void calculateTopology1(Mesh& mesh)
 	{//Step3
 		for (int fi = 0; fi < numFaces; ++fi)
 		{
-			if (fi == 45204)
-			{
-				cout << "";
-			}
 			const auto f = faces[fi].m_vis;
 			for (int fei = 0; fei < 3; ++fei)
 			{
@@ -186,10 +184,6 @@ void calculateTopology1(Mesh& mesh)
 			for (int i = start; i < end - 1; ++i)
 			{
 				const auto eteI = edgeTable[i];
-				if (vi == 5435 && eteI.m_vi == 52695)
-				{
-					cout << "";
-				}
 				for (int j = i + 1; j < end; ++j)
 				{
 					const auto eteJ = edgeTable[j];
@@ -372,7 +366,6 @@ void calculateTopology2(Mesh& mesh)
 	const IntRange faceRange(0, numFaces);
 	typedef pair<int, int> IntPair;
 
-	cout << "CalculateEdges2" << endl;
 	/////////////////////////////////////////////////
 	//Step1
 	vector<int> vertexNumFacesM(numVertices, 0);
@@ -473,68 +466,69 @@ void calculateTopology2(Mesh& mesh)
 	/////////////////////////////////////////////////
 	//Step4
 	cout << " Step4";
-	int numEdgesX = numFaces * 3;
-	vector<array<int, 2>> duplicatedEdges;
+	atomic<int> numEdgesM = numFaces * 3;
+	vector<array<int, 2>> duplicatedEdgesM; //Should be protected from multi-writes
 	{ //Step4
-		for (int vi = 0; vi < numVertices; ++vi)
-		{
-			auto& etis = vertexEdgesRangeM[vi]; //No need for atomics here
-			const int start = etis.m_first;
-			int end = etis.m_last;
-			for (int i = start; i < end - 1; ++i)
+		for_each(/*execution::par,*/vertexRange.begin(), vertexRange.end(), //Somehow this (par) makes it slower
+			//for (int vi = 0; vi < numVertices; ++vi)
+			[&faces,&vertexEdgesRangeM, &edgeTableM,&duplicatedEdgesM,&numEdgesM](const int vi)
 			{
-				const auto eteI = edgeTableM[i];
-				if (vi == 5435 && eteI.m_vi == 52695)
+				auto& etis = vertexEdgesRangeM[vi]; //No need for atomics here
+				const int start = etis.m_first;
+				int end = etis.m_last;
+				int delta = 0;
+				for (int i = start; i < end - 1; ++i)
 				{
-					cout << "";
-				}
-				for (int j = i + 1; j < end; ++j)
-				{
-					const auto eteJ = edgeTableM[j];
-					if (eteI.m_vi == eteJ.m_vi)
+					const auto eteI = edgeTableM[i];
+					for (int j = i + 1; j < end; ++j)
 					{
-						for (int k = 0; k < 2; ++k)
+						const auto eteJ = edgeTableM[j];
+						if (eteI.m_vi == eteJ.m_vi)
 						{
-							const auto fiE = eteJ.m_fiC[k];
-							if (fiE != -1)
+							for (int k = 0; k < 2; ++k)
 							{
-								if (edgeTableM[i].m_fiC[k] == -1)
+								const auto fiE = eteJ.m_fiC[k];
+								if (fiE != -1)
 								{
-									edgeTableM[i].m_fiC[k] = fiE;
-								}
-								else
-								{
-									const auto eteI = edgeTableM[i];
-									const auto fiI = eteI.m_fiC[k] >> 2;
-									const auto feiI = eteI.m_fiC[k] & 3;
-									const auto eteJ = edgeTableM[j];
-									const auto fiJ = eteJ.m_fiC[k] >> 2;
-									const auto feiJ = eteJ.m_fiC[k] & 3;
-									const auto& fI = faces[fiI].m_vis;
-									const auto& fJ = faces[fiJ].m_vis;
-									cerr << " Warning - triangle edges "
-										<< fiI << ":" << feiI << " [" << fI[0] << " " << fI[1] << " " << fI[2] << "]"
-										<< " and "
-										<< fiJ << ":" << feiJ << " [" << fJ[0] << " " << fJ[1] << " " << fJ[2] << "]"
-										<< " overlap on edge " << (k ? vi : eteJ.m_vi) << " - " << (k ? eteJ.m_vi : vi)
-										<< endl;
-									duplicatedEdges.emplace_back(array<int, 2>{eteI.m_fiC[k], eteJ.m_fiC[k]});
+									if (edgeTableM[i].m_fiC[k] == -1)
+									{
+										edgeTableM[i].m_fiC[k] = fiE;
+									}
+									else
+									{
+										const auto eteI = edgeTableM[i];
+										const auto fiI = eteI.m_fiC[k] >> 2;
+										const auto feiI = eteI.m_fiC[k] & 3;
+										const auto eteJ = edgeTableM[j];
+										const auto fiJ = eteJ.m_fiC[k] >> 2;
+										const auto feiJ = eteJ.m_fiC[k] & 3;
+										const auto& fI = faces[fiI].m_vis;
+										const auto& fJ = faces[fiJ].m_vis;
+/*										cerr << " Warning - triangle edges "
+											<< fiI << ":" << feiI << " [" << fI[0] << " " << fI[1] << " " << fI[2] << "]"
+											<< " and "
+											<< fiJ << ":" << feiJ << " [" << fJ[0] << " " << fJ[1] << " " << fJ[2] << "]"
+											<< " overlap on edge " << (k ? vi : eteJ.m_vi) << " - " << (k ? eteJ.m_vi : vi)
+											<< endl;
+											*/
+										duplicatedEdgesM.emplace_back(array<int, 2>{eteI.m_fiC[k], eteJ.m_fiC[k]});
+									}
 								}
 							}
+							--end;
+							if (j < end)
+								edgeTableM[j] = edgeTableM[end];
+							delta++;
+							break; //We don't check for repeated / triple+ edges
 						}
-						--end;
-						if (j < end)
-							edgeTableM[j] = edgeTableM[end];
-						--numEdgesX;
-						break; //We don't check for repeated / triple+ edges
 					}
 				}
-			}
-			etis.m_last = end;
-		}
+				numEdgesM -= delta;
+				etis.m_last = end;
+			});
 	}
 
-	const auto numEdges = numEdgesX;
+	const auto numEdges = numEdgesM.load();
 
 	const auto step4EndTime = chrono::high_resolution_clock::now();
 	{
@@ -544,12 +538,14 @@ void calculateTopology2(Mesh& mesh)
 
 	/////////////////////////////////////////////////
 	//Step5
-	cout << " Step5";
+	cout << " Step5" << endl;
 	{//Step5
 		faceEdges.resize(numFaces);
 		edges.reserve(numEdges);
 		allVertexEdgeLists.resize(numEdges * 2);
 		vertexEdgeIndicesRanges.resize(numVertices);
+
+		const auto step50EndTime = chrono::high_resolution_clock::now();
 
 		const auto& vertexEdgesRange = vertexEdgesRangeM;
 		const auto& edgeTable = edgeTableM;
@@ -560,9 +556,14 @@ void calculateTopology2(Mesh& mesh)
 			const auto first = ver.m_first;
 			const auto last = ver.m_last.load();
 			const auto numVertexEdges = ver.m_last - ver.m_first;
-			vertexEdgeIndicesRanges[vi].m_num += numVertexEdges;
+			vertexEdgeIndicesRanges[vi].m_num += numVertexEdges;//Needs to be atomic - make atomic array and leave it 0
 			for (int ii = ver.m_first; ii < ver.m_last; ++ii)
-				vertexEdgeIndicesRanges[edgeTable[ii].m_vi].m_num += 1;
+				vertexEdgeIndicesRanges[edgeTable[ii].m_vi].m_num += 1;//Needs to be atomic
+		}
+		const auto step51EndTime = chrono::high_resolution_clock::now();
+		{
+			const auto step51Time = chrono::duration<double>(step51EndTime - step50EndTime).count();
+			cout << "Step5.1 - " << round(step51Time * 1000) << "ms" << endl;
 		}
 		{
 			int lastIndex = 0;
@@ -575,6 +576,12 @@ void calculateTopology2(Mesh& mesh)
 				assert(lastIndex <= allVertexEdgeLists.size());
 				veir.m_num = 0;
 			}
+		}
+
+		const auto step52EndTime = chrono::high_resolution_clock::now();
+		{
+			const auto step52Time = chrono::duration<double>(step52EndTime - step51EndTime).count();
+			cout << "Step5.2 - " << round(step52Time * 1000) << "ms" << endl;
 		}
 
 		int curEdge = 0;
@@ -592,7 +599,7 @@ void calculateTopology2(Mesh& mesh)
 				const array<int, 2> fis = { ete.m_fiC[0] == -1 ? -1 : ete.m_fiC[0] >> 2, ete.m_fiC[1] == -1 ? -1 : ete.m_fiC[1] >> 2 };
 				edges.emplace_back(vi, ovi, fis[0], fis[1]);
 				{
-					const auto o = veir.m_num++;
+					const auto o = veir.m_num++;//Needs to be atomic
 					const auto wo = veir.m_first + o;
 					assert(wo >= veir.m_first);
 					if (vi < numVertices - 1)
@@ -603,7 +610,7 @@ void calculateTopology2(Mesh& mesh)
 				}
 				{
 					auto& oveir = vertexEdgeIndicesRanges[ovi];
-					const auto o = oveir.m_num++;
+					const auto o = oveir.m_num++;//Needs to be atomic
 					const auto wo = oveir.m_first + o;
 					assert(wo >= veir.m_first);
 					if (ovi < numVertices - 1)
@@ -623,6 +630,12 @@ void calculateTopology2(Mesh& mesh)
 				}
 			}
 		}
+		const auto step53EndTime = chrono::high_resolution_clock::now();
+		{
+			const auto step53Time = chrono::duration<double>(step53EndTime - step52EndTime).count();
+			cout << "Step5.3 - " << round(step53Time * 1000) << "ms" << endl;
+		}
+		const auto& duplicatedEdges = duplicatedEdgesM;
 		for (const auto de : duplicatedEdges)
 		{
 			const auto fi0 = de[0] >> 2;
@@ -636,7 +649,7 @@ void calculateTopology2(Mesh& mesh)
 	const auto step5EndTime = chrono::high_resolution_clock::now();
 	{
 		const auto step5Time = chrono::duration<double>(step5EndTime - step4EndTime).count();
-		cout << " - " << round(step5Time * 1000) << "ms" << endl;
+		cout << "Step5 - " << round(step5Time * 1000) << "ms" << endl;
 		const auto totalTime = chrono::duration<double>(step5EndTime - startTime).count();
 		cout << endl << "Total time - " << round(totalTime * 1000) << "ms" << endl;
 	}

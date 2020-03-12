@@ -116,7 +116,7 @@ void ViewImpl::setupScene()
     //Mesh setup
     {
         {
-            for (int i=0; i<100; ++i)
+            for (int i=0; i<10; ++i)
                 m_mesh->calculateTopology();
         }
         const auto& mesh = *m_mesh;
