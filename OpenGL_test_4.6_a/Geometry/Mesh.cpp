@@ -7,10 +7,14 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+
 #include <chrono>
+
 #include <atomic>
 #include <execution>
 #include <iterator>
+
+#include <thread>
 using namespace std;
 
 using std::cout;
@@ -148,8 +152,14 @@ inline int p1m3(const int i)
 }
 
 
+static double totalCT1Step1Time = 0.0;
+static double totalCT1Time = 0.0;
+static int    numCT1Runs = 0;
+
 void calculateTopology1(Mesh& mesh)
 {
+	numCT1Runs++;
+
 	const auto& faces = mesh.m_faces;
 	const auto numVertices = mesh.numVertices();
 	const int numFaces = mesh.numFaces();
@@ -173,11 +183,12 @@ void calculateTopology1(Mesh& mesh)
 				vertexNumFaces[f[fvi]]++;
 		}
 	}
-	//	int maxNumEdges = numFaces * 3;
+
 	const auto step1EndTime = chrono::high_resolution_clock::now();
 	{
 		const auto step1Time = chrono::duration<double>(step1EndTime - startTime).count();
 		cout << " - " << round(step1Time * 1000) << "ms" << endl;
+		totalCT1Step1Time += step1Time;
 	}
 	/////////////////////////////////////////////////
 	//Step2
@@ -402,11 +413,11 @@ void calculateTopology1(Mesh& mesh)
 		cout << " - " << round(step5Time * 1000) << "ms" << endl;
 		const auto totalTime = chrono::duration<double>(step5EndTime - startTime).count();
 		cout << endl << "Total time - " << round(totalTime * 1000) << "ms" << endl;
+		totalCT1Time += totalTime;
 	}
 
 	cout << endl << " edges: " << numEdges << " / " << numFaces * 3 << " Euler X (V+F-E)=" << numVertices - numEdges + numFaces << endl;
 	assert(edges.size() == numEdges);
-
 }
 
 void Mesh::clearTopology()
@@ -425,8 +436,15 @@ public:
 
 	atomic<T> m_value;
 };
+
+static double totalCT2Step1Time = 0.0;
+static double totalCT2Time = 0.0;
+static int    numCT2Runs = 0;
+
 void calculateTopology2(Mesh& mesh)
 {
+	numCT2Runs++;
+
 	const auto& faces = mesh.m_faces;
 	const auto numVertices = mesh.numVertices();
 	const int numFaces = mesh.numFaces();
@@ -441,22 +459,56 @@ void calculateTopology2(Mesh& mesh)
 
 	/////////////////////////////////////////////////
 	//Step1
-	vector<Atomic<int>> vertexNumFacesM(numVertices, 0);
+	vector<int> vertexNumFacesM(numVertices, 0);
 	{//Step1
-		for_each(execution::par,faceRange.begin(), faceRange.end(),
+		for (const auto fi : faceRange)
+		{
+			const auto f = faces[fi].m_vis;
+			for (int fvi = 0; fvi < 3; ++fvi)
+				vertexNumFacesM[f[fvi]]++;
+		}
+		/*		{
+			const auto numHardwareThreads = std::thread::hardware_concurrency();
+			const int numThreads = numHardwareThreads;
+			vector<thread> threads;
+			threads.reserve(numThreads);
+			const int num = numFaces;
+			const int numPerThread = num / numThreads;
+			for (int i = 0; i < numThreads; ++i)
+			{
+				const auto rangeStart = numPerThread * i;
+				const auto rangeEnd = (i == numThreads - 1) ? num : (rangeStart + numPerThread);
+				const array<int, 2> range = { rangeStart,rangeEnd };
+				threads.emplace_back(
+					[&faces, &vertexNumFacesM](const auto range)
+					{
+						for (auto fi = range[0]; fi < range[1]; ++fi)
+						{
+							const auto f = faces[fi].m_vis;
+							for (int fvi = 0; fvi < 3; ++fvi)
+								vertexNumFacesM[f[fvi]].m_value++;
+						}
+					}, range);
+
+			}
+			for (auto& t : threads)
+				t.join();
+		}
+		*/
+		/*		for_each(execution::par,faceRange.begin(), faceRange.end(),
 			[&faces,&vertexNumFacesM](const int fi)
 			//		for (const auto fi : faceRange)
 			{
 				const auto f = faces[fi].m_vis;
 				for (int fvi = 0; fvi < 3; ++fvi)
 					vertexNumFacesM[f[fvi]].m_value++;
-			});
+			});*/
 	}
-	//	int maxNumEdges = numFaces * 3;
 	const auto step1EndTime = chrono::high_resolution_clock::now();
 	{
 		const auto step1Time = chrono::duration<double>(step1EndTime - startTime).count();
 		cout << " - " << round(step1Time * 1000) << "ms" << endl;
+		totalCT2Step1Time += step1Time;
 	}
 	/////////////////////////////////////////////////
 	//Step2
@@ -486,7 +538,7 @@ void calculateTopology2(Mesh& mesh)
 			for (int vi = 0; vi < numVertices; ++vi) //Not directly parallelizable
 			{
 				vertexEdgesRangeM.emplace_back(lastIndex, lastIndex);
-				lastIndex += vertexNumFaces[vi].m_value * 2;
+				lastIndex += vertexNumFaces[vi] * 2;
 			}
 		}
 		_maxTotalEdges = lastIndex;
@@ -799,6 +851,7 @@ void calculateTopology2(Mesh& mesh)
 		cout << " Step5 - " << round(step5Time * 1000) << "ms" << endl;
 		const auto totalTime = chrono::duration<double>(step5EndTime - startTime).count();
 		cout << endl << "Total time - " << round(totalTime * 1000) << "ms" << endl;
+		totalCT2Time += totalTime;
 	}
 
 	cout << endl << " edges: " << numEdges << " / " << numFaces * 3 << " Euler X (V+F-E)=" << numVertices - numEdges + numFaces << endl;
@@ -807,13 +860,22 @@ void calculateTopology2(Mesh& mesh)
 
 void Mesh::calculateTopology()
 {
-	clearTopology();
-	calculateTopology1(*this);
-	validateTopology();
+	for (int i = 0; i < 50; ++i)
+	{
+		clearTopology();
+		calculateTopology1(*this);
+		validateTopology();
 
-	clearTopology();
-	calculateTopology2(*this);
-	validateTopology();
+		clearTopology();
+		calculateTopology2(*this);
+		validateTopology();
+	}
+
+	cout << " Average CT1 Step1 time: " << totalCT1Step1Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << " Average CT2 Step1 time: " << totalCT2Step1Time / numCT2Runs * 1000.0 << "ms" << endl;
+
+	cout << " Average CT1 total time: " << totalCT1Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << " Average CT2 total time: " << totalCT2Time / numCT2Runs * 1000.0 << "ms" << endl;
 }
 
 #ifdef _DEBUG
