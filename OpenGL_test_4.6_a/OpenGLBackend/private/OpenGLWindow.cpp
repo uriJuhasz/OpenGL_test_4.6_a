@@ -44,6 +44,9 @@ public:
                 cout << "  Using GLEW " << glewGetString(GLEW_VERSION) << endl;
 
                 glfwMaximizeWindow(window);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glfwSwapBuffers(m_glfwWindow);
+
                 glfwSetWindowSizeCallback(window, glfwWindowResizeCallback);
                 glfwSetScrollCallback(window, glfwScrollCallback);
                 glfwSetCursorPosCallback(window, glfwMousePosCallback);

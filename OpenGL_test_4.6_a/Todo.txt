@@ -1,15 +1,12 @@
-resize event, start - request update
-
 Show mesh wireframe intelligently with removed edges.
 Implement Line thing or mesh with deleted edges
 
 Sphere faces
 
-Polyline primitive
-Line segments primitive
-
 Fix OpenGLPatch to use DSA (Doesn't work in Intel OpenGL 4.0)
 
+Polyline primitive
+Line segments primitive
 Implement more patch primitives - torus, ellipsoid, cone, cylinder, (polycylinder?)
 
 Material class
