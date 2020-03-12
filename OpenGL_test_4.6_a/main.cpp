@@ -28,7 +28,7 @@ int main()
 //    const auto fileName = R"(C:\Users\rossd\Downloads\3d\fc6bdb2aea4b58c23a3e8d4e87fba763\Elephant N090813.3DS)";
 //    const auto fileName = R"(C:\Users\rossd\Downloads\3d\a8cfcfd0082c61bad7aa4fbd1c57a277\Ship hms victory frigate nelson N270214.3DS)";
 //    const auto fileName = R"(C:\Users\rossd\Downloads\3d\e6eadc4ff882b84784dd133168c1f099\Autogenerator BelMag N170211.3DS)";
-    cout << " Loading mesh: " << fileName;
+    cout << " Loading mesh: " << fileName << endl;
     
     try {
         auto meshPtr = MeshLoader::loadMesh(fileName);
