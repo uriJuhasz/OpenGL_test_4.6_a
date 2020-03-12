@@ -421,8 +421,8 @@ template<class T>class Atomic final
 {
 public:
 	Atomic(const T t) : m_value(t) {}
+	Atomic(const Atomic& other) : m_value(other.m_value.load()) {}
 
-private:
 	atomic<T> m_value;
 };
 void calculateTopology2(Mesh& mesh)
@@ -441,14 +441,16 @@ void calculateTopology2(Mesh& mesh)
 
 	/////////////////////////////////////////////////
 	//Step1
-	vector<int> vertexNumFacesM(numVertices, 0);
+	vector<Atomic<int>> vertexNumFacesM(numVertices, 0);
 	{//Step1
-		for (const auto fi : faceRange)
-		{
-			const auto f = faces[fi].m_vis;
-			for (int fvi = 0; fvi < 3; ++fvi)
-				vertexNumFacesM[f[fvi]]++;
-		}
+		for_each(execution::par,faceRange.begin(), faceRange.end(),
+			[&faces,&vertexNumFacesM](const int fi)
+			//		for (const auto fi : faceRange)
+			{
+				const auto f = faces[fi].m_vis;
+				for (int fvi = 0; fvi < 3; ++fvi)
+					vertexNumFacesM[f[fvi]].m_value++;
+			});
 	}
 	//	int maxNumEdges = numFaces * 3;
 	const auto step1EndTime = chrono::high_resolution_clock::now();
@@ -484,7 +486,7 @@ void calculateTopology2(Mesh& mesh)
 			for (int vi = 0; vi < numVertices; ++vi) //Not directly parallelizable
 			{
 				vertexEdgesRangeM.emplace_back(lastIndex, lastIndex);
-				lastIndex += vertexNumFaces[vi] * 2;
+				lastIndex += vertexNumFaces[vi].m_value * 2;
 			}
 		}
 		_maxTotalEdges = lastIndex;
