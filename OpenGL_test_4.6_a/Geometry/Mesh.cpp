@@ -801,7 +801,6 @@ void calculateTopology2(Mesh& mesh)
 
 	cout << endl << " edges: " << numEdges << " / " << numFaces * 3 << " Euler X (V+F-E)=" << numVertices - numEdges + numFaces << endl;
 	assert(edges.size() == numEdges);
-
 }
 
 void Mesh::calculateTopology()
