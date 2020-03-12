@@ -22,8 +22,10 @@ public:
     }
 };
 dbg_stream_for_cout g_DebugStreamFor_cout;
+dbg_stream_for_cout g_DebugStreamFor_cerr;
 
 void WindowsDebugOutputRedirect::redirect()
 {
     std::cout.rdbuf(&g_DebugStreamFor_cout);
+//    std::cerr.rdbuf(&g_DebugStreamFor_cerr);
 }

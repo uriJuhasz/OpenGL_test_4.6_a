@@ -1,11 +1,10 @@
-No-initialize allocator for calculateTopology.
-Parallelize stage 5
+*No-initialize allocator for calculateTopology.
+
 Use explicit threads to parallelize
-Per-vertex - own edges vs secondary edges
 
 resize event, start - request update
 
-Show wireframe intelligently with removed edges.
+Show mesh wireframe intelligently with removed edges.
 Implement Line thing or mesh with deleted edges
 
 Sphere faces

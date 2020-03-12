@@ -46,6 +46,7 @@ public:
     class Edge final
     {
     public:
+        Edge() {};
         Edge(const int vi0,const int vi1,const int fi0,const int fi1)
             : m_vis{ vi0,vi1 }, m_fis{ fi0,fi1 }
         {}
@@ -85,6 +86,7 @@ public:
     std::vector<VertexEdgeIndicesRange> m_vertexEdgeIndicesRanges;
 
     void calculateTopology();
+    void clearTopology();
 
     void validateTopology();
 };

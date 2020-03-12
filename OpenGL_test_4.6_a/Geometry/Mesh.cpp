@@ -15,6 +15,86 @@ using namespace std;
 
 using std::cout;
 
+template<class T>class UninitializedAllocator final
+{
+public:
+	UninitializedAllocator() {}
+	UninitializedAllocator(const UninitializedAllocator&) {}
+	UninitializedAllocator operator=(const UninitializedAllocator&) = delete;
+	UninitializedAllocator(UninitializedAllocator&&) = delete;
+	UninitializedAllocator operator=(UninitializedAllocator&&) = delete;
+
+public:
+	typedef T value_type;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef typename std::true_type propagate_on_container_move_assignment;
+	typedef typename std::true_type is_always_equal;
+
+	template <class U> using rebind_alloc = UninitializedAllocator<U>;
+
+	constexpr T* allocate(const size_type num)
+	{
+		return reinterpret_cast<T*>(::operator new(num * sizeof(T)));
+	}
+
+	void deallocate(T* const ptr, const size_t)
+	{
+		::operator delete(ptr);
+	}
+
+	static constexpr size_type max_size() noexcept
+	{
+		return numeric_limits<size_type>::max();
+	}
+
+};
+
+namespace std
+{
+	template<class T> class allocator_traits<UninitializedAllocator<T>> final
+	{
+	public:
+		typedef UninitializedAllocator<T> allocator_type;
+		typedef typename allocator_type::value_type value_type;
+		typedef typename allocator_type::size_type size_type;
+		typedef typename allocator_type::difference_type difference_type;
+		typedef T* pointer;
+		typedef const T* const_pointer;
+
+		template <class U> using rebind_alloc = UninitializedAllocator<U>;
+
+	public:
+		template< class T, class... Args > static constexpr void construct(allocator_type& allocator, T* p, Args&&... args)
+		{
+		}
+		template< class T> static constexpr void destroy(allocator_type& allocator, T* p)
+		{
+		}
+		static constexpr T* allocate(allocator_type& a, const size_type num)
+		{
+			return a.allocate(num);
+		}
+
+		static void deallocate(allocator_type& a, T* const ptr, const size_t size)
+		{
+			return a.deallocate(ptr, size);
+		}
+		static constexpr size_type max_size(const allocator_type& a) noexcept
+		{
+			return a.max_size();
+		}
+	};
+}
+template<class T>bool operator==(const UninitializedAllocator<T>& a, const UninitializedAllocator<T>& b)
+{
+	return true;
+}
+template<class T>bool operator!=(const UninitializedAllocator<T>& a, const UninitializedAllocator<T>& b)
+{
+	return false;
+}
+
 class IntRange final
 {
 public:
@@ -66,22 +146,13 @@ inline int p1m3(const int i)
 {
 	return (i == 0) ? 1 : ((i == 1) ? 2 : 0);
 }
+
+
 void calculateTopology1(Mesh& mesh)
 {
 	const auto& faces = mesh.m_faces;
 	const auto numVertices = mesh.numVertices();
 	const int numFaces = mesh.numFaces();
-
-	auto& faceEdges = mesh.m_faceEdges;
-	auto& edges = mesh.m_edges;
-	auto& allVertexEdgeLists = mesh.m_allVertexEdgeLists;
-	auto& vertexEdgeIndicesRanges = mesh.m_vertexEdgeIndicesRanges;
-
-	faceEdges.clear();
-	edges.clear();
-	allVertexEdgeLists.clear();
-	vertexEdgeIndicesRanges.clear();
-
 
 	cout << " calculate topology 1: F= " << numFaces << " V=" << numVertices << endl;
 	cout << " Step1";
@@ -240,6 +311,11 @@ void calculateTopology1(Mesh& mesh)
 	//Step5
 	cout << " Step5";
 	{//Step5
+		auto& faceEdges = mesh.m_faceEdges;
+		auto& edges = mesh.m_edges;
+		auto& allVertexEdgeLists = mesh.m_allVertexEdgeLists;
+		auto& vertexEdgeIndicesRanges = mesh.m_vertexEdgeIndicesRanges;
+
 		faceEdges.resize(numFaces);
 		edges.reserve(numEdges);
 		allVertexEdgeLists.resize(numEdges * 2);
@@ -333,6 +409,14 @@ void calculateTopology1(Mesh& mesh)
 
 }
 
+void Mesh::clearTopology()
+{
+	m_edges.clear();
+	m_faceEdges.clear();
+	m_vertexEdgeIndicesRanges.clear();
+	m_allVertexEdgeLists.clear();
+}
+
 template<class T>class Atomic final
 {
 public:
@@ -346,17 +430,6 @@ void calculateTopology2(Mesh& mesh)
 	const auto& faces = mesh.m_faces;
 	const auto numVertices = mesh.numVertices();
 	const int numFaces = mesh.numFaces();
-
-	auto& faceEdges = mesh.m_faceEdges;
-	auto& edges = mesh.m_edges;
-	auto& allVertexEdgeLists = mesh.m_allVertexEdgeLists;
-	auto& vertexEdgeIndicesRanges = mesh.m_vertexEdgeIndicesRanges;
-
-	faceEdges.clear();
-	edges.clear();
-	allVertexEdgeLists.clear();
-	vertexEdgeIndicesRanges.clear();
-
 
 	cout << " calculate topology 2: F= " << numFaces << " V=" << numVertices << endl;
 	cout << " Step1";
@@ -434,7 +507,7 @@ void calculateTopology2(Mesh& mesh)
 		int m_vi;
 		array<int, 2> m_fiC;
 	};
-	vector<EdgeTableEntry> edgeTableM(maxTotalEdges);
+	vector<EdgeTableEntry, UninitializedAllocator<EdgeTableEntry>> edgeTableM(maxTotalEdges);
 	{//Step3
 //		for (int fi = 0; fi < numFaces; ++fi)
 		std::for_each(execution::par, faceRange.begin(), faceRange.end(),
@@ -455,6 +528,7 @@ void calculateTopology2(Mesh& mesh)
 					auto& ete = edgeTableM[last];
 					ete.m_vi = viS1;
 					ete.m_fiC[fii] = (fi << 2) + fei;
+					ete.m_fiC[1 - fii] = -1;
 				}
 			});
 	}
@@ -469,7 +543,7 @@ void calculateTopology2(Mesh& mesh)
 	atomic<int> numEdgesM = numFaces * 3;
 	vector<array<int, 2>> duplicatedEdgesM; //Should be protected from multi-writes
 	{ //Step4
-		for_each(/*execution::par,*/vertexRange.begin(), vertexRange.end(), //Somehow this (par) makes it slower
+		std::for_each(execution::par,vertexRange.begin(), vertexRange.end(), //Somehow this (par) makes it slower
 			//for (int vi = 0; vi < numVertices; ++vi)
 			[&faces,&vertexEdgesRangeM, &edgeTableM,&duplicatedEdgesM,&numEdgesM](const int vi)
 			{
@@ -540,100 +614,171 @@ void calculateTopology2(Mesh& mesh)
 	//Step5
 	cout << " Step5" << endl;
 	{//Step5
-		faceEdges.resize(numFaces);
-		edges.reserve(numEdges);
-		allVertexEdgeLists.resize(numEdges * 2);
-		vertexEdgeIndicesRanges.resize(numVertices);
+		auto& faceEdgesM = mesh.m_faceEdges;
+		auto& edgesM = mesh.m_edges;
+		auto& allVertexEdgeListsM = mesh.m_allVertexEdgeLists;
+		auto& vertexEdgeIndicesRangesM = mesh.m_vertexEdgeIndicesRanges;
 
 		const auto step50EndTime = chrono::high_resolution_clock::now();
 
 		const auto& vertexEdgesRange = vertexEdgesRangeM;
 		const auto& edgeTable = edgeTableM;
 
-		for (int vi = 0; vi < numVertices; ++vi)
+		/////////////////////////////////////////////////
+		//Step 5.1
+
+		//Separate vertex edges to own (where self vi is smaller in edge) and other
+		class Step5Data final
 		{
-			const auto& ver = vertexEdgesRange[vi];
-			const auto first = ver.m_first;
-			const auto last = ver.m_last.load();
-			const auto numVertexEdges = ver.m_last - ver.m_first;
-			vertexEdgeIndicesRanges[vi].m_num += numVertexEdges;//Needs to be atomic - make atomic array and leave it 0
-			for (int ii = ver.m_first; ii < ver.m_last; ++ii)
-				vertexEdgeIndicesRanges[edgeTable[ii].m_vi].m_num += 1;//Needs to be atomic
-		}
+		public:
+			Step5Data() {}
+/*			Step5Data(const Step5Data& other) //Just needed for vector it seems
+			{
+				throw new int();
+			}*/
+			int m_nextOwn = 0;
+			int m_firstOwnEI;
+			atomic<int> m_nextOther = 0;
+		};
+		vector<Step5Data> step5DataM(numVertices);
+
+//		for (int vi = 0; vi < numVertices; ++vi)
+		for_each(execution::par,vertexRange.begin(), vertexRange.end(),
+			[&vertexEdgesRange,&step5DataM,&edgeTable](const int vi) {
+				const auto& ver = vertexEdgesRange[vi];
+				const auto first = ver.m_first;
+				const auto last = ver.m_last.load();
+				const auto numVertexEdges = ver.m_last - ver.m_first;
+				step5DataM[vi].m_nextOwn = numVertexEdges; //Count own
+	//			vertexEdgeIndicesRangesM[vi].m_num += numVertexEdges;//Needs to be atomic - make atomic array and leave it 0
+				for (int ii = ver.m_first; ii < ver.m_last; ++ii)
+					step5DataM[edgeTable[ii].m_vi].m_nextOther++; //Count other
+	//				vertexEdgeIndicesRangesM[edgeTable[ii].m_vi].m_num += 1;//Needs to be atomic
+			});
 		const auto step51EndTime = chrono::high_resolution_clock::now();
 		{
 			const auto step51Time = chrono::duration<double>(step51EndTime - step50EndTime).count();
-			cout << "Step5.1 - " << round(step51Time * 1000) << "ms" << endl;
+			cout << "  Step5.1 - " << round(step51Time * 1000) << "ms" << endl;
 		}
+
+		/////////////////////////////////////////////////
+		//Step 5.2
 		{
+			vertexEdgeIndicesRangesM.resize(numVertices);
+
 			int lastIndex = 0;
+			int lastEI = 0;
 			for (int vi = 0; vi < numVertices; ++vi)
 			{
-				auto& veir = vertexEdgeIndicesRanges[vi];
-				assert(lastIndex < allVertexEdgeLists.size());
+				auto& data = step5DataM[vi];
+				const auto ownEdges = data.m_nextOwn;
+				const auto otherEdges = data.m_nextOther.load();
+				
+				data.m_firstOwnEI = lastEI;
+				lastEI += data.m_nextOwn; //count
+
+				const auto firstOwnIndex = lastIndex;
+				data.m_nextOwn = firstOwnIndex;
+				const auto firstOtherIndex = firstOwnIndex + ownEdges;
+				data.m_nextOther = firstOtherIndex;
+
+				const auto totalEdges = ownEdges + otherEdges;
+				lastIndex += totalEdges;
+
+				auto& veir = vertexEdgeIndicesRangesM[vi];
+				veir.m_first = data.m_nextOwn;
+				veir.m_num = totalEdges;
+
+/*				auto& veir = vertexEdgeIndicesRangesM[vi];
+				assert(lastIndex < allVertexEdgeListsM.size());
 				veir.m_first = lastIndex;
 				lastIndex += veir.m_num;
-				assert(lastIndex <= allVertexEdgeLists.size());
-				veir.m_num = 0;
+				assert(lastIndex <= allVertexEdgeListsM.size());
+				veir.m_num = 0;*/
 			}
 		}
 
 		const auto step52EndTime = chrono::high_resolution_clock::now();
 		{
 			const auto step52Time = chrono::duration<double>(step52EndTime - step51EndTime).count();
-			cout << "Step5.2 - " << round(step52Time * 1000) << "ms" << endl;
+			cout << "  Step5.2 - " << round(step52Time * 1000) << "ms" << endl;
 		}
 
-		int curEdge = 0;
-		for (int vi = 0; vi < numVertices; ++vi)
-		{
-			auto& veir = vertexEdgeIndicesRanges[vi];
-			const auto& etis = vertexEdgesRange[vi];
-			const auto first = etis.m_first;
-			const auto last = etis.m_last.load();
-			for (int vei = first; vei < last; ++vei)
-			{
-				const auto ete = edgeTable[vei];
-				const auto ei = curEdge; curEdge++;
-				const auto ovi = ete.m_vi;
-				const array<int, 2> fis = { ete.m_fiC[0] == -1 ? -1 : ete.m_fiC[0] >> 2, ete.m_fiC[1] == -1 ? -1 : ete.m_fiC[1] >> 2 };
-				edges.emplace_back(vi, ovi, fis[0], fis[1]);
+		/////////////////////////////////////////////////
+		//Step 5.3
+//		int curEdge = 0;
+		faceEdgesM.resize(numFaces);
+		edgesM.resize(numEdges);
+		allVertexEdgeListsM.resize(numEdges * 2);
+
+		const auto& step5Data = step5DataM;
+//		for (int vi = 0; vi < numVertices; ++vi)
+		for_each(execution::par, vertexRange.begin(), vertexRange.end(),
+			[&step5DataM,&vertexEdgesRange, &edgeTable, &edgesM,&faceEdgesM, &allVertexEdgeListsM](const int vi) {
+				const auto& s5Data = step5DataM[vi];
+				const auto& etis = vertexEdgesRange[vi];
+				const auto first = etis.m_first;
+				const auto last = etis.m_last.load();
+				int ei = s5Data.m_firstOwnEI;
+				auto myWriteOffet = s5Data.m_nextOwn;
+				for (int vei = first; vei < last; ++vei)
 				{
-					const auto o = veir.m_num++;//Needs to be atomic
-					const auto wo = veir.m_first + o;
-					assert(wo >= veir.m_first);
-					if (vi < numVertices - 1)
-						assert(wo < vertexEdgeIndicesRanges[vi + 1].m_first);
-					else
-						assert(wo < allVertexEdgeLists.size());
-					allVertexEdgeLists[wo] = ei;
-				}
-				{
-					auto& oveir = vertexEdgeIndicesRanges[ovi];
-					const auto o = oveir.m_num++;//Needs to be atomic
-					const auto wo = oveir.m_first + o;
-					assert(wo >= veir.m_first);
-					if (ovi < numVertices - 1)
-						assert(wo < vertexEdgeIndicesRanges[ovi + 1].m_first);
-					else
-						assert(wo < allVertexEdgeLists.size());
-					allVertexEdgeLists[oveir.m_first + o] = ei;
-				}
-				for (int k = 0; k < 2; ++k)
-				{
-					const auto fi = fis[k];
-					const auto fei = ete.m_fiC[k] & 3;
-					if (fi != -1)
+					const auto ete = edgeTable[vei];
+					const auto ovi = ete.m_vi;
+					const array<int, 2> fis = { ete.m_fiC[0] == -1 ? -1 : ete.m_fiC[0] >> 2, ete.m_fiC[1] == -1 ? -1 : ete.m_fiC[1] >> 2 };
+
+					//Edge
+					edgesM[ei] = Mesh::Edge(vi, ovi, fis[0], fis[1]);
+
+					//Own vertex edge
 					{
-						faceEdges[fi].m_feis[fei] = ei;
-					}
+#ifndef NDEBUG
+						const auto veir = vertexEdgeIndicesRangesM[vi];
+						assert(myWriteOffet >= veir.m_first);
+						if (vi < numVertices - 1)
+							assert(myWriteOffet < vertexEdgeIndicesRangesM[vi + 1].m_first);
+						else
+							assert(myWriteOffet < allVertexEdgeListsM.size());
+#endif
+						allVertexEdgeListsM[myWriteOffet] = ei;
+						myWriteOffet++;
 				}
+
+					//Other vertex edge
+					{
+						//					auto& oveir = vertexEdgeIndicesRangesM[ovi];
+						//					const auto o = oveir.m_num++;//Needs to be atomic
+						//					const auto wo = oveir.m_first + o;
+						const int otherWriteOffset = step5DataM[ovi].m_nextOther++; //Atomic
+#ifndef NDEBUG
+						const auto oveir = vertexEdgeIndicesRangesM[ovi];
+						assert(otherWriteOffset >= oveir.m_first);
+						if (ovi < numVertices - 1)
+							assert(otherWriteOffset < vertexEdgeIndicesRangesM[ovi + 1].m_first);
+						else
+							assert(otherWriteOffset < allVertexEdgeListsM.size());
+#endif
+						allVertexEdgeListsM[otherWriteOffset] = ei;
+					}
+
+					//Face edges - minus duplicates
+					for (int k = 0; k < 2; ++k)
+					{
+						const auto fi = fis[k];
+						const auto fei = ete.m_fiC[k] & 3;
+						if (fi != -1)
+						{
+							faceEdgesM[fi].m_feis[fei] = ei;
+						}
+					}
+
+					ei++;
 			}
-		}
+		});
 		const auto step53EndTime = chrono::high_resolution_clock::now();
 		{
 			const auto step53Time = chrono::duration<double>(step53EndTime - step52EndTime).count();
-			cout << "Step5.3 - " << round(step53Time * 1000) << "ms" << endl;
+			cout << "  Step5.3 - " << round(step53Time * 1000) << "ms" << endl;
 		}
 		const auto& duplicatedEdges = duplicatedEdgesM;
 		for (const auto de : duplicatedEdges)
@@ -642,14 +787,14 @@ void calculateTopology2(Mesh& mesh)
 			const auto fei0 = de[0] & 3;
 			const auto fi1 = de[1] >> 2;
 			const auto fei1 = de[1] & 3;
-			assert(faceEdges[fi1].m_feis[fei1] == -1);
-			faceEdges[fi1].m_feis[fei1] = faceEdges[fi0].m_feis[fei0];
+			assert(faceEdgesM[fi1].m_feis[fei1] == -1);
+			faceEdgesM[fi1].m_feis[fei1] = faceEdgesM[fi0].m_feis[fei0];
 		}
 	}
 	const auto step5EndTime = chrono::high_resolution_clock::now();
 	{
 		const auto step5Time = chrono::duration<double>(step5EndTime - step4EndTime).count();
-		cout << "Step5 - " << round(step5Time * 1000) << "ms" << endl;
+		cout << " Step5 - " << round(step5Time * 1000) << "ms" << endl;
 		const auto totalTime = chrono::duration<double>(step5EndTime - startTime).count();
 		cout << endl << "Total time - " << round(totalTime * 1000) << "ms" << endl;
 	}
@@ -661,8 +806,11 @@ void calculateTopology2(Mesh& mesh)
 
 void Mesh::calculateTopology()
 {
+	clearTopology();
 	calculateTopology1(*this);
 	validateTopology();
+
+	clearTopology();
 	calculateTopology2(*this);
 	validateTopology();
 }
