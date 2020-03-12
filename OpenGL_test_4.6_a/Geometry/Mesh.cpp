@@ -153,6 +153,8 @@ inline int p1m3(const int i)
 
 
 static double totalCT1Step1Time = 0.0;
+static double totalCT1Step3Time = 0.0;
+static double totalCT1Step5Time = 0.0;
 static double totalCT1Time = 0.0;
 static int    numCT1Runs = 0;
 
@@ -251,6 +253,7 @@ void calculateTopology1(Mesh& mesh)
 	{
 		const auto step3Time = chrono::duration<double>(step3EndTime - step2EndTime).count();
 		cout << " - " << round(step3Time * 1000) << "ms" << endl;
+		totalCT1Step1Time += step3Time;
 	}
 	/////////////////////////////////////////////////
 	//Step4
@@ -411,6 +414,7 @@ void calculateTopology1(Mesh& mesh)
 	{
 		const auto step5Time = chrono::duration<double>(step5EndTime - step4EndTime).count();
 		cout << " - " << round(step5Time * 1000) << "ms" << endl;
+		totalCT1Step5Time += step5Time;
 		const auto totalTime = chrono::duration<double>(step5EndTime - startTime).count();
 		cout << endl << "Total time - " << round(totalTime * 1000) << "ms" << endl;
 		totalCT1Time += totalTime;
@@ -438,6 +442,8 @@ public:
 };
 
 static double totalCT2Step1Time = 0.0;
+static double totalCT2Step3Time = 0.0;
+static double totalCT2Step5Time = 0.0;
 static double totalCT2Time = 0.0;
 static int    numCT2Runs = 0;
 
@@ -590,6 +596,7 @@ void calculateTopology2(Mesh& mesh)
 	{
 		const auto step3Time = chrono::duration<double>(step3EndTime - step2EndTime).count();
 		cout << " - " << round(step3Time * 1000) << "ms" << endl;
+		totalCT2Step3Time += step3Time;
 	}
 	/////////////////////////////////////////////////
 	//Step4
@@ -597,7 +604,7 @@ void calculateTopology2(Mesh& mesh)
 	atomic<int> numEdgesM = numFaces * 3;
 	vector<array<int, 2>> duplicatedEdgesM; //Should be protected from multi-writes
 	{ //Step4
-		std::for_each(execution::par,vertexRange.begin(), vertexRange.end(), //Somehow this (par) makes it slower
+		std::for_each(execution::par,vertexRange.begin(), vertexRange.end(),
 			//for (int vi = 0; vi < numVertices; ++vi)
 			[&faces,&vertexEdgesRangeM, &edgeTableM,&duplicatedEdgesM,&numEdgesM](const int vi)
 			{
@@ -680,41 +687,34 @@ void calculateTopology2(Mesh& mesh)
 
 		/////////////////////////////////////////////////
 		//Step 5.1
-
-		//Separate vertex edges to own (where self vi is smaller in edge) and other
 		class Step5Data final
 		{
 		public:
 			Step5Data() {}
-/*			Step5Data(const Step5Data& other) //Just needed for vector it seems
-			{
-				throw new int();
-			}*/
 			int m_nextOwn = 0;
 			int m_firstOwnEI;
 			atomic<int> m_nextOther = 0;
 		};
 		vector<Step5Data> step5DataM(numVertices);
-
-//		for (int vi = 0; vi < numVertices; ++vi)
-		for_each(execution::par,vertexRange.begin(), vertexRange.end(),
-			[&vertexEdgesRange,&step5DataM,&edgeTable](const int vi) {
-				const auto& ver = vertexEdgesRange[vi];
-				const auto first = ver.m_first;
-				const auto last = ver.m_last.load();
-				const auto numVertexEdges = ver.m_last - ver.m_first;
-				step5DataM[vi].m_nextOwn = numVertexEdges; //Count own
-	//			vertexEdgeIndicesRangesM[vi].m_num += numVertexEdges;//Needs to be atomic - make atomic array and leave it 0
-				for (int ii = ver.m_first; ii < ver.m_last; ++ii)
-					step5DataM[edgeTable[ii].m_vi].m_nextOther++; //Count other
-	//				vertexEdgeIndicesRangesM[edgeTable[ii].m_vi].m_num += 1;//Needs to be atomic
-			});
+		{
+			//Separate vertex edges to own (where self vi is smaller in edge) and other
+			for_each(execution::par, vertexRange.begin(), vertexRange.end(),
+				[&vertexEdgesRange, &step5DataM, &edgeTable](const int vi) {
+					const auto& ver = vertexEdgesRange[vi];
+					const auto first = ver.m_first;
+					const auto last = ver.m_last.load();
+					const auto numVertexEdges = ver.m_last - ver.m_first;
+					step5DataM[vi].m_nextOwn = numVertexEdges; //Count own
+					for (int ii = ver.m_first; ii < ver.m_last; ++ii)
+						step5DataM[edgeTable[ii].m_vi].m_nextOther++; //Count other
+				});
+		}
 		const auto step51EndTime = chrono::high_resolution_clock::now();
 		{
 			const auto step51Time = chrono::duration<double>(step51EndTime - step50EndTime).count();
 			cout << "  Step5.1 - " << round(step51Time * 1000) << "ms" << endl;
 		}
-
+		
 		/////////////////////////////////////////////////
 		//Step 5.2
 		{
@@ -751,7 +751,6 @@ void calculateTopology2(Mesh& mesh)
 				veir.m_num = 0;*/
 			}
 		}
-
 		const auto step52EndTime = chrono::high_resolution_clock::now();
 		{
 			const auto step52Time = chrono::duration<double>(step52EndTime - step51EndTime).count();
@@ -760,13 +759,12 @@ void calculateTopology2(Mesh& mesh)
 
 		/////////////////////////////////////////////////
 		//Step 5.3
-//		int curEdge = 0;
+
 		faceEdgesM.resize(numFaces);
 		edgesM.resize(numEdges);
 		allVertexEdgeListsM.resize(numEdges * 2);
 
 		const auto& step5Data = step5DataM;
-//		for (int vi = 0; vi < numVertices; ++vi)
 		for_each(execution::par, vertexRange.begin(), vertexRange.end(),
 			[&step5DataM,&vertexEdgesRange, &edgeTable, &edgesM,&faceEdgesM, &allVertexEdgeListsM](const int vi) {
 				const auto& s5Data = step5DataM[vi];
@@ -800,9 +798,6 @@ void calculateTopology2(Mesh& mesh)
 
 					//Other vertex edge
 					{
-						//					auto& oveir = vertexEdgeIndicesRangesM[ovi];
-						//					const auto o = oveir.m_num++;//Needs to be atomic
-						//					const auto wo = oveir.m_first + o;
 						const int otherWriteOffset = step5DataM[ovi].m_nextOther++; //Atomic
 #ifndef NDEBUG
 						const auto oveir = vertexEdgeIndicesRangesM[ovi];
@@ -829,6 +824,7 @@ void calculateTopology2(Mesh& mesh)
 					ei++;
 			}
 		});
+
 		const auto step53EndTime = chrono::high_resolution_clock::now();
 		{
 			const auto step53Time = chrono::duration<double>(step53EndTime - step52EndTime).count();
@@ -849,6 +845,7 @@ void calculateTopology2(Mesh& mesh)
 	{
 		const auto step5Time = chrono::duration<double>(step5EndTime - step4EndTime).count();
 		cout << " Step5 - " << round(step5Time * 1000) << "ms" << endl;
+		totalCT2Step5Time += step5Time;
 		const auto totalTime = chrono::duration<double>(step5EndTime - startTime).count();
 		cout << endl << "Total time - " << round(totalTime * 1000) << "ms" << endl;
 		totalCT2Time += totalTime;
@@ -873,6 +870,12 @@ void Mesh::calculateTopology()
 
 	cout << " Average CT1 Step1 time: " << totalCT1Step1Time / numCT1Runs * 1000.0 << "ms" << endl;
 	cout << " Average CT2 Step1 time: " << totalCT2Step1Time / numCT2Runs * 1000.0 << "ms" << endl;
+
+	cout << " Average CT1 Step3 time: " << totalCT1Step3Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << " Average CT2 Step3 time: " << totalCT2Step3Time / numCT2Runs * 1000.0 << "ms" << endl;
+
+	cout << " Average CT1 Step5 time: " << totalCT1Step5Time / numCT1Runs * 1000.0 << "ms" << endl;
+	cout << " Average CT2 Step5 time: " << totalCT2Step5Time / numCT2Runs * 1000.0 << "ms" << endl;
 
 	cout << " Average CT1 total time: " << totalCT1Time / numCT1Runs * 1000.0 << "ms" << endl;
 	cout << " Average CT2 total time: " << totalCT2Time / numCT2Runs * 1000.0 << "ms" << endl;
