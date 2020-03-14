@@ -23,8 +23,10 @@ private:
 
 private:
 	int m_numFaces = 0;
+	int m_numEdges = 0;
 
-	GLuint m_vertexArrayObjectID = GL_INVALID_INDEX;
+	GLuint m_vertexArrayObjectIDForFaces = GL_INVALID_INDEX;
+	GLuint m_vertexArrayObjectIDForEdges = GL_INVALID_INDEX;
 	const OpenGLStandardShaderProgram* m_faceShader = nullptr;
 	const OpenGLStandardShaderProgram* m_edgeShader = nullptr;
 };

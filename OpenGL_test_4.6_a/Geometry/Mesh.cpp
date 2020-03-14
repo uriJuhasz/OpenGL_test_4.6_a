@@ -19,6 +19,7 @@ template<class T>class UninitializedAllocator final
 public:
 	UninitializedAllocator() {}
 	UninitializedAllocator(const UninitializedAllocator&) {}
+	template<class U>UninitializedAllocator(const UninitializedAllocator<U>&) {}
 	UninitializedAllocator operator=(const UninitializedAllocator&) = delete;
 	UninitializedAllocator(UninitializedAllocator&&) = delete;
 	UninitializedAllocator operator=(UninitializedAllocator&&) = delete;
@@ -361,6 +362,7 @@ void calculateTopology1(Mesh& mesh)
 				}
 			}
 		}
+		assert(edges.size() == numEdges);
 		for (const auto de : duplicatedEdges)
 		{
 			const auto fi0 = de[0] >> 2;
@@ -371,7 +373,6 @@ void calculateTopology1(Mesh& mesh)
 			faceEdges[fi1].m_feis[fei1] = faceEdges[fi0].m_feis[fei0];
 		}
 	}
-	assert(edges.size() == numEdges);
 }
 
 void Mesh::clearTopology()
@@ -511,8 +512,6 @@ void calculateTopology2(Mesh& mesh)
 					auto& etis = vertexEdgesRangeM[viS0];
 					const auto first = etis.m_first;
 					const auto last = etis.m_last++; //Atomic
-					assert(eti - etis.m_first < vertexNumFaces[viS0] * 2);
-					assert(viS0 >= numVertices - 1 || eti < vertexEdgesRange[viS0 + 1].first);
 					auto& ete = edgeTableM[last];
 					ete.m_vi = viS1;
 					ete.m_fiC[fii] = (fi << 2) + fei;
@@ -523,11 +522,14 @@ void calculateTopology2(Mesh& mesh)
 	/////////////////////////////////////////////////
 	//Step4
 	atomic<int> numEdgesM = numFaces * 3;
+	
+	mutex duplicateEdgesMutex;
 	vector<array<int, 2>> duplicatedEdgesM; //Should be protected from multi-writes
+	
 	{ //Step4
 		std::for_each(execution::par,vertexRange.begin(), vertexRange.end(),
 			//for (int vi = 0; vi < numVertices; ++vi)
-			[&faces,&vertexEdgesRangeM, &edgeTableM,&duplicatedEdgesM,&numEdgesM](const int vi)
+			[&faces,&vertexEdgesRangeM, &edgeTableM,&duplicatedEdgesM,&duplicateEdgesMutex ,&numEdgesM](const int vi)
 			{
 				auto& etis = vertexEdgesRangeM[vi]; //No need for atomics here
 				const int start = etis.m_first;
@@ -567,6 +569,7 @@ void calculateTopology2(Mesh& mesh)
 											<< " overlap on edge " << (k ? vi : eteJ.m_vi) << " - " << (k ? eteJ.m_vi : vi)
 											<< endl;
 											*/
+										lock_guard lock(duplicateEdgesMutex);
 										duplicatedEdgesM.emplace_back(array<int, 2>{eteI.m_fiC[k], eteJ.m_fiC[k]});
 									}
 								}
@@ -606,7 +609,7 @@ void calculateTopology2(Mesh& mesh)
 		public:
 			Step5Data() {}
 			int m_nextOwn = 0;
-			int m_firstOwnEI;
+			int m_firstOwnEI = 0;
 			atomic<int> m_nextOther = 0;
 		};
 		vector<Step5Data> step5DataM(numVertices);
@@ -704,14 +707,14 @@ void calculateTopology2(Mesh& mesh)
 
 								//Own vertex edge
 								{
-#ifndef NDEBUG
+/*#ifndef NDEBUG
 									const auto veir = vertexEdgeIndicesRangesM[vi];
 									assert(myWriteOffet >= veir.m_first);
 									if (vi < numVertices - 1)
 										assert(myWriteOffet < vertexEdgeIndicesRangesM[vi + 1].m_first);
 									else
 										assert(myWriteOffet < allVertexEdgeListsM.size());
-#endif
+#endif*/
 									allVertexEdgeListsM[myWriteOffet] = ei;
 									myWriteOffet++;
 								}
@@ -719,14 +722,14 @@ void calculateTopology2(Mesh& mesh)
 								//Other vertex edge
 								{
 									const int otherWriteOffset = step5DataM[ovi].m_nextOther++; //Atomic
-#ifndef NDEBUG
+/*#ifndef NDEBUG
 									const auto oveir = vertexEdgeIndicesRangesM[ovi];
 									assert(otherWriteOffset >= oveir.m_first);
 									if (ovi < numVertices - 1)
 										assert(otherWriteOffset < vertexEdgeIndicesRangesM[ovi + 1].m_first);
 									else
 										assert(otherWriteOffset < allVertexEdgeListsM.size());
-#endif
+#endif*/
 									allVertexEdgeListsM[otherWriteOffset] = ei;
 								}
 
@@ -772,14 +775,14 @@ void calculateTopology2(Mesh& mesh)
 
 						//Own vertex edge
 						{
-#ifndef NDEBUG
+/*#ifndef NDEBUG
 							const auto veir = vertexEdgeIndicesRangesM[vi];
 							assert(myWriteOffet >= veir.m_first);
 							if (vi < numVertices - 1)
 								assert(myWriteOffet < vertexEdgeIndicesRangesM[vi + 1].m_first);
 							else
 								assert(myWriteOffet < allVertexEdgeListsM.size());
-#endif
+#endif*/
 							allVertexEdgeListsM[myWriteOffet] = ei;
 							myWriteOffet++;
 						}
@@ -787,14 +790,14 @@ void calculateTopology2(Mesh& mesh)
 						//Other vertex edge
 						{
 							const int otherWriteOffset = step5DataM[ovi].m_nextOther++; //Atomic
-#ifndef NDEBUG
+/*#ifndef NDEBUG
 							const auto oveir = vertexEdgeIndicesRangesM[ovi];
 							assert(otherWriteOffset >= oveir.m_first);
 							if (ovi < numVertices - 1)
 								assert(otherWriteOffset < vertexEdgeIndicesRangesM[ovi + 1].m_first);
 							else
 								assert(otherWriteOffset < allVertexEdgeListsM.size());
-#endif
+#endif*/
 							allVertexEdgeListsM[otherWriteOffset] = ei;
 						}
 
@@ -813,6 +816,7 @@ void calculateTopology2(Mesh& mesh)
 					}
 				});
 		}
+		assert(edgesM.size() == numEdges);
 		const auto& duplicatedEdges = duplicatedEdgesM;
 		for (const auto de : duplicatedEdges)
 		{
@@ -824,13 +828,13 @@ void calculateTopology2(Mesh& mesh)
 			faceEdgesM[fi1].m_feis[fei1] = faceEdgesM[fi0].m_feis[fei0];
 		}
 	}
-	assert(edges.size() == numEdges);
 }
 
 void Mesh::calculateTopology()
 {
 	clearTopology();
 	calculateTopology2(*this);
+	validateTopology();
 }
 
 #ifdef _DEBUG
@@ -853,7 +857,7 @@ template<class C, class T> bool rangeContains(const C& c, const int start, const
 }
 template<class C, class T> bool contains(const C& c, const T v)
 {
-	return rangeContains(c, 0, c.size(), v);
+	return rangeContains(c, 0, toInt(c.size()), v);
 }
 void Mesh::validateTopology()
 {

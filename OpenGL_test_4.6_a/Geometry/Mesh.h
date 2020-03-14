@@ -15,6 +15,7 @@ public:
 
     int numVertices() const { return static_cast<int>(m_vertices.size()); }
     int numFaces   () const { return static_cast<int>(m_faces.size()); }
+    int numEdges   () const { return static_cast<int>(m_edges.size()); }
 
 public:
     typedef int VertexIndex;
@@ -46,7 +47,9 @@ public:
     class Edge final
     {
     public:
+#pragma warning(disable:26495)
         Edge() {};
+#pragma warning(default:26495)
         Edge(const int vi0,const int vi1,const int fi0,const int fi1)
             : m_vis{ vi0,vi1 }, m_fis{ fi0,fi1 }
         {}

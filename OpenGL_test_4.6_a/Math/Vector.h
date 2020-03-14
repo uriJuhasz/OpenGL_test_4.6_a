@@ -134,3 +134,18 @@ inline Vector3 makeNonHomogeneous(const Vector4& v)
 {
     return Vector3(v[0], v[1], v[2]);
 }
+
+
+#include <ostream>
+
+//////////////////////////////////////////////////////
+template<unsigned int D>inline std::ostream& operator<<(std::ostream& s, const Vector<D>& v)
+{
+    s << "[";
+    for (int i = 0; i < D; ++i)
+    {
+        s << (i == 0 ? "" : " ") << v[i];
+    }
+    s << "]";
+    return s;
+}

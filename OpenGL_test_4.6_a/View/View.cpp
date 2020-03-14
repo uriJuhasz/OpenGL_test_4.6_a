@@ -83,20 +83,27 @@ ViewImpl::~ViewImpl()
     m_backendWindow.registerView(nullptr);
 }
 
-
-template<unsigned int D>ostream& operator<<(ostream& s, const Vector<D>& v)
-{
-    s << "[";
-    for (int i = 0; i < D; ++i)
-    {
-        s << (i == 0 ? "" : " ") << v[i];
-    }
-    s << "]";
-    return s;
-}
-
 static const string shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\shaders\)";
 
+array<Vector3, 2> calculateBoundingBox(const vector<Vector3>& vertices)
+{
+    if (vertices.size() > 0)
+    {
+        array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
+        const auto numVertices = toInt(vertices.size());
+        for (int vi = 1; vi < numVertices; ++vi)
+        {
+            const auto& vertex = vertices[vi];
+            for (int i = 0; i < 3; ++i)
+            {
+                boundingBox[0][i] = min(boundingBox[0][i], vertex[i]);
+                boundingBox[1][i] = max(boundingBox[1][i], vertex[i]);
+            }
+        }
+        return boundingBox;
+    }
+    return array<Vector3, 2>();
+}
 void ViewImpl::setupScene()
 {
     auto& backendContext = m_backendWindow.getContext();
@@ -115,30 +122,15 @@ void ViewImpl::setupScene()
     /////////////////////////////////////////
     //Mesh setup
     {
-        {
-            m_mesh->calculateTopology();
-        }
+        m_mesh->calculateTopology();
         const auto& mesh = *m_mesh;
         m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
 
-        {
+        { //Bounding box
             const auto& vertices = mesh.m_vertices;
-            const auto numVertices = mesh.numVertices();
-            array<Vector3, 2> boundingBox{ vertices[0],vertices[0] };
-            {
-                const auto& vertices = mesh.m_vertices;
-                for (int vi = 1; vi < numVertices; ++vi)
-                {
-                    const auto& vertex = vertices[vi];
-                    for (int i = 0; i < 3; ++i)
-                    {
-                        boundingBox[0][i] = min(boundingBox[0][i], vertex[i]);
-                        boundingBox[1][i] = max(boundingBox[1][i], vertex[i]);
-                    }
-                }
-            }
-            m_meshBoundingBox = boundingBox;
 
+            const auto boundingBox = calculateBoundingBox(vertices);
+            m_meshBoundingBox = boundingBox;
             const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
             const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
 
@@ -170,6 +162,7 @@ void ViewImpl::setupScene()
             const auto modelMatrix = unitMatrix4x4;
 
             shaderProgram.setParameter("modelMatrix", modelMatrix);
+            shaderProgram.setParameter("edgeColor", Vector4(1,1,1,1));
         }
 
         {
@@ -303,8 +296,8 @@ void ViewImpl::renderScene()
     constexpr bool renderSphere = false;
     constexpr bool showBezierPatch = false;
     constexpr bool renderMesh = true;
-    constexpr bool renderMeshFaces = renderMesh && true;
-    constexpr bool renderWireframe = renderMesh && false;
+    constexpr bool renderMeshFaces = renderMesh && false;
+    constexpr bool renderWireframe = renderMesh && true;
     constexpr bool showBoundingBox = renderMesh && true;
 
     //////////////////////
@@ -414,7 +407,7 @@ void ViewImpl::mouseMoveCallback(const Vector2& delta, const Vector2& oldPos, co
     {
         auto& sceneCamera = m_sceneCamera;
 
-        constexpr float factor = 0.01f;
+        constexpr float factor = 0.005f;
         auto viewMatrix = sceneCamera.makeViewMatrix();
         const auto forwardLength = length(sceneCamera.m_target - sceneCamera.m_position);
         auto viewMatrixInverse = transpose(viewMatrix);
