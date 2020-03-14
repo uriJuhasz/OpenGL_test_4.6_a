@@ -1,6 +1,4 @@
 ------------------------------------------------------------------------
-
-Show mesh wireframe intelligently with removed edges. -- Shader Storage Buffer objects
 Implement Line thing or mesh with deleted edges
 
 Sphere faces

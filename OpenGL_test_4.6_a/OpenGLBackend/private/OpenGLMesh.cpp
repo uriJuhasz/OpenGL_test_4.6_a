@@ -73,26 +73,33 @@ void OpenGLMesh::render(const bool renderFaces, const bool renderEdges)
     {
         glUseProgram(m_edgeShader->m_shaderProgramID);
 
-        glLineWidth(1.0f);
+        glLineWidth(2.0f);
         glDepthFunc(GL_LEQUAL);
-        if (false)
+        static bool aaLines = false;
+        const bool antialiasedLines = aaLines;
+        aaLines = !aaLines;
+        if (antialiasedLines)
         {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_LINE_SMOOTH);
-            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-            glDisable(GL_CULL_FACE);
+        }
+        else
+        {
+            glDisable(GL_BLEND);
         }
 
-
-        if ((renderFaces))
+        if (renderFaces)
         {
             glPolygonMode(GL_FRONT, GL_LINE);
             glEnable(GL_CULL_FACE);
-            if (false)
+            if (antialiasedLines)
             {
                 glEnable(GL_POLYGON_SMOOTH);
                 glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+            }
+            else
+            {
+                glDisable(GL_POLYGON_SMOOTH);
             }
 
             glBindVertexArray(m_vertexArrayObjectIDForFaces);
@@ -101,8 +108,15 @@ void OpenGLMesh::render(const bool renderFaces, const bool renderEdges)
         }
         else
         {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+            if (antialiasedLines)
+            {
+                glEnable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+            }
+            else
+            {
+                glEnable(GL_LINE_SMOOTH);
+            }
             glBindVertexArray(m_vertexArrayObjectIDForEdges);
             glDrawElements(GL_LINES, m_numEdges * 2, GL_UNSIGNED_INT, 0);
         }

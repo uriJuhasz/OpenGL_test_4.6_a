@@ -159,7 +159,6 @@ void ViewImpl::setupScene()
             m_meshEdgeShaderProgram = backendContext.makeStandardShaderProgram("MeshEdgeShaderProgram.glsl", "meshEdge"); //"EdgeVertexShader.glsl", "EdgeGeometryShader.glsl", "EdgeFragmentShader.glsl", "edge");
             m_backendMesh->setEdgeShader(m_meshEdgeShaderProgram.get());
             auto& shaderProgram = *m_meshEdgeShaderProgram;
-            const auto modelMatrix = unitMatrix4x4;
 
             shaderProgram.setParameter("modelMatrix", modelMatrix);
             shaderProgram.setParameter("edgeColor", Vector4(1,1,1,1));
@@ -296,7 +295,7 @@ void ViewImpl::renderScene()
     constexpr bool renderSphere = false;
     constexpr bool showBezierPatch = false;
     constexpr bool renderMesh = true;
-    constexpr bool renderMeshFaces = renderMesh && false;
+    constexpr bool renderMeshFaces = renderMesh && true;
     constexpr bool renderWireframe = renderMesh && true;
     constexpr bool showBoundingBox = renderMesh && true;
 
@@ -352,26 +351,36 @@ void ViewImpl::renderScene()
     //Render mesh
     if (renderMesh)
     {
-        if (renderMeshFaces)
+        for (int i = 0; i < 2; ++i)
         {
-            auto& shaderProgram = *m_meshFaceShaderProgram;
+            const auto modelMatrix = (i == 0)
+                ? makeTranslationMatrix(Vector3(-20, 0, 0))
+                : makeTranslationMatrix(Vector3( 20, 0, 0));
 
-            shaderProgram.setParameter("viewMatrix", viewMatrix);
-            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-            shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
+            if (renderMeshFaces)
+            {
+                auto& shaderProgram = *m_meshFaceShaderProgram;
 
-            m_backendMesh->render(true, false);
-        }
+                shaderProgram.setParameter("modelMatrix", modelMatrix);
+                shaderProgram.setParameter("viewMatrix", viewMatrix);
+                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+                shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
 
-        if (renderWireframe)
-        {
-            auto& shaderProgram = *m_meshEdgeShaderProgram;
-            shaderProgram.setParameter("viewMatrix", viewMatrix);
-            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+                m_backendMesh->render(true, false);
+            }
 
-            shaderProgram.setParameter("edgeColor", Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+            if (renderWireframe)
+            {
+                auto& shaderProgram = *m_meshEdgeShaderProgram;
 
-            m_backendMesh->render(false, true);
+                shaderProgram.setParameter("modelMatrix", modelMatrix);
+                shaderProgram.setParameter("viewMatrix", viewMatrix);
+                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+
+                shaderProgram.setParameter("edgeColor", Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+
+                m_backendMesh->render(false, true);
+            }
         }
         ///////////////////////
         //Bounding box
