@@ -1,4 +1,6 @@
-Show mesh wireframe intelligently with removed edges.
+------------------------------------------------------------------------
+
+Show mesh wireframe intelligently with removed edges. -- Shader Storage Buffer objects
 Implement Line thing or mesh with deleted edges
 
 Sphere faces
@@ -14,6 +16,14 @@ MeshSceneElement (Mesh+Material+visibility etc) class
 Mesh+Visualization class
 
 NURBS shader
+
+============================================================
+Selection
+Textures
+  multisampling
+Connect patches
+QT / GUI
+Render to image
 
 ============================================================
 X Use explicit threads to parallelize
