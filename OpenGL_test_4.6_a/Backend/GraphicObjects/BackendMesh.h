@@ -1,14 +1,11 @@
 #pragma once
 
-#include "BackendGraphicObject.h"
-#include "Style/ColorRGBA.h"
+#include "BackendSurface.h"
 
-class BackendMesh :
-	public virtual BackendGraphicObject
+class BackendMesh
+	: public virtual BackendSurface
 {
 public:
-	virtual void setEdgeWidth(const float) = 0;
-	virtual void setEdgeColor(const ColorRGBA&) = 0;
 	virtual void setEdgeVisibility(const int edgeIndex, const bool isVisible) = 0;
 
 public:

@@ -4,24 +4,6 @@ OpenGLMeshInstance::OpenGLMeshInstance(const OpenGLMeshPrimitive& meshPrimitive)
 	: m_meshPrimitive(meshPrimitive)
 {}
 
-void OpenGLMeshInstance::setEdgeWidth(const float newWidth)
-{
-	m_edgeWidth = newWidth;
-}
-
-void OpenGLMeshInstance::setEdgeColor(const ColorRGBA& newColor)
-{
-	m_edgeColor = newColor;
-}
-
-void OpenGLMeshInstance::setEdgesVisibility(const bool edgesVisible)
-{
-	m_edgesVisible = edgesVisible;
-}
-void OpenGLMeshInstance::setFacesVisibility(const bool facesVisible)
-{
-	m_facesVisible = facesVisible;
-}
 
 void OpenGLMeshInstance::render()
 {
@@ -36,7 +18,7 @@ void OpenGLMeshInstance::render()
 		auto& edgeShader = m_meshPrimitive.getEdgeShader();
 
 		edgeShader.setParameter("modelMatrix", m_modelMatrix);
-		edgeShader.setParameter("edgeColor", m_edgeColor.m_value);
+		edgeShader.setParameter("edgeColor", m_edgesColor.m_value);
 	}
 	m_meshPrimitive.render(m_facesVisible, m_edgesVisible);
 }

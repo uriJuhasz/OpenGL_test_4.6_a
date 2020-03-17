@@ -1,1 +1,5 @@
 #include "SceneObject.h"
+#include "SceneMesh.h"
+#include "SceneBezierPatch.h"
+#include "SceneSphere.h"
+#include "SceneSurface.h"

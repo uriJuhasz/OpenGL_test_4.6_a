@@ -2,16 +2,15 @@
 
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
-#include "Scene/SceneObjects/SceneMeshObject.h"
+#include "Scene/SceneObjects/SceneMesh.h"
 #include "Scene/SceneObjects/SceneBezierPatch.h"
+#include "Scene/SceneObjects/SceneSphere.h"
 
-#include "Backend/BackendViewInterface.h"
 #include "Backend/BackendWindow.h"
-#include "Backend/BackendContext.h"
+
+#include "Geometry/BezierPatch.h"
 
 #include "Utilities/Misc.h"
-
-#include <GL/glew.h>
 
 #include <string>
 #include <vector>
@@ -41,25 +40,18 @@ public:
 public: //Mesh
     unique_ptr<Scene> m_scene;
     unique_ptr<Mesh> m_mesh;
-
-    GLuint m_meshBoundingBoxVertexArrayObjectID = 0;
-
     array<Vector3, 2> m_meshBoundingBox;
 
 public: //Bezier patch
-    unique_ptr<SceneBezierPatch> m_bezierPatch;
+    SceneBezierPatch* m_bezierPatch;
 
 public: //Sphere
-    unique_ptr<Patch> m_spherePatch;
-    unique_ptr<BackendPatchPrimitive> m_backendSpherePatch;
-    unique_ptr<BackendTesselationShaderProgram> m_sphereShaderProgram;
 
 public: //Scene parameters
     Vector3 m_light0Position, m_light1Position;
 
     Camera m_sceneCamera;
-
-private:
+public:
     BackendWindow& m_backendWindow;
 };
 
@@ -102,9 +94,6 @@ array<Vector3, 2> calculateBoundingBox(const vector<Vector3>& vertices)
 }
 void ViewImpl::setupScene()
 {
-    auto& backendContext = m_backendWindow.getContext();
-    backendContext.setShaderBasePath(shaderBasePath);
-
     /////////////////////////////////////////
     /////////////////////////////////////////
     //Setup lights
@@ -121,8 +110,7 @@ void ViewImpl::setupScene()
         auto& mesh = *m_mesh;
         mesh.calculateTopology();
         auto& scene = *m_scene;
-        const auto sceneMeshID = scene.addMesh(mesh);
-        const auto sceneMeshObject = sceneAddMeshObject(sceneMeshID);
+        const auto sceneMeshObject = scene.addMesh(mesh);
 //        m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
 //        const auto& meshObject = scene.addSceneObject();
 
@@ -141,8 +129,6 @@ void ViewImpl::setupScene()
 
         const auto modelMatrix = unitMatrix4x4;
         {
-            m_backendMesh->setFaceShader(m_meshFaceShaderProgram.get());
-
             auto& shaderProgram = *m_meshFaceShaderProgram;
 
             shaderProgram.setParameter("modelMatrix", modelMatrix);
@@ -208,7 +194,8 @@ void ViewImpl::setupScene()
             Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
             Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
         };
-        m_bezierPatch.reset(new BezierPatch(patchParameters));
+        auto& scene = *m_scene;
+        m_bezierPatch = &scene.addBezierPatch(new BezierPatch(patchParameters));
         m_backendBezierPatch.reset(m_backendWindow.makeBackendPatch(*m_bezierPatch));
 
         m_backendBezierPatch->setFaceShader(m_bezierShaderProgram.get());
@@ -259,18 +246,8 @@ void ViewImpl::setupScene()
             Vector4(0.0f, 20.0f, 0.0f, 10.0f),
             Vector4(0.0f, -30.0f, -.0f, 20.0f)
         };
-        m_spherePatch.reset(new Patch(1, make_unique<VertexArray4f>(patchParameters)));
-        m_backendSpherePatch.reset(m_backendWindow.makeBackendPatch(*m_spherePatch));
-        m_sphereShaderProgram = backendContext.makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
-
-        auto& shaderProgram = *m_sphereShaderProgram;
-
-        const auto modelMatrix = unitMatrix4x4;
-        shaderProgram.setParameter("modelMatrix", modelMatrix);
-        shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
-        shaderProgram.setParameter("desiredPixelsPerTriangle", 5.0f);
-        
-        m_backendSpherePatch->setEdgeShader(m_sphereShaderProgram.get());
+        for (const auto sphereDef : patchParameters)
+            m_scene->addSphere(Vector3(sphereDef[0], sphereDef[1], sphereDef[2]), sphereDef[3]);
     }
 }
 using std::clamp;
@@ -296,8 +273,6 @@ void ViewImpl::renderScene()
     if (renderSphere)
     {
         auto& shaderProgram = *m_sphereShaderProgram;
-        shaderProgram.setParameter("viewMatrix", viewMatrix);
-        shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
         {
             const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];

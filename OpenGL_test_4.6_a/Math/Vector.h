@@ -8,20 +8,20 @@ template<unsigned int D> class Vector final
 public:
     typedef Vector<D> MyType;
 
-    Vector() : m_value()
+    constexpr Vector() : m_value()
     {
         for (int i = 0; i < D; ++i)
             m_value[i] = 0.0f;
     }
-    Vector(const float x, const float y) : m_value{ x,y }
+    constexpr Vector(const float x, const float y) : m_value{ x,y }
     {
         static_assert(D == 2);
     }
-    Vector(const float x, const float y, const float z) : m_value{ x,y,z }
+    constexpr Vector(const float x, const float y, const float z) : m_value{ x,y,z }
     {
         static_assert(D == 3);
     }
-    Vector(const float x, const float y, const float z, const float w) : m_value{ x,y,z,w }
+    constexpr Vector(const float x, const float y, const float z, const float w) : m_value{ x,y,z,w }
     {
         static_assert(D == 4);
     }

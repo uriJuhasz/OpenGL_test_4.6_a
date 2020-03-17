@@ -118,24 +118,24 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Backend\GraphicObjects\BackendBezierPatch.cpp" />
-    <ClCompile Include="Backend\GraphicObjects\BackendMesh.cpp" />
-    <ClCompile Include="Backend\GraphicObjects\BackendGraphicObject.cpp" />
-    <ClCompile Include="Backend\BackendContext.cpp" />
-    <ClCompile Include="Backend\BackendWindow.cpp" />
+    <ClCompile Include="Backend\GraphicObjects\BackendGraphicObjects.cpp" />
+    <ClCompile Include="Backend\Backend.cpp" />
     <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.cpp" />
     <ClCompile Include="OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.cpp" />
-    <ClCompile Include="OpenGLPrimitive.cpp" />
-    <ClCompile Include="Scene\SceneObjects\SceneBezierPatch.cpp" />
+    <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLPrimitive.cpp" />
+    <ClCompile Include="OpenGLBackend\private\Instances\OpenGLSphere.cpp" />
+    <ClCompile Include="OpenGLBackend\private\Instances\OpenGLSurface.cpp" />
+    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneSurfaceImpl.cpp" />
+    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneBezierPatchImpl.cpp" />
+    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneSphereImpl.cpp" />
     <ClCompile Include="Style\ColorRGBA.cpp" />
     <ClCompile Include="OpenGLBackend\private\Instances\OpenGLGraphicObject.cpp" />
     <ClCompile Include="OpenGLBackend\private\Instances\OpenGLMeshInstance.cpp" />
-    <ClCompile Include="Scene\SceneObjectImplementation\SceneMeshObjectImpl.cpp" />
-    <ClCompile Include="Scene\SceneObjects\SceneMeshObject.cpp" />
+    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneMeshImpl.cpp" />
     <ClCompile Include="OpenGLBackend\private\OpenGLShaderProgram.cpp" />
     <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.cpp" />
     <ClCompile Include="Geometry\BezierPatch.cpp" />
-    <ClCompile Include="Scene\SceneObjectImplementation\SceneObjectImpl.cpp" />
+    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneObjectImpl.cpp" />
     <ClCompile Include="Utilities\Exception.cpp" />
     <ClCompile Include="Utilities\Misc.cpp" />
     <ClCompile Include="OpenGLBackend\OpenGLBackend.cpp" />
@@ -150,11 +150,14 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
     <ClCompile Include="Scene\PointLight.cpp" />
     <ClCompile Include="Scene\SceneObjects\SceneObject.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
-    <ClCompile Include="Backend\BackendViewInterface.cpp" />
     <ClCompile Include="View\View.cpp" />
     <ClCompile Include="WindowsDebugOutputRedirect.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Backend\GraphicObjects\BackendSurface.h" />
+    <ClInclude Include="Backend\GraphicObjects\BackendGraphicObjectEdgeStyleMixin.h" />
+    <ClInclude Include="Backend\GraphicObjects\BackendGraphicObjectFaceStyleMixin.h" />
+    <ClInclude Include="Backend\GraphicObjects\BackendSphere.h" />
     <ClInclude Include="Backend\GraphicObjects\BackendBezierPatch.h" />
     <ClInclude Include="Backend\GraphicObjects\BackendMesh.h" />
     <ClInclude Include="Backend\GraphicObjects\BackendGraphicObject.h" />
@@ -162,17 +165,24 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
     <ClInclude Include="Backend\BackendWindow.h" />
     <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.h" />
     <ClInclude Include="OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.h" />
-    <ClInclude Include="OpenGLPrimitive.h" />
+    <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLPrimitive.h" />
+    <ClInclude Include="OpenGLBackend\private\Instances\OpenGLSphere.h" />
+    <ClInclude Include="OpenGLBackend\private\Instances\OpenGLSurface.h" />
+    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneSurfaceImpl.h" />
+    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneBezierPatchImpl.h" />
+    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneSphereImpl.h" />
+    <ClInclude Include="Scene\SceneObjects\SceneSurface.h" />
+    <ClInclude Include="Scene\SceneObjects\SceneSphere.h" />
     <ClInclude Include="Scene\SceneObjects\SceneBezierPatch.h" />
     <ClInclude Include="Style\ColorRGBA.h" />
     <ClInclude Include="OpenGLBackend\private\Instances\OpenGLGraphicObject.h" />
     <ClInclude Include="OpenGLBackend\private\Instances\OpenGLMeshInstance.h" />
-    <ClInclude Include="Scene\SceneObjectImplementation\SceneMeshObjectImpl.h" />
-    <ClInclude Include="Scene\SceneObjects\SceneMeshObject.h" />
+    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneMeshImpl.h" />
+    <ClInclude Include="Scene\SceneObjects\SceneMesh.h" />
     <ClInclude Include="OpenGLBackend\private\OpenGLShaderProgram.h" />
     <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.h" />
     <ClInclude Include="Geometry\BezierPatch.h" />
-    <ClInclude Include="Scene\SceneObjectImplementation\SceneObjectImpl.h" />
+    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneObjectImpl.h" />
     <ClInclude Include="Utilities\Exception.h" />
     <ClInclude Include="Utilities\Misc.h" />
     <ClInclude Include="OpenGLBackend\OpenGLBackend.h" />

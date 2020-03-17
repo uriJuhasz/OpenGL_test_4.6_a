@@ -190,10 +190,16 @@ public:
         return *m_bezierEdgeShader;
     }
 
+    OpenGLTessellationShaderProgram& getSphereEdgeShader() const override
+    {
+        return *m_sphereEdgeShader;
+    }
+
     unique_ptr<OpenGLStandardShaderProgram> m_meshFaceShader;
     unique_ptr<OpenGLStandardShaderProgram> m_meshEdgeShader;
     unique_ptr<OpenGLTessellationShaderProgram> m_bezierFaceShader;
     unique_ptr<OpenGLTessellationShaderProgram> m_bezierEdgeShader;
+    unique_ptr<OpenGLTessellationShaderProgram> m_sphereEdgeShader;
 
 private:
     OpenGLContext& m_context;
@@ -427,13 +433,24 @@ public:
 public:
     void render()
     {
-        const vector<OpenGLShaderProgram*> allShaders = { m_meshFaceShader.get(), m_meshEdgeShader.get(), m_bezierFaceShader.get(), m_bezierEdgeShader.get() };
+        const vector<OpenGLShaderProgram*> allShaders = { 
+            m_meshFaceShader.get(), 
+            m_meshEdgeShader.get(), 
+            m_bezierFaceShader.get(), 
+            m_bezierEdgeShader.get(),
+            m_sphereEdgeShader 
+        };
+
         for (OpenGLShaderProgram* shaderPtr : allShaders)
         {
             auto& shader = *shaderPtr;
             shader.setParameter("viewMatrix", m_viewMatrix);
             shader.setParameter("projectionMatrix", m_projectionMatrix);
         }
+
+        const auto pixelWidth = getFramebufferSize()[0];
+        m_sphereEdgeShader->setParameter("pixelWidth", pixelWidth);
+        m_sphereEdgeShader->setParameter("modelMatrix", unitMatrix4x4);
 
         for (auto& instancePtr : m_allInstances)
             instancePtr->render();
@@ -614,10 +631,16 @@ void makeAndAttachSingleShaderCC(const GLuint shaderProgramID, const GLenum shad
 void OpenGLWindowImpl::loadShaders()
 {
     setShaderBasePath(c_shaderBasePath);
+    
     m_meshFaceShader = makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");
     m_meshEdgeShader = makeStandardShaderProgram("MeshEdgeShaderProgram.glsl", "meshEdge");
+    
     m_bezierFaceShader = makeTessellationShaderProgram("BezierShaderProgram.glsl", "BezierFace");
     m_bezierEdgeShader = makeTessellationShaderProgram("BezierWireframeShaderProgram.glsl", "BezierEdge");
+    
+    m_sphereEdgeShader = makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
+    m_sphereEdgeShader->setParameter("maxTessellationLevel", glsGetUInt(GL_MAX_TESS_GEN_LEVEL));
+    m_sphereEdgeShader->setParameter("desiredPixelsPerTriangle", 5.0f);
 }
 
 std::unique_ptr<OpenGLStandardShaderProgram> OpenGLWindowImpl::makeStandardShaderProgram(

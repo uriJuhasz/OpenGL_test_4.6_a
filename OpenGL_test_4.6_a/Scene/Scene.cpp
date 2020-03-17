@@ -5,7 +5,9 @@
 #include "Backend/GraphicObjects/BackendMesh.h"
 #include "Backend/BackendWindow.h"
 
-#include "Scene/SceneObjectImplementation/SceneMeshObjectImpl.h"
+#include "Scene/private/SceneObjectImplementation/SceneMeshImpl.h"
+#include "Scene/private/SceneObjectImplementation/SceneBezierPatchImpl.h"
+#include "Scene/private/SceneObjectImplementation/SceneSphereImpl.h"
 
 #include "Utilities/Misc.h"
 
@@ -44,16 +46,25 @@ private:
         unique_ptr<Mesh> m_mesh;
         BackendMesh* m_backendMesh;
     };
-    MeshID addMesh(unique_ptr<Mesh> mesh) override
-    {
-        const MeshID meshID(toInt(m_meshes.size()));
-        m_meshes.emplace_back(*this,move(mesh));
-    }
 
-    SceneMeshObjectImpl& addMeshObject(const MeshID id) override
+    template<class O, class ...Args> O& addObject(const O*, Args... args)
     {
-        SceneMeshObjectImpl& meshObject = *m_meshObjects.emplace_back(make_unique<SceneMeshObjectImpl>(*m_meshes[id.id].m_mesh));
-        return meshObject;
+        auto ptr = make_unique<O>(args...);
+        auto& ref = *ptr;
+        m_sceneObjects.emplace_back(move(ptr));
+        return ref;
+    }
+    SceneMeshImpl& addMesh(const Mesh& mesh) override
+    {
+        return addObject((SceneMeshImpl*)nullptr, mesh);
+    }
+    SceneBezierPatchImpl& addBezierPatch(const BezierPatch& bezierPatch) override
+    {
+        return addObject((SceneBezierPatchImpl*)nullptr, bezierPatch);
+    }
+    SceneSphereImpl& addSphere(const Vector3& center, const float radius) override
+    {
+        return addObject((SceneSphereImpl*)nullptr, center,radius);
     }
 
 private:
@@ -69,10 +80,7 @@ private:
     BackendWindow& m_backendWindow;
     Camera m_sceneCamera;
     vector<unique_ptr<PointLight>> m_pointLights;
-    vector<unique_ptr<SceneObject>> m_objects;
-    vector<unique_ptr<SceneMeshObjectImpl>> m_meshObjects;
-
-    vector<SceneMesh> m_meshes;
+    vector<unique_ptr<SceneObjectImpl>> m_sceneObjects;
 };
 
 

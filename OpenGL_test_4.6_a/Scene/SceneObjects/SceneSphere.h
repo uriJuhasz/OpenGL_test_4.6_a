@@ -1,9 +1,10 @@
 #pragma once
 #include "SceneObject.h"
 
-#include "Geometry/BezierPatch.h"
-class SceneBezierPatch
+class SceneSphere
 	: public virtual SceneObject
 {
+public:
+	virtual void setRadius(const float) = 0;
 };
 

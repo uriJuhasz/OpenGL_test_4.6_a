@@ -1,10 +1,10 @@
 #pragma once
-#include "OpenGLGraphicObject.h"
+#include "OpenGLSurface.h"
 #include "../Primitives/OpenGLBezierPatchPrimitive.h"
 #include "Backend/GraphicObjects/BackendBezierPatch.h"
 
 class OpenGLBezierPatchInstance
-	: public OpenGLGraphicObject
+	: public OpenGLSurface
 	, public virtual BackendBezierPatch
 {
 public:

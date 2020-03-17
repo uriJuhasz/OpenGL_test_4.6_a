@@ -21,5 +21,8 @@ public:
 	virtual OpenGLTessellationShaderProgram& getBezierPatchEdgeShader() const = 0;
 
 public:
+	virtual OpenGLTessellationShaderProgram& getSphereEdgeShader() const = 0;
+
+public:
 	virtual OpenGLMeshInstance& makeInstance(const OpenGLMeshInstance&) = 0;
 };

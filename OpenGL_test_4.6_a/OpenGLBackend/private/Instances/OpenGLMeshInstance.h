@@ -1,27 +1,22 @@
 #pragma once
-#include "OpenGLGraphicObject.h"
+#include "OpenGLSurface.h"
 #include "Backend/GraphicObjects/BackendMesh.h"
 #include "../Primitives/OpenGLMeshPrimitive.h"
 
 class OpenGLWindow;
 	
 class OpenGLMeshInstance final
-	: public OpenGLGraphicObject
+	: public OpenGLSurface
 	, public virtual BackendMesh
 {
 public:
 	OpenGLMeshInstance(const OpenGLMeshPrimitive&);
 
 public:
-	void setEdgeWidth(const float)  override;
-	void setEdgeColor(const ColorRGBA&) override;
-	void setEdgeVisibility(const int edgeIndex, const bool isVisible) override {}
-
-	void setEdgesVisibility(const bool);
-	void setFacesVisibility(const bool);
+	void render() override;
 
 public:
-	void render() override;
+	void setEdgeVisibility(const int edgeIndex, const bool isVisible) override {}
 
 public:
 	virtual BackendMesh& createInstance() const override;
@@ -33,11 +28,6 @@ public:
 
 private:
 	const OpenGLMeshPrimitive& m_meshPrimitive;
-	
-	bool m_facesVisible = true;
-	
-	bool m_edgesVisible = false;
-	float m_edgeWidth = 1.0f;
-	ColorRGBA m_edgeColor = ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);
+
 };
 
