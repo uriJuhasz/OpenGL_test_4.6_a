@@ -1,6 +1,9 @@
 #include "View.h"
 
+#include "Scene/Scene.h"
 #include "Scene/Camera.h"
+#include "Scene/SceneObjects/SceneMeshObject.h"
+#include "Scene/SceneObjects/SceneBezierPatch.h"
 
 #include "Backend/BackendViewInterface.h"
 #include "Backend/BackendWindow.h"
@@ -36,25 +39,19 @@ public:
     void setMesh(unique_ptr<Mesh> m) override { m_mesh = move(m); }
 
 public: //Mesh
+    unique_ptr<Scene> m_scene;
     unique_ptr<Mesh> m_mesh;
-    unique_ptr<BackendStandardShaderProgram> m_meshFaceShaderProgram;
-    unique_ptr<BackendStandardShaderProgram> m_meshEdgeShaderProgram;
-    unique_ptr<BackendMesh> m_backendMesh;
 
-    unique_ptr<BackendShaderProgram> m_meshBoundingboxShaderProgram;
     GLuint m_meshBoundingBoxVertexArrayObjectID = 0;
 
     array<Vector3, 2> m_meshBoundingBox;
 
 public: //Bezier patch
-    unique_ptr<Patch> m_bezierPatch;
-    unique_ptr<BackendPatch> m_backendBezierPatch;
-    unique_ptr<BackendTesselationShaderProgram> m_bezierShaderProgram;
-    unique_ptr<BackendTesselationShaderProgram> m_bezierEdgeShaderProgram;
+    unique_ptr<SceneBezierPatch> m_bezierPatch;
 
 public: //Sphere
     unique_ptr<Patch> m_spherePatch;
-    unique_ptr<BackendPatch> m_backendSpherePatch;
+    unique_ptr<BackendPatchPrimitive> m_backendSpherePatch;
     unique_ptr<BackendTesselationShaderProgram> m_sphereShaderProgram;
 
 public: //Scene parameters
@@ -73,6 +70,7 @@ View* View::makeView(BackendWindow& backendWindow)
 
 ViewImpl::ViewImpl(BackendWindow& backendWindow)
     : m_backendWindow(backendWindow)
+    , m_scene(Scene::makeScene(backendWindow))
 {
     backendWindow.registerView(this);
     backendWindow.init();
@@ -82,8 +80,6 @@ ViewImpl::~ViewImpl()
 {
     m_backendWindow.registerView(nullptr);
 }
-
-static const string shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\shaders\)";
 
 array<Vector3, 2> calculateBoundingBox(const vector<Vector3>& vertices)
 {
@@ -122,9 +118,13 @@ void ViewImpl::setupScene()
     /////////////////////////////////////////
     //Mesh setup
     {
-        m_mesh->calculateTopology();
-        const auto& mesh = *m_mesh;
-        m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
+        auto& mesh = *m_mesh;
+        mesh.calculateTopology();
+        auto& scene = *m_scene;
+        const auto sceneMeshID = scene.addMesh(mesh);
+        const auto sceneMeshObject = sceneAddMeshObject(sceneMeshID);
+//        m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
+//        const auto& meshObject = scene.addSceneObject();
 
         { //Bounding box
             const auto& vertices = mesh.m_vertices;
@@ -141,7 +141,6 @@ void ViewImpl::setupScene()
 
         const auto modelMatrix = unitMatrix4x4;
         {
-            m_meshFaceShaderProgram = backendContext.makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");// "MeshVertexShader.glsl", "MeshGeometryShader.glsl", "MeshFragmentShader.glsl", "mesh");
             m_backendMesh->setFaceShader(m_meshFaceShaderProgram.get());
 
             auto& shaderProgram = *m_meshFaceShaderProgram;
@@ -156,12 +155,8 @@ void ViewImpl::setupScene()
             shaderProgram.setParameter("light1SpecularExponent", 100.0f);
         }
         {
-            m_meshEdgeShaderProgram = backendContext.makeStandardShaderProgram("MeshEdgeShaderProgram.glsl", "meshEdge"); //"EdgeVertexShader.glsl", "EdgeGeometryShader.glsl", "EdgeFragmentShader.glsl", "edge");
             m_backendMesh->setEdgeShader(m_meshEdgeShaderProgram.get());
             auto& shaderProgram = *m_meshEdgeShaderProgram;
-
-            shaderProgram.setParameter("modelMatrix", modelMatrix);
-            shaderProgram.setParameter("edgeColor", Vector4(1,1,1,1));
         }
 
         {
@@ -213,11 +208,9 @@ void ViewImpl::setupScene()
             Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
             Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
         };
-        m_bezierPatch.reset(new Patch(16, make_unique<VertexArray3f>(vector<Vector3>(patchParameters.cbegin(), patchParameters.cend()))));
+        m_bezierPatch.reset(new BezierPatch(patchParameters));
         m_backendBezierPatch.reset(m_backendWindow.makeBackendPatch(*m_bezierPatch));
 
-        m_bezierShaderProgram = backendContext.makeTessellationShaderProgram("BezierShaderProgram.glsl", "BezierFace");
-        m_bezierEdgeShaderProgram = backendContext.makeTessellationShaderProgram("BezierWireframeShaderProgram.glsl", "BezierEdge");
         m_backendBezierPatch->setFaceShader(m_bezierShaderProgram.get());
         m_backendBezierPatch->setEdgeShader(m_bezierEdgeShaderProgram.get());
 
@@ -284,7 +277,6 @@ using std::clamp;
 
 void ViewImpl::renderScene()
 {
-    const auto& backendContext = m_backendWindow.getContext();
     const auto viewportDimensions = m_backendWindow.getViewportDimensions();
 
     const auto sceneCamera = m_sceneCamera;

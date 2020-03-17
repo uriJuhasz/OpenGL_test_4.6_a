@@ -2,24 +2,23 @@
 
 #pragma warning (disable:4250)
 
-#include "Backend/BackendShaderProgram.h"
-#include "Backend/BackendStandardShaderProgram.h"
-#include "Backend/BackendTesselationShaderProgram.h"
-
+#include "Math/Vector.h"
+#include "Math/Matrix.h"
 
 #include <GL/glew.h>
 
-class OpenGLShaderProgram : public virtual BackendShaderProgram
+#include <string>
+class OpenGLShaderProgram
 {
 public:
 	explicit OpenGLShaderProgram(GLuint shaderProgramID) : m_shaderProgramID(shaderProgramID) {}
 public:
-	void setParameter(const std::string& name, const float value) override;
-	void setParameter(const std::string& name, const Vector3& value) override;
-	void setParameter(const std::string& name, const Vector4& value) override;
-	void setParameter(const std::string& name, const Matrix4x4 value) override;
+	void setParameter(const std::string& name, const float value);
+	void setParameter(const std::string& name, const Vector3& value);
+	void setParameter(const std::string& name, const Vector4& value);
+	void setParameter(const std::string& name, const Matrix4x4 value);
 
-	void setParameter(const std::string& name, const int value) override;
+	void setParameter(const std::string& name, const int value);
 
 	GLuint m_shaderProgramID;
 private:
@@ -27,7 +26,6 @@ private:
 
 class OpenGLStandardShaderProgram
 	: public OpenGLShaderProgram
-	, public virtual BackendStandardShaderProgram
 {
 public:
 	using OpenGLShaderProgram::OpenGLShaderProgram;
@@ -35,7 +33,6 @@ public:
 
 class OpenGLTessellationShaderProgram
 	: public OpenGLShaderProgram
-	, public virtual BackendTesselationShaderProgram
 {
 public:
 	using OpenGLShaderProgram::OpenGLShaderProgram;

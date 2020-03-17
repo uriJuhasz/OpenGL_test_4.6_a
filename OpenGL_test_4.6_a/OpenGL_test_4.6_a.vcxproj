@@ -61,7 +61,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <DisableSpecificWarnings>26451</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26451;4250</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointExceptions>true</FloatingPointExceptions>
@@ -94,7 +94,7 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <DisableSpecificWarnings>26451</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26451;4250</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -118,63 +118,75 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Backend\BackendGraphicPrimitive.cpp" />
-    <ClCompile Include="Backend\BackendPatch.cpp" />
-    <ClCompile Include="Backend\BackendMesh.cpp" />
-    <ClCompile Include="Backend\BackendShaderProgram.cpp" />
-    <ClCompile Include="Backend\BackendStandardShaderProgram.cpp" />
-    <ClCompile Include="Backend\BackendTesselationShaderProgram.cpp" />
+    <ClCompile Include="Backend\GraphicObjects\BackendBezierPatch.cpp" />
+    <ClCompile Include="Backend\GraphicObjects\BackendMesh.cpp" />
+    <ClCompile Include="Backend\GraphicObjects\BackendGraphicObject.cpp" />
     <ClCompile Include="Backend\BackendContext.cpp" />
     <ClCompile Include="Backend\BackendWindow.cpp" />
+    <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.cpp" />
+    <ClCompile Include="OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.cpp" />
+    <ClCompile Include="OpenGLPrimitive.cpp" />
+    <ClCompile Include="Scene\SceneObjects\SceneBezierPatch.cpp" />
+    <ClCompile Include="Style\ColorRGBA.cpp" />
+    <ClCompile Include="OpenGLBackend\private\Instances\OpenGLGraphicObject.cpp" />
+    <ClCompile Include="OpenGLBackend\private\Instances\OpenGLMeshInstance.cpp" />
+    <ClCompile Include="Scene\SceneObjectImplementation\SceneMeshObjectImpl.cpp" />
+    <ClCompile Include="Scene\SceneObjects\SceneMeshObject.cpp" />
     <ClCompile Include="OpenGLBackend\private\OpenGLShaderProgram.cpp" />
-    <ClCompile Include="OpenGLBackend\private\OpenGLMesh.cpp" />
-    <ClCompile Include="Geometry\Patch.cpp" />
-    <ClCompile Include="OpenGLBackend\private\OpenGLPatch.cpp" />
+    <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.cpp" />
+    <ClCompile Include="Geometry\BezierPatch.cpp" />
+    <ClCompile Include="Scene\SceneObjectImplementation\SceneObjectImpl.cpp" />
     <ClCompile Include="Utilities\Exception.cpp" />
     <ClCompile Include="Utilities\Misc.cpp" />
     <ClCompile Include="OpenGLBackend\OpenGLBackend.cpp" />
     <ClCompile Include="OpenGLBackend\private\OpenGLWindow.cpp" />
     <ClCompile Include="OpenGLBackend\private\OpenGLContext.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
-    <ClCompile Include="Scene\ColorRGB.cpp" />
+    <ClCompile Include="Style\ColorRGB.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="IO\MeshLoader.cpp" />
     <ClCompile Include="OpenGLBackend\OpenGLUtilities.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Scene\PointLight.cpp" />
-    <ClCompile Include="Scene\SceneObject.cpp" />
+    <ClCompile Include="Scene\SceneObjects\SceneObject.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Backend\BackendViewInterface.cpp" />
     <ClCompile Include="View\View.cpp" />
     <ClCompile Include="WindowsDebugOutputRedirect.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Backend\BackendGraphicPrimitive.h" />
-    <ClInclude Include="Backend\BackendPatch.h" />
-    <ClInclude Include="Backend\BackendMesh.h" />
-    <ClInclude Include="Backend\BackendShaderProgram.h" />
-    <ClInclude Include="Backend\BackendStandardShaderProgram.h" />
-    <ClInclude Include="Backend\BackendTesselationShaderProgram.h" />
+    <ClInclude Include="Backend\GraphicObjects\BackendBezierPatch.h" />
+    <ClInclude Include="Backend\GraphicObjects\BackendMesh.h" />
+    <ClInclude Include="Backend\GraphicObjects\BackendGraphicObject.h" />
     <ClInclude Include="Backend\BackendContext.h" />
     <ClInclude Include="Backend\BackendWindow.h" />
+    <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.h" />
+    <ClInclude Include="OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.h" />
+    <ClInclude Include="OpenGLPrimitive.h" />
+    <ClInclude Include="Scene\SceneObjects\SceneBezierPatch.h" />
+    <ClInclude Include="Style\ColorRGBA.h" />
+    <ClInclude Include="OpenGLBackend\private\Instances\OpenGLGraphicObject.h" />
+    <ClInclude Include="OpenGLBackend\private\Instances\OpenGLMeshInstance.h" />
+    <ClInclude Include="Scene\SceneObjectImplementation\SceneMeshObjectImpl.h" />
+    <ClInclude Include="Scene\SceneObjects\SceneMeshObject.h" />
     <ClInclude Include="OpenGLBackend\private\OpenGLShaderProgram.h" />
-    <ClInclude Include="OpenGLBackend\private\OpenGLMesh.h" />
-    <ClInclude Include="Geometry\Patch.h" />
-    <ClInclude Include="OpenGLBackend\private\OpenGLPatch.h" />
+    <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.h" />
+    <ClInclude Include="Geometry\BezierPatch.h" />
+    <ClInclude Include="Scene\SceneObjectImplementation\SceneObjectImpl.h" />
     <ClInclude Include="Utilities\Exception.h" />
     <ClInclude Include="Utilities\Misc.h" />
     <ClInclude Include="OpenGLBackend\OpenGLBackend.h" />
     <ClInclude Include="OpenGLBackend\private\OpenGLWindow.h" />
     <ClInclude Include="OpenGLBackend\private\OpenGLContext.h" />
     <ClInclude Include="Scene\Camera.h" />
-    <ClInclude Include="Scene\ColorRGB.h" />
+    <ClInclude Include="Style\ColorRGB.h" />
     <ClInclude Include="Math\Matrix.h" />
     <ClInclude Include="Math\Vector.h" />
     <ClInclude Include="Geometry\Mesh.h" />
     <ClInclude Include="IO\MeshLoader.h" />
     <ClInclude Include="OpenGLBackend\OpenGLUtilities.h" />
     <ClInclude Include="Scene\PointLight.h" />
-    <ClInclude Include="Scene\SceneObject.h" />
+    <ClInclude Include="Scene\SceneObjects\SceneObject.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="Backend\BackendViewInterface.h" />
     <ClInclude Include="View\View.h" />

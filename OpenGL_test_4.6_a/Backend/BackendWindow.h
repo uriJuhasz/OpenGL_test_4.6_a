@@ -2,11 +2,11 @@
 
 #include "BackendViewInterface.h"
 #include "BackendContext.h"
-#include "BackendMesh.h"
-#include "BackendPatch.h"
+#include "GraphicObjects/BackendMesh.h"
+#include "GraphicObjects/BackendBezierPatch.h"
 
 #include "Geometry/Mesh.h"
-#include "Geometry/Patch.h"
+#include "Geometry/BezierPatch.h"
 
 #include <array>
 
@@ -44,7 +44,13 @@ public:
     virtual void requestUpdate() = 0;
 
 public:
-    virtual BackendMesh* makeBackendMesh(const Mesh&) = 0;
-    virtual BackendPatch* makeBackendPatch(const Patch&) = 0;
+    virtual void setViewMatrix(const Matrix4x4&) = 0;
+    virtual void setProjectionMatrix(const Matrix4x4&) = 0;
+
+    virtual void render() = 0;
+    
+public:
+    virtual BackendMesh& makeMesh(const Mesh&) = 0;
+    virtual BackendBezierPatch& makeBezierPatch(const BezierPatch&) = 0;
 };
 

@@ -3,7 +3,6 @@
 #include "OpenGLContext.h"
 
 #include "OpenGLWindow.h"
-#include "OpenGLShaderProgram.h"
 #include "OpenGLBackend/OpenGLUtilities.h"
 
 #include "Utilities/Exception.h"
@@ -16,71 +15,6 @@
 #include <fstream>
 #include <sstream>
 using namespace std;
-
-string getShaderTypeSuffixString(const GLenum shaderType)
-{
-    return string(
-        (shaderType == GL_VERTEX_SHADER) ? "VS" :
-        (shaderType == GL_TESS_CONTROL_SHADER) ? "TCS" :
-        (shaderType == GL_TESS_EVALUATION_SHADER) ? "TES" :
-        (shaderType == GL_GEOMETRY_SHADER) ? "GS" :
-        (shaderType == GL_FRAGMENT_SHADER) ? "FS" :
-        "");
-}
-
-string loadShader(const string& fileName)
-{
-    ifstream f(fileName);
-    string r;
-    if (f)
-    {
-        stringstream buffer;
-        buffer << f.rdbuf();
-        r = buffer.str();
-    }
-
-    return r;
-}
-
-
-
-GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
-{
-    const auto ccString = string(
-        (shaderType == GL_VERTEX_SHADER) ? "VS" :
-        (shaderType == GL_TESS_CONTROL_SHADER) ? "TCS" :
-        (shaderType == GL_TESS_EVALUATION_SHADER) ? "TES" :
-        (shaderType == GL_GEOMETRY_SHADER) ? "GS" :
-        (shaderType == GL_FRAGMENT_SHADER) ? "FS" :
-        "");
-    const auto defineName = "COMPILING_" + ccString;
-    if (shaderSource.find(defineName) != std::string::npos)
-    {
-        const auto shader = glCreateShader(shaderType);
-        const auto defineString = "#version 430\n#define COMPILING_" + ccString + "\n";
-        array<const char*, 2> ptrs = {
-            defineString.c_str(),
-            shaderSource.c_str()
-        };
-        glShaderSource(shader, 2, ptrs.data(), nullptr);
-        glCompileShader(shader);
-        glsCheckShaderErrors(ccString, shader);
-
-        glsCheckErrors();
-        return shader;
-    }
-    else
-    {
-        return 0;
-    }
-}
-void makeAndAttachSingleShaderCC(const GLuint shaderProgramID, const GLenum shaderType, const string& shaderSource)
-{
-    const auto shaderID = makeSingleShaderCC(shaderType, shaderSource);
-    if (shaderID!=0)
-        glAttachShader(shaderProgramID, shaderID);
-}
-
 
 class GLFWContext;
 
@@ -122,7 +56,7 @@ public:
     operator bool() const override { return m_valid; }
 
 public:
-    int getMaxTessellationLevel() const override
+    int getMaxTessellationLevel() const
     {
         return glsGetUInt(GL_MAX_TESS_GEN_LEVEL);
     }
@@ -134,73 +68,6 @@ public:
     }
 
 public:
-    string m_shaderBasePath;
-    void setShaderBasePath(const string& path) override
-    {
-        m_shaderBasePath = path;
-    }
-    std::unique_ptr<BackendStandardShaderProgram> makeStandardShaderProgram(
-        const string& fileName,
-        const string& title) override
-    {
-        glBindVertexArray(0);
-        glUseProgram(0);
-
-        const auto shaderSource = loadShader(m_shaderBasePath + fileName);
-        const auto shaderProgram = glCreateProgram();
-
-        makeAndAttachSingleShaderCC(shaderProgram, GL_VERTEX_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgram, GL_GEOMETRY_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgram, GL_FRAGMENT_SHADER, shaderSource);
-        glLinkProgram(shaderProgram);
-        glsCheckShaderProgramErrors(title, shaderProgram);
-
-        glsCheckErrors();
-
-        std::cerr << "  Shader " << title << " : " << shaderProgram << endl;
-        return make_unique<OpenGLStandardShaderProgram>(shaderProgram);
-    }
-    std::unique_ptr<BackendTesselationShaderProgram> makeTessellationShaderProgram(
-        const string& fileName,
-        const string& title) override
-    {
-        const auto shaderSource = loadShader(m_shaderBasePath + fileName);
-        const auto shaderProgramID = glCreateProgram();
-
-        makeAndAttachSingleShaderCC(shaderProgramID, GL_VERTEX_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgramID, GL_TESS_CONTROL_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgramID, GL_TESS_EVALUATION_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgramID, GL_GEOMETRY_SHADER, shaderSource);
-        makeAndAttachSingleShaderCC(shaderProgramID, GL_FRAGMENT_SHADER, shaderSource);
-        glLinkProgram(shaderProgramID);
-        glsCheckShaderProgramErrors(title, shaderProgramID);
-
-        glsCheckErrors();
-
-        std::cerr << "  Shader " << title << " : " << shaderProgramID << endl;
-
-        return make_unique<OpenGLTessellationShaderProgram>(shaderProgramID);
-    }
-
-    GLuint makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title)
-    {
-        const auto shader = glCreateShader(shaderType);
-        const auto shaderSource = loadShader(m_shaderBasePath + shaderPath);
-        const auto shaderSourcePtr = shaderSource.c_str();
-        glShaderSource(shader, 1, &shaderSourcePtr, nullptr);
-        glCompileShader(shader);
-        glsCheckShaderErrors(title, shader);
-
-        glsCheckErrors();
-        return shader;
-    }
-    void makeAndAttachShader(const GLuint shaderProgram, const GLenum shaderType, const string& shaderFileName, const string& title)
-    {
-        if (!shaderFileName.empty())
-        {
-            glAttachShader(shaderProgram, makeSingleShader(shaderType, shaderFileName, title + "_" + getShaderTypeSuffixString(shaderType)));
-        }
-    }
 
 private:
     static void glfwErrorCallback(int error, const char* description)

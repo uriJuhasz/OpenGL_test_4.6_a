@@ -1,4 +1,5 @@
-#include "OpenGLMesh.h"
+#include "OpenGLMeshPrimitive.h"
+#include "../OpenGLWindow.h"
 #include "OpenGLBackend/OpenGLUtilities.h"
 
 #include "Utilities/Exception.h"
@@ -19,14 +20,15 @@ static int glGetVertexAttribInt(const GLenum type, const int attributeIndex)
 
 GLuint insertMesh(const Mesh& mesh);
 
-OpenGLMesh::OpenGLMesh(const Mesh& mesh)
-    : m_numFaces(mesh.numFaces())
+OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLWindow& window, const Mesh& mesh)
+    : OpenGLPrimitive(window)
+    , m_numFaces(mesh.numFaces())
     , m_numEdges(mesh.numEdges())
 {
     insertMesh(mesh);
 }
 
-OpenGLMesh::~OpenGLMesh()
+OpenGLMeshPrimitive::~OpenGLMeshPrimitive()
 {
     constexpr int c_maxVertexAttributes = 3;
     if (m_vertexArrayObjectIDForFaces)
@@ -49,18 +51,17 @@ OpenGLMesh::~OpenGLMesh()
     glDeleteVertexArrays(1, &m_vertexArrayObjectIDForFaces);
 }
 
-void OpenGLMesh::setFaceShader(const BackendStandardShaderProgram* faceShader) { m_faceShader = dynamic_cast<const OpenGLStandardShaderProgram*>(faceShader); }
-void OpenGLMesh::setEdgeShader(const BackendStandardShaderProgram* edgeShader) { m_edgeShader = dynamic_cast<const OpenGLStandardShaderProgram*>(edgeShader); }
-
-void OpenGLMesh::render(const bool renderFaces, const bool renderEdges)
+void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges) const
 {
     if (m_vertexArrayObjectIDForFaces == 0)
         throw new Exception("BackendMesh: invalid mesh cache");
 
-    if (renderFaces && m_faceShader)
+    if (renderFaces)
     {
+        const auto& faceShader = m_window.getMeshFaceShader();
+
         glBindVertexArray(m_vertexArrayObjectIDForFaces);
-        glUseProgram(m_faceShader->m_shaderProgramID);
+        glUseProgram(faceShader.m_shaderProgramID);
 
         glDepthFunc(GL_LESS);
         glPolygonMode(GL_FRONT, GL_FILL);
@@ -69,9 +70,11 @@ void OpenGLMesh::render(const bool renderFaces, const bool renderEdges)
         glPolygonOffset(1.0f, 0.0f);
         glDrawElements(GL_TRIANGLES, m_numFaces * 3, GL_UNSIGNED_INT, 0);
     }
-    if (renderEdges && m_edgeShader)
+    if (renderEdges)
     {
-        glUseProgram(m_edgeShader->m_shaderProgramID);
+        const auto& edgeShader = m_window.getMeshEdgeShader();
+
+        glUseProgram(edgeShader.m_shaderProgramID);
 
         glLineWidth(2.0f);
         glDepthFunc(GL_LEQUAL);
@@ -166,7 +169,7 @@ template<unsigned int D>static GLuint glsCreateAndAttachBufferToAttribute(
     return bufferID;
 }
 
-void OpenGLMesh::insertMesh(const Mesh& mesh)
+void OpenGLMeshPrimitive::insertMesh(const Mesh& mesh)
 {
     const int numVertices = mesh.numVertices();
     assert(mesh.m_normals.size() == numVertices);
@@ -207,4 +210,13 @@ void OpenGLMesh::insertMesh(const Mesh& mesh)
         m_vertexArrayObjectIDForEdges = vertexArrayObjectIDForEdges;
     }
 
+}
+
+OpenGLStandardShaderProgram& OpenGLMeshPrimitive::getFaceShader() const
+{
+    return m_window.getMeshFaceShader();
+}
+OpenGLStandardShaderProgram& OpenGLMeshPrimitive::getEdgeShader() const
+{
+    return m_window.getMeshEdgeShader();
 }

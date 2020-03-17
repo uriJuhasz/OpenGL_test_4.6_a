@@ -6,21 +6,30 @@
 
 #include "OpenGLWindow.h"
 #include "OpenGLContext.h"
-#include "OpenGLMesh.h"
-#include "OpenGLPatch.h"
+#include "OpenGLShaderProgram.h"
+
+#include "Primitives/OpenGLMeshPrimitive.h"
+#include "Instances/OpenGLMeshInstance.h"
+
+#include "Primitives/OpenGLBezierPatchPrimitive.h"
+#include "Instances/OpenGLBezierPatchInstance.h"
 
 #include "OpenGLBackend/OpenGLUtilities.h"
 
 #include "Utilities/Exception.h"
 #include "Utilities/Misc.h"
 
-
 #include <cassert>
 #include <vector>
-#include <iostream>
 #include <chrono>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 using namespace std;
+
+static const string c_shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\shaders\)";
 
 class OpenGLWindowImpl final : public OpenGLWindow
 {
@@ -55,6 +64,8 @@ public:
 
                 if (glfwRawMouseMotionSupported())
                     glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
+                loadShaders();
             }
             else
             {
@@ -160,6 +171,29 @@ public:
             glfwPollEvents();
         }
     }
+
+public:
+    OpenGLStandardShaderProgram& getMeshFaceShader() const override
+    {
+        return *m_meshFaceShader;
+    }
+    OpenGLStandardShaderProgram& getMeshEdgeShader() const override
+    {
+        return *m_meshEdgeShader;
+    }
+    OpenGLTessellationShaderProgram& getBezierPatchFaceShader() const override
+    {
+        return *m_bezierFaceShader;
+    }
+    OpenGLTessellationShaderProgram& getBezierPatchEdgeShader() const override
+    {
+        return *m_bezierEdgeShader;
+    }
+
+    unique_ptr<OpenGLStandardShaderProgram> m_meshFaceShader;
+    unique_ptr<OpenGLStandardShaderProgram> m_meshEdgeShader;
+    unique_ptr<OpenGLTessellationShaderProgram> m_bezierFaceShader;
+    unique_ptr<OpenGLTessellationShaderProgram> m_bezierEdgeShader;
 
 private:
     OpenGLContext& m_context;
@@ -274,16 +308,49 @@ public:
 
     };
 
-public:
-    OpenGLMesh* makeBackendMesh(const Mesh& mesh) override
+private:
+    vector<OpenGLGraphicObject*> m_allInstances;
+
+    vector<unique_ptr<OpenGLMeshPrimitive>> m_meshPrimitives;
+    vector<unique_ptr<OpenGLMeshInstance>> m_meshInstances;
+    OpenGLMeshInstance& makeMesh(const Mesh& mesh) override
     {
-        return new OpenGLMesh(mesh);
+        const auto& meshPrimitive = *m_meshPrimitives.emplace_back(make_unique<OpenGLMeshPrimitive>(*this,mesh));
+        auto& meshInstance = *m_meshInstances.emplace_back(make_unique<OpenGLMeshInstance>(meshPrimitive));
+        m_allInstances.push_back(&meshInstance);
+        return meshInstance;
+    }
+    virtual OpenGLMeshInstance& makeInstance(const OpenGLMeshInstance& originalInstance)
+    {
+        auto& meshInstance = *m_meshInstances.emplace_back(make_unique<OpenGLMeshInstance>(originalInstance.getPrimitive()));
+        m_allInstances.push_back(&meshInstance);
+        return meshInstance;
     }
 
-    OpenGLPatch* makeBackendPatch(const Patch& patch) override
+private:
+    vector<unique_ptr<OpenGLBezierPatchPrimitive>> m_bezierPatchPrimitives;
+    vector<unique_ptr<OpenGLBezierPatchInstance>> m_bezierPatchInstances;
+    OpenGLBezierPatchInstance& makeBezierPatch(const BezierPatch& patch) override
     {
-        return new OpenGLPatch(patch);
+        const auto& patchPrimitive = *m_bezierPatchPrimitives.emplace_back(make_unique<OpenGLBezierPatchPrimitive>(*this, patch));
+        auto& patchInstance = *m_bezierPatchInstances.emplace_back(make_unique<OpenGLBezierPatchInstance>(patchPrimitive));
+        m_allInstances.push_back(&patchInstance);
+        return patchInstance;
     }
+
+private:
+    void loadShaders();
+
+    std::unique_ptr<OpenGLStandardShaderProgram> makeStandardShaderProgram(
+        const string& fileName,
+        const string& title);
+    std::unique_ptr<OpenGLTessellationShaderProgram> makeTessellationShaderProgram(
+        const string& fileName,
+        const string& title);
+
+    GLuint makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title);
+    void makeAndAttachShader(const GLuint shaderProgram, const GLenum shaderType, const string& shaderFileName, const string& title);
+
 private:
     static void openGLMessageCallback(
         GLenum source,
@@ -349,6 +416,36 @@ private:
                 return p.second;
         return nullptr;
     }
+
+public:
+    void setViewMatrix(const Matrix4x4& viewMatrix) override { m_viewMatrix = viewMatrix; }
+    void setProjectionMatrix(const Matrix4x4& projectionMatrix) override { m_projectionMatrix = projectionMatrix; }
+
+    Matrix4x4 m_viewMatrix;
+    Matrix4x4 m_projectionMatrix;
+
+public:
+    void render()
+    {
+        const vector<OpenGLShaderProgram*> allShaders = { m_meshFaceShader.get(), m_meshEdgeShader.get(), m_bezierFaceShader.get(), m_bezierEdgeShader.get() };
+        for (OpenGLShaderProgram* shaderPtr : allShaders)
+        {
+            auto& shader = *shaderPtr;
+            shader.setParameter("viewMatrix", m_viewMatrix);
+            shader.setParameter("projectionMatrix", m_projectionMatrix);
+        }
+
+        for (auto& instancePtr : m_allInstances)
+            instancePtr->render();
+    }
+
+private:
+    string m_shaderBasePath;
+    void setShaderBasePath(const string& path)
+    {
+        m_shaderBasePath = path;
+    }
+
 };
 
 vector<pair<const GLFWwindow*, OpenGLWindowImpl*>> OpenGLWindowImpl::s_allWindows = {};
@@ -444,6 +541,145 @@ void OpenGLWindowImpl::openGLMessageCallback(
     if (true) // severity != GL_DEBUG_SEVERITY_NOTIFICATION && type != GL_DEBUG_TYPE_PERFORMANCE)
     {
         std::cerr << "";
+    }
+}
+
+
+
+///////////////////////////////////////////
+//Shaders
+string getShaderTypeSuffixString(const GLenum shaderType)
+{
+    return string(
+        (shaderType == GL_VERTEX_SHADER) ? "VS" :
+        (shaderType == GL_TESS_CONTROL_SHADER) ? "TCS" :
+        (shaderType == GL_TESS_EVALUATION_SHADER) ? "TES" :
+        (shaderType == GL_GEOMETRY_SHADER) ? "GS" :
+        (shaderType == GL_FRAGMENT_SHADER) ? "FS" :
+        "");
+}
+
+string loadShader(const string& fileName)
+{
+    ifstream f(fileName);
+    string r;
+    if (f)
+    {
+        stringstream buffer;
+        buffer << f.rdbuf();
+        r = buffer.str();
+    }
+
+    return r;
+}
+
+GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
+{
+    const auto ccString = string(
+        (shaderType == GL_VERTEX_SHADER) ? "VS" :
+        (shaderType == GL_TESS_CONTROL_SHADER) ? "TCS" :
+        (shaderType == GL_TESS_EVALUATION_SHADER) ? "TES" :
+        (shaderType == GL_GEOMETRY_SHADER) ? "GS" :
+        (shaderType == GL_FRAGMENT_SHADER) ? "FS" :
+        "");
+    const auto defineName = "COMPILING_" + ccString;
+    if (shaderSource.find(defineName) != std::string::npos)
+    {
+        const auto shader = glCreateShader(shaderType);
+        const auto defineString = "#version 430\n#define COMPILING_" + ccString + "\n";
+        array<const char*, 2> ptrs = {
+            defineString.c_str(),
+            shaderSource.c_str()
+        };
+        glShaderSource(shader, 2, ptrs.data(), nullptr);
+        glCompileShader(shader);
+        glsCheckShaderErrors(ccString, shader);
+
+        glsCheckErrors();
+        return shader;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void makeAndAttachSingleShaderCC(const GLuint shaderProgramID, const GLenum shaderType, const string& shaderSource)
+{
+    const auto shaderID = makeSingleShaderCC(shaderType, shaderSource);
+    if (shaderID != 0)
+        glAttachShader(shaderProgramID, shaderID);
+}
+
+void OpenGLWindowImpl::loadShaders()
+{
+    setShaderBasePath(c_shaderBasePath);
+    m_meshFaceShader = makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");
+    m_meshEdgeShader = makeStandardShaderProgram("MeshEdgeShaderProgram.glsl", "meshEdge");
+    m_bezierFaceShader = makeTessellationShaderProgram("BezierShaderProgram.glsl", "BezierFace");
+    m_bezierEdgeShader = makeTessellationShaderProgram("BezierWireframeShaderProgram.glsl", "BezierEdge");
+}
+
+std::unique_ptr<OpenGLStandardShaderProgram> OpenGLWindowImpl::makeStandardShaderProgram(
+    const string& fileName,
+    const string& title)
+{
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+    const auto shaderSource = loadShader(m_shaderBasePath + fileName);
+    const auto shaderProgram = glCreateProgram();
+
+    makeAndAttachSingleShaderCC(shaderProgram, GL_VERTEX_SHADER, shaderSource);
+    makeAndAttachSingleShaderCC(shaderProgram, GL_GEOMETRY_SHADER, shaderSource);
+    makeAndAttachSingleShaderCC(shaderProgram, GL_FRAGMENT_SHADER, shaderSource);
+    glLinkProgram(shaderProgram);
+    glsCheckShaderProgramErrors(title, shaderProgram);
+
+    glsCheckErrors();
+
+    std::cerr << "  Shader " << title << " : " << shaderProgram << endl;
+    return make_unique<OpenGLStandardShaderProgram>(shaderProgram);
+}
+std::unique_ptr<OpenGLTessellationShaderProgram> OpenGLWindowImpl::makeTessellationShaderProgram(
+    const string& fileName,
+    const string& title)
+{
+    const auto shaderSource = loadShader(m_shaderBasePath + fileName);
+    const auto shaderProgramID = glCreateProgram();
+
+    makeAndAttachSingleShaderCC(shaderProgramID, GL_VERTEX_SHADER, shaderSource);
+    makeAndAttachSingleShaderCC(shaderProgramID, GL_TESS_CONTROL_SHADER, shaderSource);
+    makeAndAttachSingleShaderCC(shaderProgramID, GL_TESS_EVALUATION_SHADER, shaderSource);
+    makeAndAttachSingleShaderCC(shaderProgramID, GL_GEOMETRY_SHADER, shaderSource);
+    makeAndAttachSingleShaderCC(shaderProgramID, GL_FRAGMENT_SHADER, shaderSource);
+    glLinkProgram(shaderProgramID);
+    glsCheckShaderProgramErrors(title, shaderProgramID);
+
+    glsCheckErrors();
+
+    std::cerr << "  Shader " << title << " : " << shaderProgramID << endl;
+
+    return make_unique<OpenGLTessellationShaderProgram>(shaderProgramID);
+}
+
+GLuint OpenGLWindowImpl::makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title)
+{
+    const auto shader = glCreateShader(shaderType);
+    const auto shaderSource = loadShader(m_shaderBasePath + shaderPath);
+    const auto shaderSourcePtr = shaderSource.c_str();
+    glShaderSource(shader, 1, &shaderSourcePtr, nullptr);
+    glCompileShader(shader);
+    glsCheckShaderErrors(title, shader);
+
+    glsCheckErrors();
+    return shader;
+}
+void OpenGLWindowImpl::makeAndAttachShader(const GLuint shaderProgram, const GLenum shaderType, const string& shaderFileName, const string& title)
+{
+    if (!shaderFileName.empty())
+    {
+        glAttachShader(shaderProgram, makeSingleShader(shaderType, shaderFileName, title + "_" + getShaderTypeSuffixString(shaderType)));
     }
 }
 

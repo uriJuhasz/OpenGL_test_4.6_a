@@ -1,7 +1,8 @@
 #pragma once;
 
-#include "ColorRGB.h"
 #include "Math/Vector.h"
+
+#include "Style/ColorRGB.h"
 
 class PointLight final
 {
