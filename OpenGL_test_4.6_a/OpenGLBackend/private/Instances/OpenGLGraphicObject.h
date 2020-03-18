@@ -1,18 +1,28 @@
 #pragma once
-#include "Backend/GraphicObjects/BackendGraphicObject.h"
+#include "Scene/SceneObjects/SceneObject.h"
+#include "OpenGLBackend/private/OpenGLScene.h"
 
 class OpenGLGraphicObject :
-	public virtual BackendGraphicObject
+	public virtual SceneObject
 {
-public:
-	void setVisibility(const bool isVisible) override;
+protected:
+	explicit OpenGLGraphicObject(OpenGLScene&);
 
-	void setModelMatrix(const Matrix4x4& newTransformation) override;
+	OpenGLScene& getScene() const { return m_scene; }
+
+public:
+	void setVisibility(const bool newVisitiblity) override;
+	bool isVisible() const override;
+
+	void setTransformation(const Matrix4x4& newTransformation) override;
+	Matrix4x4 getTransformation() const override;
 
 public:
 	virtual void render() = 0;
 
 protected:
+	OpenGLScene& m_scene;
+
 	bool m_isVisible = false;
 	Matrix4x4 m_modelMatrix = unitMatrix4x4;
 };

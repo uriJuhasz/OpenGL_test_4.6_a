@@ -24,9 +24,6 @@
     <ClCompile Include="Scene\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenGLBackend\OpenGLUtilities.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="View\View.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,9 +87,6 @@
     <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLPrimitive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneObjectImpl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Backend\GraphicObjects\BackendGraphicObjects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -105,16 +99,10 @@
     <ClCompile Include="OpenGLBackend\private\Instances\OpenGLSurface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneMeshImpl.cpp">
+    <ClCompile Include="OpenGLBackend\private\OpenGLUtilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneSphereImpl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneBezierPatchImpl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\private\SceneObjectImplementation\SceneSurfaceImpl.cpp">
+    <ClCompile Include="OpenGLBackend\private\OpenGLScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -132,9 +120,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Scene\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenGLBackend\OpenGLUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="View\View.h">
@@ -218,9 +203,6 @@
     <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLPrimitive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneObjectImpl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Backend\GraphicObjects\BackendSphere.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -245,19 +227,13 @@
     <ClInclude Include="Scene\SceneObjects\SceneMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneMeshImpl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Scene\SceneObjects\SceneSurface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneSphereImpl.h">
+    <ClInclude Include="OpenGLBackend\private\OpenGLUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneBezierPatchImpl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\private\SceneObjectImplementation\SceneSurfaceImpl.h">
+    <ClInclude Include="OpenGLBackend\private\OpenGLScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

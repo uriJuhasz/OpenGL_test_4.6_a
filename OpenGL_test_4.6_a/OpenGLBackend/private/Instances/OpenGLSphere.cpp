@@ -1,14 +1,15 @@
 #include "OpenGLSphere.h"
 
-OpenGLSphere::OpenGLSphere(OpenGLWindow& window, const float radius)
-	: m_window(window)
+OpenGLSphere::OpenGLSphere(OpenGLScene& scene, const float radius)
+	: OpenGLSurface(scene)
+    , OpenGLGraphicObject(scene)
 	, m_radius(radius)
 {
 }
 
 void OpenGLSphere::render()
 {
-    auto& shader = m_window.getSphereEdgeShader();
+    auto& shader = getScene().getSphereEdgeShader();
 	Vector4 vertex(m_modelMatrix.at(0,3), m_modelMatrix.at(1, 3), m_modelMatrix.at(2, 3), m_radius);
     if (m_edgesVisible)
     {

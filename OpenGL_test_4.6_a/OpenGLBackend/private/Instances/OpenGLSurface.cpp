@@ -1,20 +1,34 @@
 #include "OpenGLSurface.h"
 
-void OpenGLSurface::setEdgesWidth(const float newWidth)
+OpenGLSurface::OpenGLSurface(OpenGLScene& scene)
+	: OpenGLGraphicObject(scene)
+{
+}
+
+void OpenGLSurface::setEdgeWidth(const float newWidth)
 {
 	m_edgesWidth = newWidth;
 }
 
-void OpenGLSurface::setEdgesColor(const ColorRGBA& newColor)
+void OpenGLSurface::setEdgeColor(const ColorRGBA& newColor)
 {
 	m_edgesColor = newColor;
 }
 
-void OpenGLSurface::setEdgesVisibility(const bool edgesVisible)
+void OpenGLSurface::setEdgeVisibility(const bool edgesVisible)
 {
 	m_edgesVisible = edgesVisible;
 }
-void OpenGLSurface::setFacesVisibility(const bool facesVisible)
+void OpenGLSurface::setFaceVisibility(const bool facesVisible)
 {
 	m_facesVisible = facesVisible;
+}
+
+void OpenGLSurface::setFaceFrontColor(const ColorRGBA& newColor)
+{
+	m_facesFrontColor = newColor;
+}
+void OpenGLSurface::setFaceBackColor(const ColorRGBA& newColor)
+{
+	m_facesBackColor = newColor;
 }

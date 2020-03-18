@@ -9,8 +9,10 @@
 #include "Geometry/BezierPatch.h"
 
 #include <array>
+#include <memory>
 
 class BackendContext;
+class Scene;
 
 class BackendWindow
 {
@@ -44,13 +46,6 @@ public:
     virtual void requestUpdate() = 0;
 
 public:
-    virtual void setViewMatrix(const Matrix4x4&) = 0;
-    virtual void setProjectionMatrix(const Matrix4x4&) = 0;
-
-    virtual void render() = 0;
-    
-public:
-    virtual BackendMesh& makeMesh(const Mesh&) = 0;
-    virtual BackendBezierPatch& makeBezierPatch(const BezierPatch&) = 0;
+    virtual std::unique_ptr<Scene> makeScene() = 0;
 };
 

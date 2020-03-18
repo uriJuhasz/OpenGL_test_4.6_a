@@ -1,6 +1,6 @@
 #include "OpenGLMeshPrimitive.h"
 #include "../OpenGLWindow.h"
-#include "OpenGLBackend/OpenGLUtilities.h"
+#include "OpenGLBackend/private/OpenGLUtilities.h"
 
 #include "Utilities/Exception.h"
 #include "Utilities/Misc.h"
@@ -20,8 +20,8 @@ static int glGetVertexAttribInt(const GLenum type, const int attributeIndex)
 
 GLuint insertMesh(const Mesh& mesh);
 
-OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLWindow& window, const Mesh& mesh)
-    : OpenGLPrimitive(window)
+OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLScene& scene, const Mesh& mesh)
+    : OpenGLPrimitive(scene)
     , m_numFaces(mesh.numFaces())
     , m_numEdges(mesh.numEdges())
 {
@@ -58,7 +58,7 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
 
     if (renderFaces)
     {
-        const auto& faceShader = m_window.getMeshFaceShader();
+        const auto& faceShader = m_scene.getMeshFaceShader();
 
         glBindVertexArray(m_vertexArrayObjectIDForFaces);
         glUseProgram(faceShader.m_shaderProgramID);
@@ -72,7 +72,7 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
     }
     if (renderEdges)
     {
-        const auto& edgeShader = m_window.getMeshEdgeShader();
+        const auto& edgeShader = m_scene.getMeshEdgeShader();
 
         glUseProgram(edgeShader.m_shaderProgramID);
 
@@ -214,9 +214,9 @@ void OpenGLMeshPrimitive::insertMesh(const Mesh& mesh)
 
 OpenGLStandardShaderProgram& OpenGLMeshPrimitive::getFaceShader() const
 {
-    return m_window.getMeshFaceShader();
+    return m_scene.getMeshFaceShader();
 }
 OpenGLStandardShaderProgram& OpenGLMeshPrimitive::getEdgeShader() const
 {
-    return m_window.getMeshEdgeShader();
+    return m_scene.getMeshEdgeShader();
 }

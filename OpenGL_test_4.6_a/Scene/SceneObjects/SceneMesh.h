@@ -12,8 +12,11 @@ public:
 	virtual void setEdgeVisibility(const int edgeIndex, const bool isVisible) = 0;
 
 public:
-	virtual const Mesh& getMesh() const = 0;
+//	virtual const Mesh& getMesh() const = 0;
 
 	virtual const std::vector<bool> getEdgeVisibility() const = 0;
+
+public:
+	virtual SceneMesh& createInstance() const = 0;
 };
 

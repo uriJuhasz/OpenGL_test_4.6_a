@@ -12,6 +12,10 @@ class OpenGLShaderProgram
 {
 public:
 	explicit OpenGLShaderProgram(GLuint shaderProgramID) : m_shaderProgramID(shaderProgramID) {}
+
+public:
+	bool hasLight(const int) const;
+
 public:
 	void setParameter(const std::string& name, const float value);
 	void setParameter(const std::string& name, const Vector3& value);

@@ -1,7 +1,9 @@
 #include "OpenGLMeshInstance.h"
 
 OpenGLMeshInstance::OpenGLMeshInstance(const OpenGLMeshPrimitive& meshPrimitive)
-	: m_meshPrimitive(meshPrimitive)
+	: OpenGLGraphicObject(meshPrimitive.getScene())
+	, OpenGLSurface(meshPrimitive.getScene())
+	, m_meshPrimitive(meshPrimitive)
 {}
 
 
@@ -23,10 +25,8 @@ void OpenGLMeshInstance::render()
 	m_meshPrimitive.render(m_facesVisible, m_edgesVisible);
 }
 
-OpenGLWindow& OpenGLMeshInstance::getWindow() const { return m_meshPrimitive.getWindow(); }
-
-BackendMesh& OpenGLMeshInstance::createInstance() const
+OpenGLMeshInstance& OpenGLMeshInstance::createInstance() const
 {
-	return getWindow().makeInstance(*this);
+	return getScene().makeInstance(*this);
 }
 

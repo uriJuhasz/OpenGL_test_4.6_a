@@ -1,23 +1,35 @@
 #pragma once
 #include "OpenGLGraphicObject.h"
-#include "Backend/GraphicObjects/BackendSurface.h"
+#include "Scene/SceneObjects/SceneSurface.h"
 
 class OpenGLSurface
 	: public virtual OpenGLGraphicObject
-	, public virtual BackendSurface
+	, public virtual SceneSurface
 {
 public:
-	void setEdgesWidth(const float)  override;
-	void setEdgesColor(const ColorRGBA&) override;
+	explicit OpenGLSurface(OpenGLScene& scene);
 
-	void setEdgesVisibility(const bool) override;
-	void setFacesVisibility(const bool) override;
+public:
+	void setEdgeVisibility(const bool) override;
+	void setEdgeColor(const ColorRGBA&) override;
+	void setEdgeWidth(const float)  override;
+
+	void setFaceVisibility(const bool) override;
+	void setFaceFrontColor(const ColorRGBA&) override;
+	void setFaceBackColor(const ColorRGBA&) override;
+
+public:
+	virtual float     getEdgeWidth() const override;
+	virtual ColorRGBA getEdgeColor() const override;
 
 protected:
 	bool m_facesVisible = true;
-	bool m_edgesVisible = true;
+	ColorRGBA m_facesFrontColor = ColorRGBA::Red;
+	ColorRGBA m_facesBackColor = ColorRGBA::Blue;
 
+	bool m_edgesVisible = true;
 	float m_edgesWidth = 1.0f;
 	ColorRGBA m_edgesColor = ColorRGBA::White;
+
 };
 

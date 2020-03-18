@@ -9,7 +9,7 @@ class OpenGLBezierPatchPrimitive
 	: public OpenGLPrimitive
 {
 public:
-	OpenGLBezierPatchPrimitive(OpenGLWindow& window, const BezierPatch&);
+	OpenGLBezierPatchPrimitive(OpenGLScene& scene, const BezierPatch&);
 	~OpenGLBezierPatchPrimitive();
 
 	void render(const bool renderFaces, const bool renderEdges = false);

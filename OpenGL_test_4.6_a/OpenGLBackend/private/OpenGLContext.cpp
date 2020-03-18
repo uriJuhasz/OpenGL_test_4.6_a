@@ -3,7 +3,7 @@
 #include "OpenGLContext.h"
 
 #include "OpenGLWindow.h"
-#include "OpenGLBackend/OpenGLUtilities.h"
+#include "OpenGLUtilities.h"
 
 #include "Utilities/Exception.h"
 

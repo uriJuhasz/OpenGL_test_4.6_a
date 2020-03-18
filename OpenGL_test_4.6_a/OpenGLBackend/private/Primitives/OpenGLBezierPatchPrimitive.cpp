@@ -1,15 +1,14 @@
 #include "OpenGLBezierPatchPrimitive.h"
 
-#include "OpenGLBackend/OpenGLUtilities.h"
-
+#include "OpenGLBackend/private/OpenGLUtilities.h"
 #include "OpenGLBackend/private/OpenGLShaderProgram.h"
 
 #include <vector>
 
 using std::vector;
 
-OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLWindow& window, const BezierPatch& patch)
-    : OpenGLPrimitive(window)
+OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const BezierPatch& patch)
+    : OpenGLPrimitive(scene)
 {
     const auto& vertices = patch.getVertices();
 
@@ -41,7 +40,7 @@ void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool rende
             glDisable(GL_CULL_FACE);*/
         glDepthFunc(GL_LESS);
 
-        glUseProgram(m_window.getBezierPatchFaceShader().m_shaderProgramID);
+        glUseProgram(m_scene.getBezierPatchFaceShader().m_shaderProgramID);
         glDrawArrays(GL_PATCHES, 0, m_numVertices);
     }
     if (renderEdges)
@@ -52,7 +51,7 @@ void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool rende
         glDepthFunc(GL_LEQUAL);
         glEnable(GL_POLYGON_OFFSET_LINE);
         glPolygonOffset(-1.0, 0.0);
-        glUseProgram(m_window.getBezierPatchEdgeShader().m_shaderProgramID);
+        glUseProgram(m_scene.getBezierPatchEdgeShader().m_shaderProgramID);
         glDrawArrays(GL_PATCHES, 0, m_numVertices);
     }
 }

@@ -1,14 +1,14 @@
 #pragma once
 #include "OpenGLSurface.h"
 #include "../Primitives/OpenGLBezierPatchPrimitive.h"
-#include "Backend/GraphicObjects/BackendBezierPatch.h"
+#include "Scene/SceneObjects/SceneBezierPatch.h"
 
 class OpenGLBezierPatchInstance
 	: public OpenGLSurface
-	, public virtual BackendBezierPatch
+	, public virtual SceneBezierPatch
 {
 public:
-	OpenGLBezierPatchInstance(const OpenGLBezierPatchPrimitive&);
+	explicit OpenGLBezierPatchInstance(const OpenGLBezierPatchPrimitive&);
 	OpenGLBezierPatchInstance& createInstance() const override;
 
 public:

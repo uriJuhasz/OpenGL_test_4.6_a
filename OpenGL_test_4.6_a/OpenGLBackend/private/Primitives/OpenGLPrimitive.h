@@ -1,15 +1,15 @@
 #pragma once
-#include "OpenGLBackend/private/OpenGLWindow.h"
+#include "OpenGLBackend/private/OpenGLScene.h"
 
 class OpenGLPrimitive
 {
 protected:
-	explicit OpenGLPrimitive(OpenGLWindow& window) : m_window(window) {}
+	explicit OpenGLPrimitive(OpenGLScene& scene) : m_scene(scene) {}
 
 public:
-	OpenGLWindow& getWindow() const { return m_window; }
+	OpenGLScene& getScene() const { return m_scene; }
 
 protected:
-	OpenGLWindow& m_window;
+	OpenGLScene& m_scene;
 };
 

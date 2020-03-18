@@ -47,10 +47,6 @@ public: //Bezier patch
 
 public: //Sphere
 
-public: //Scene parameters
-    Vector3 m_light0Position, m_light1Position;
-
-    Camera m_sceneCamera;
 public:
     BackendWindow& m_backendWindow;
 };
@@ -62,7 +58,7 @@ View* View::makeView(BackendWindow& backendWindow)
 
 ViewImpl::ViewImpl(BackendWindow& backendWindow)
     : m_backendWindow(backendWindow)
-    , m_scene(Scene::makeScene(backendWindow))
+    , m_scene(backendWindow.makeScene())
 {
     backendWindow.registerView(this);
     backendWindow.init();
@@ -94,13 +90,16 @@ array<Vector3, 2> calculateBoundingBox(const vector<Vector3>& vertices)
 }
 void ViewImpl::setupScene()
 {
+    auto& scene = *m_scene;
     /////////////////////////////////////////
     /////////////////////////////////////////
     //Setup lights
     {
+        auto& pointLight0 = scene.addPointLight();
+        auto& pointLight1 = scene.addPointLight();
         const Vector3 target(0.0f, 0.0f, 0.0f);
-        m_light0Position = target + Vector3(0.0f, 100.0f, 0.0f);
-        m_light1Position = target + Vector3(0.0f, -1000.0f, 0.0f);
+        pointLight0.m_position = target + Vector3(0.0f, 100.0f, 0.0f);
+        pointLight1.m_position = target + Vector3(0.0f, -1000.0f, 0.0f);
     }
 
     /////////////////////////////////////////
@@ -109,10 +108,7 @@ void ViewImpl::setupScene()
     {
         auto& mesh = *m_mesh;
         mesh.calculateTopology();
-        auto& scene = *m_scene;
-        const auto sceneMeshObject = scene.addMesh(mesh);
-//        m_backendMesh.reset(m_backendWindow.makeBackendMesh(mesh));
-//        const auto& meshObject = scene.addSceneObject();
+        auto& sceneMeshObject = scene.addMesh(mesh);
 
         { //Bounding box
             const auto& vertices = mesh.m_vertices;
@@ -122,30 +118,13 @@ void ViewImpl::setupScene()
             const auto modelCenter = (boundingBox[0] + boundingBox[1]) / 2;
             const auto modelRadius = length(boundingBox[1] - boundingBox[0]) * 0.5f;
 
-            auto& camera = m_sceneCamera;
+            auto camera = scene.getCamera();
             camera.m_target = modelCenter;
             camera.m_position = modelCenter - Vector3(1.0f, 0.0f, 0.0f) * modelRadius * 1.5f;
+            scene.setCamera(camera);
         }
 
-        const auto modelMatrix = unitMatrix4x4;
-        {
-            auto& shaderProgram = *m_meshFaceShaderProgram;
-
-            shaderProgram.setParameter("modelMatrix", modelMatrix);
-
-            shaderProgram.setParameter("light0Position", m_light0Position);
-            shaderProgram.setParameter("light0Color", Vector3(1.0f, 1.0f, 1.0f));
-            shaderProgram.setParameter("light0SpecularExponent", 10.0f);
-            shaderProgram.setParameter("light1Position", m_light1Position);
-            shaderProgram.setParameter("light1Color", Vector3(1.0f, 1.0f, 1.0f));
-            shaderProgram.setParameter("light1SpecularExponent", 100.0f);
-        }
-        {
-            m_backendMesh->setEdgeShader(m_meshEdgeShaderProgram.get());
-            auto& shaderProgram = *m_meshEdgeShaderProgram;
-        }
-
-        {
+/*        {
 
             GLuint vertexArrayObjectID = 0;
             {
@@ -184,7 +163,7 @@ void ViewImpl::setupScene()
             shaderProgram.setParameter("modelMatrix", modelMatrix);
         }
     }
-
+    */
     ////////////////////////////////////////////////////////////////
     //Bezier patch
     {
@@ -194,36 +173,12 @@ void ViewImpl::setupScene()
             Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
             Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
         };
-        auto& scene = *m_scene;
-        m_bezierPatch = &scene.addBezierPatch(new BezierPatch(patchParameters));
-        m_backendBezierPatch.reset(m_backendWindow.makeBackendPatch(*m_bezierPatch));
-
-        m_backendBezierPatch->setFaceShader(m_bezierShaderProgram.get());
-        m_backendBezierPatch->setEdgeShader(m_bezierEdgeShaderProgram.get());
-
-        const Matrix4x4 modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
-        {
-            auto& shaderProgram = *m_bezierShaderProgram;
-
-            shaderProgram.setParameter("modelMatrix", modelMatrix);
-
-            const Vector3 target(0.0f, 0.0f, 0.0f);
-
-            shaderProgram.setParameter("light0Position", m_light0Position);
-            shaderProgram.setParameter("light0Color", Vector3(1.0f, 1.0f, 1.0f));
-            shaderProgram.setParameter("light0SpecularExponent", 10.0f);
-            shaderProgram.setParameter("light1Position", m_light1Position);
-            shaderProgram.setParameter("light1Color", Vector3(1.0f, 1.0f, 1.0f));
-            shaderProgram.setParameter("light1SpecularExponent", 100.0f);
-
-            const Vector3 frontColor(1.0f, 0.0f, 1.0f);
-            shaderProgram.setParameter("frontColor", frontColor);
-            const Vector3 backColor(0.1f, 0.3f, 0.3f);
-            shaderProgram.setParameter("backColor", backColor);
-
-            shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
-            shaderProgram.setParameter("desiredPixelsPerTriangle", 20.0f);
-        }
+        BezierPatch m_bezierPatch0(patchParameters);
+        auto& bezierPatch = scene.addBezierPatch(m_bezierPatch0);
+        const auto modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
+        bezierPatch.setTransformation(modelMatrix);
+        bezierPatch.setFaceFrontColor(ColorRGBA::Red);
+        bezierPatch.setFaceBackColor(ColorRGBA::Blue);
         {
             auto& shaderProgram = *m_bezierEdgeShaderProgram;
 

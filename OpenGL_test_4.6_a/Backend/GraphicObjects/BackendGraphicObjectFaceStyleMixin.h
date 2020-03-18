@@ -6,5 +6,6 @@ class BackendGraphicObjectFaceStyleMixin
 {
 public:
 	virtual void setFacesVisibility(const bool) = 0;
-	virtual void setFacesColor(const ColorRGBA&) = 0;
+	virtual void setFacesFrontColor(const ColorRGBA&) = 0;
+	virtual void setFacesBackColor(const ColorRGBA&) = 0;
 };

@@ -1,6 +1,15 @@
 #include "OpenGLShaderProgram.h"
 #include "OpenGLBackend/OpenGLUtilities.h"
 
+#include <string>
+using std::to_string;
+using std::string;
+
+bool OpenGLShaderProgram::hasLight(const int lightIndex) const
+{
+	return glGetUniformLocation(m_shaderProgramID, ("light" + to_string(lightIndex) + "Position").c_str());
+}
+
 void OpenGLShaderProgram::setParameter(const std::string& name, const float value)
 {
 	glUseProgram(m_shaderProgramID);

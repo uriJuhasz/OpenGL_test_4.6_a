@@ -10,7 +10,7 @@ class OpenGLMeshPrimitive final
 	: public OpenGLPrimitive
 {
 public:
-	OpenGLMeshPrimitive(OpenGLWindow& window,const Mesh& mesh);
+	OpenGLMeshPrimitive(OpenGLScene&,const Mesh& mesh);
 	~OpenGLMeshPrimitive();
 
 public:
