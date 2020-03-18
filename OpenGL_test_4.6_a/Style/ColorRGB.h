@@ -12,5 +12,4 @@ public:
 
     static const ColorRGB White;
 };
-const ColorRGB ColorRGB::White = ColorRGB(1.0f,1.0f,1.0f);
 

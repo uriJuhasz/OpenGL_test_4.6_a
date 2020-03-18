@@ -1,9 +1,9 @@
 #pragma once
-#include "SceneObject.h"
+#include "SceneSurface.h"
 
 #include "Geometry/BezierPatch.h"
 class SceneBezierPatch
-	: public virtual SceneObject
+	: public virtual SceneSurface
 {
 };
 

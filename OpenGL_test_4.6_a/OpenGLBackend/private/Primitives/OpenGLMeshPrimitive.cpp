@@ -25,11 +25,13 @@ OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLScene& scene, const Mesh& mesh)
     , m_numFaces(mesh.numFaces())
     , m_numEdges(mesh.numEdges())
 {
+    std::cout << "+OpenGLMeshPrimitive[" << this << "]" << std::endl;
     insertMesh(mesh);
 }
 
 OpenGLMeshPrimitive::~OpenGLMeshPrimitive()
 {
+    std::cout << "~OpenGLMeshPrimitive[" << this << "]" << std::endl;
     constexpr int c_maxVertexAttributes = 3;
     if (m_vertexArrayObjectIDForFaces)
     {

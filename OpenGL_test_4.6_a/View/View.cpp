@@ -29,7 +29,10 @@ public:
     virtual ~ViewImpl();
 
     void setupScene() override;
-    void renderScene() override;
+    void renderScene() override
+    {
+        m_scene->render();
+    }
 
     void mouseWheelCallback(const Vector2& wheelDelta) override;
     void mouseMoveCallback(const Vector2& delta, const Vector2& oldPos, const Vector2& newPos) override;
@@ -41,11 +44,6 @@ public: //Mesh
     unique_ptr<Scene> m_scene;
     unique_ptr<Mesh> m_mesh;
     array<Vector3, 2> m_meshBoundingBox;
-
-public: //Bezier patch
-    SceneBezierPatch* m_bezierPatch;
-
-public: //Sphere
 
 public:
     BackendWindow& m_backendWindow;
@@ -124,205 +122,198 @@ void ViewImpl::setupScene()
             scene.setCamera(camera);
         }
 
-/*        {
+        /*        {
 
-            GLuint vertexArrayObjectID = 0;
+                    GLuint vertexArrayObjectID = 0;
+                    {
+                        glCreateVertexArrays(1, &vertexArrayObjectID);
+                        glBindVertexArray(vertexArrayObjectID);
+                    }
+                    {
+                        const auto values = vector<Vector3>{ m_meshBoundingBox[0],m_meshBoundingBox[1] };
+                        const int numValues = toInt(values.size());
+                        const auto valueSize = sizeof(values[0]);
+                        const auto attributeIndex = 0;
+                        const auto D = 3;
+                        GLuint bufferID = 0;
+                        glCreateBuffers(1, &bufferID);
+                        glNamedBufferStorage(bufferID, numValues * valueSize, values.data(), 0);
+                        glVertexArrayVertexBuffer(vertexArrayObjectID, attributeIndex, bufferID, 0, valueSize);
+                        glEnableVertexArrayAttrib(vertexArrayObjectID, attributeIndex);
+                        glVertexArrayAttribFormat(vertexArrayObjectID, attributeIndex, D, GL_FLOAT, GL_FALSE, 0);
+                        glVertexArrayAttribBinding(vertexArrayObjectID, attributeIndex, attributeIndex);
+                    }
+
+                    {
+                        const array<int, 2> indexArray = { 0,1 };
+                        const auto indexSize = sizeof(indexArray[0]);
+                        const auto numIndices = indexArray.size();
+                        GLuint indexBufferID;
+                        glCreateBuffers(1, &indexBufferID);
+                        glNamedBufferStorage(indexBufferID, numIndices * indexSize, indexArray.data(), GL_DYNAMIC_STORAGE_BIT);
+                        glVertexArrayElementBuffer(vertexArrayObjectID, indexBufferID);
+                    }
+                    m_meshBoundingBoxVertexArrayObjectID = vertexArrayObjectID;
+
+                    m_meshBoundingboxShaderProgram = backendContext.makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBoxLine");
+                    auto& shaderProgram = *m_meshBoundingboxShaderProgram;
+
+                    shaderProgram.setParameter("modelMatrix", modelMatrix);
+                }
+            }
+            */
+            ////////////////////////////////////////////////////////////////
+            //Bezier patch
+        {
+            const array<Vector3, 16> patchParameters = {
+                Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),
+                Vector3(0,1,1), Vector3(1,-2,1), Vector3(2, 1,1), Vector3(3, 0,1),
+                Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
+                Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
+            };
+            BezierPatch m_bezierPatch0(patchParameters);
+            auto& bezierPatch = scene.addBezierPatch(m_bezierPatch0);
+            const auto modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
+            bezierPatch.setTransformation(modelMatrix);
+            bezierPatch.setFaceFrontColor(ColorRGBA::Red);
+            bezierPatch.setFaceBackColor(ColorRGBA::Blue);
+            bezierPatch.setEdgeColor(ColorRGBA::White);
+        }
+
+        ////////////////////////////////////////////////////////////////
+        //Sphere
+        {
+            const vector<Vector4> patchParameters = {
+                Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+                Vector4(-20.0f, 0.0f, 0.0f, 2.0f),
+                Vector4(20.0f, 0.0f, 0.0f, 5.0f),
+                Vector4(0.0f, 20.0f, 0.0f, 10.0f),
+                Vector4(0.0f, -30.0f, -.0f, 20.0f)
+            };
+            for (const auto sphereDef : patchParameters)
+                m_scene->addSphere(Vector3(sphereDef[0], sphereDef[1], sphereDef[2]), sphereDef[3]);
+        }
+    }
+}
+    using std::clamp;
+    /*
+    void ViewImpl::renderScene()
+    {
+        const auto viewportDimensions = m_backendWindow.getViewportDimensions();
+
+        const auto sceneCamera = m_sceneCamera;
+        const auto viewMatrix = sceneCamera.makeViewMatrix();
+        const auto projectionMatrix = sceneCamera.makeProjectionMatrix(viewportDimensions[0] / viewportDimensions[1]);
+
+        //////////////////////
+        constexpr bool renderSphere = false;
+        constexpr bool showBezierPatch = false;
+        constexpr bool renderMesh = true;
+        constexpr bool renderMeshFaces = renderMesh && true;
+        constexpr bool renderWireframe = renderMesh && true;
+        constexpr bool showBoundingBox = renderMesh && true;
+
+        //////////////////////
+        //Patch sphere
+        if (renderSphere)
+        {
+            auto& shaderProgram = *m_sphereShaderProgram;
+
             {
-                glCreateVertexArrays(1, &vertexArrayObjectID);
-                glBindVertexArray(vertexArrayObjectID);
+                const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
+                shaderProgram.setParameter("pixelWidth", pixelWidth);
+            }
+
+            m_backendSpherePatch->render(false, true);
+        }
+
+        //////////////////////
+        //Bezier patch
+        if (showBezierPatch)
+        {
+            {
+                auto& shaderProgram = *m_bezierShaderProgram;
+                shaderProgram.setParameter("viewMatrix", viewMatrix);
+                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+
+                shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
+
+                {
+                    const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
+                    shaderProgram.setParameter("pixelWidth", pixelWidth);
+                }
+
+                m_backendBezierPatch->render(true, false);
             }
             {
-                const auto values = vector<Vector3>{ m_meshBoundingBox[0],m_meshBoundingBox[1] };
-                const int numValues = toInt(values.size());
-                const auto valueSize = sizeof(values[0]);
-                const auto attributeIndex = 0;
-                const auto D = 3;
-                GLuint bufferID = 0;
-                glCreateBuffers(1, &bufferID);
-                glNamedBufferStorage(bufferID, numValues * valueSize, values.data(), 0);
-                glVertexArrayVertexBuffer(vertexArrayObjectID, attributeIndex, bufferID, 0, valueSize);
-                glEnableVertexArrayAttrib(vertexArrayObjectID, attributeIndex);
-                glVertexArrayAttribFormat(vertexArrayObjectID, attributeIndex, D, GL_FLOAT, GL_FALSE, 0);
-                glVertexArrayAttribBinding(vertexArrayObjectID, attributeIndex, attributeIndex);
-            }
+                auto& shaderProgram = *m_bezierEdgeShaderProgram;
+                shaderProgram.setParameter("viewMatrix", viewMatrix);
+                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
+                {
+                    const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
+                    shaderProgram.setParameter("pixelWidth", pixelWidth);
+                }
+
+                m_backendBezierPatch->render(false, true);
+            }
+        }
+
+        //////////////////////
+        //Render mesh
+        if (renderMesh)
+        {
+            for (int i = 0; i < 2; ++i)
             {
-                const array<int, 2> indexArray = { 0,1 };
-                const auto indexSize = sizeof(indexArray[0]);
-                const auto numIndices = indexArray.size();
-                GLuint indexBufferID;
-                glCreateBuffers(1, &indexBufferID);
-                glNamedBufferStorage(indexBufferID, numIndices * indexSize, indexArray.data(), GL_DYNAMIC_STORAGE_BIT);
-                glVertexArrayElementBuffer(vertexArrayObjectID, indexBufferID);
+                const auto modelMatrix = (i == 0)
+                    ? makeTranslationMatrix(Vector3(-20, 0, 0))
+                    : makeTranslationMatrix(Vector3( 20, 0, 0));
+
+                if (renderMeshFaces)
+                {
+                    auto& shaderProgram = *m_meshFaceShaderProgram;
+
+                    shaderProgram.setParameter("modelMatrix", modelMatrix);
+                    shaderProgram.setParameter("viewMatrix", viewMatrix);
+                    shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+                    shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
+
+                    m_backendMesh->render(true, false);
+                }
+
+                if (renderWireframe)
+                {
+                    auto& shaderProgram = *m_meshEdgeShaderProgram;
+
+                    shaderProgram.setParameter("modelMatrix", modelMatrix);
+                    shaderProgram.setParameter("viewMatrix", viewMatrix);
+                    shaderProgram.setParameter("projectionMatrix", projectionMatrix);
+
+                    shaderProgram.setParameter("edgeColor", Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+
+                    m_backendMesh->render(false, true);
+                }
             }
-            m_meshBoundingBoxVertexArrayObjectID = vertexArrayObjectID;
+            ///////////////////////
+            //Bounding box
+            if (showBoundingBox)
+            {
+                glBindVertexArray(m_meshBoundingBoxVertexArrayObjectID);
+                auto& shaderProgram = *m_meshBoundingboxShaderProgram;
+                shaderProgram.setParameter("viewMatrix", viewMatrix);
+                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
 
-            m_meshBoundingboxShaderProgram = backendContext.makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBoxLine");
-            auto& shaderProgram = *m_meshBoundingboxShaderProgram;
+                shaderProgram.setParameter("edgeColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 
-            shaderProgram.setParameter("modelMatrix", modelMatrix);
+                glDrawArrays(GL_LINES, 0, 2);
+            }
         }
     }
     */
-    ////////////////////////////////////////////////////////////////
-    //Bezier patch
-    {
-        const array<Vector3, 16> patchParameters = {
-            Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),
-            Vector3(0,1,1), Vector3(1,-2,1), Vector3(2, 1,1), Vector3(3, 0,1),
-            Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
-            Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
-        };
-        BezierPatch m_bezierPatch0(patchParameters);
-        auto& bezierPatch = scene.addBezierPatch(m_bezierPatch0);
-        const auto modelMatrix = makeTranslationMatrix({ -1.5f,0.0f,-1.5f });
-        bezierPatch.setTransformation(modelMatrix);
-        bezierPatch.setFaceFrontColor(ColorRGBA::Red);
-        bezierPatch.setFaceBackColor(ColorRGBA::Blue);
-        {
-            auto& shaderProgram = *m_bezierEdgeShaderProgram;
-
-            shaderProgram.setParameter("modelMatrix", modelMatrix);
-
-            shaderProgram.setParameter("edgeColor", Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-
-            shaderProgram.setParameter("maxTessellationLevel", backendContext.getMaxTessellationLevel());
-            shaderProgram.setParameter("desiredPixelsPerTriangle", 20.0f);
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////
-    //Sphere
-    {
-        const vector<Vector4> patchParameters = {
-            Vector4(0.0f, 0.0f, 0.0f, 1.0f),
-            Vector4(-20.0f, 0.0f, 0.0f, 2.0f),
-            Vector4(20.0f, 0.0f, 0.0f, 5.0f),
-            Vector4(0.0f, 20.0f, 0.0f, 10.0f),
-            Vector4(0.0f, -30.0f, -.0f, 20.0f)
-        };
-        for (const auto sphereDef : patchParameters)
-            m_scene->addSphere(Vector3(sphereDef[0], sphereDef[1], sphereDef[2]), sphereDef[3]);
-    }
-}
-using std::clamp;
-
-void ViewImpl::renderScene()
-{
-    const auto viewportDimensions = m_backendWindow.getViewportDimensions();
-
-    const auto sceneCamera = m_sceneCamera;
-    const auto viewMatrix = sceneCamera.makeViewMatrix();
-    const auto projectionMatrix = sceneCamera.makeProjectionMatrix(viewportDimensions[0] / viewportDimensions[1]);
-
-    //////////////////////
-    constexpr bool renderSphere = false;
-    constexpr bool showBezierPatch = false;
-    constexpr bool renderMesh = true;
-    constexpr bool renderMeshFaces = renderMesh && true;
-    constexpr bool renderWireframe = renderMesh && true;
-    constexpr bool showBoundingBox = renderMesh && true;
-
-    //////////////////////
-    //Patch sphere
-    if (renderSphere)
-    {
-        auto& shaderProgram = *m_sphereShaderProgram;
-
-        {
-            const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
-            shaderProgram.setParameter("pixelWidth", pixelWidth);
-        }
-
-        m_backendSpherePatch->render(false, true);
-    }
-
-    //////////////////////
-    //Bezier patch
-    if (showBezierPatch)
-    {
-        {
-            auto& shaderProgram = *m_bezierShaderProgram;
-            shaderProgram.setParameter("viewMatrix", viewMatrix);
-            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-            shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
-
-            {
-                const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
-                shaderProgram.setParameter("pixelWidth", pixelWidth);
-            }
-
-            m_backendBezierPatch->render(true, false);
-        }
-        {
-            auto& shaderProgram = *m_bezierEdgeShaderProgram;
-            shaderProgram.setParameter("viewMatrix", viewMatrix);
-            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-            {
-                const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
-                shaderProgram.setParameter("pixelWidth", pixelWidth);
-            }
-
-            m_backendBezierPatch->render(false, true);
-        }
-    }
-    
-    //////////////////////
-    //Render mesh
-    if (renderMesh)
-    {
-        for (int i = 0; i < 2; ++i)
-        {
-            const auto modelMatrix = (i == 0)
-                ? makeTranslationMatrix(Vector3(-20, 0, 0))
-                : makeTranslationMatrix(Vector3( 20, 0, 0));
-
-            if (renderMeshFaces)
-            {
-                auto& shaderProgram = *m_meshFaceShaderProgram;
-
-                shaderProgram.setParameter("modelMatrix", modelMatrix);
-                shaderProgram.setParameter("viewMatrix", viewMatrix);
-                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-                shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
-
-                m_backendMesh->render(true, false);
-            }
-
-            if (renderWireframe)
-            {
-                auto& shaderProgram = *m_meshEdgeShaderProgram;
-
-                shaderProgram.setParameter("modelMatrix", modelMatrix);
-                shaderProgram.setParameter("viewMatrix", viewMatrix);
-                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-                shaderProgram.setParameter("edgeColor", Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-
-                m_backendMesh->render(false, true);
-            }
-        }
-        ///////////////////////
-        //Bounding box
-        if (showBoundingBox)
-        {
-            glBindVertexArray(m_meshBoundingBoxVertexArrayObjectID);
-            auto& shaderProgram = *m_meshBoundingboxShaderProgram;
-            shaderProgram.setParameter("viewMatrix", viewMatrix);
-            shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-            shaderProgram.setParameter("edgeColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-
-            glDrawArrays(GL_LINES, 0, 2);
-        }
-    }
-}
 
 void ViewImpl::mouseWheelCallback(const Vector2& wheelDelta)
 {
-    auto& sceneCamera = m_sceneCamera;
+    auto sceneCamera = m_scene->getCamera();
     const auto dy = wheelDelta[1];
     constexpr float factor = 1.0f;
     const auto forward = sceneCamera.m_target - sceneCamera.m_position;
@@ -330,13 +321,14 @@ void ViewImpl::mouseWheelCallback(const Vector2& wheelDelta)
     constexpr float minimalDistance = 2.0f;
     const auto newDistance = max(distance - dy * factor, minimalDistance);
     sceneCamera.m_position = sceneCamera.m_target - normalize(forward) * newDistance;
+    m_scene->setCamera(sceneCamera);
     m_backendWindow.requestUpdate();
 }
 void ViewImpl::mouseMoveCallback(const Vector2& delta, const Vector2& oldPos, const Vector2& newPos)
 {
     if (m_backendWindow.isMiddleMouseButtonPressed())
     {
-        auto& sceneCamera = m_sceneCamera;
+        auto sceneCamera = m_scene->getCamera();
 
         constexpr float factor = 0.005f;
         auto viewMatrix = sceneCamera.makeViewMatrix();
@@ -353,6 +345,8 @@ void ViewImpl::mouseMoveCallback(const Vector2& delta, const Vector2& oldPos, co
         const auto matrix = viewMatrixInverse * rotationMatrix * viewMatrix;
         sceneCamera.m_position = mulHomogeneous(matrix, sceneCamera.m_position);
         sceneCamera.m_up = mulHomogeneous(matrix, sceneCamera.m_up);
+
+        m_scene->setCamera(sceneCamera);
         m_backendWindow.requestUpdate();
 
     }

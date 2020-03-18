@@ -12,6 +12,12 @@ public:
 	OpenGLBezierPatchInstance& createInstance() const override;
 
 public:
+	const OpenGLBezierPatchPrimitive& getPrimitive() const;
+
+public:
 	void render() override;
+
+private:
+	const OpenGLBezierPatchPrimitive& m_primitive;
 };
 

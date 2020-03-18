@@ -11,6 +11,7 @@ class OpenGLMeshInstance final
 {
 public:
 	OpenGLMeshInstance(const OpenGLMeshPrimitive&);
+	~OpenGLMeshInstance();
 
 public:
 	void render() override;

@@ -1,5 +1,5 @@
 #include "OpenGLShaderProgram.h"
-#include "OpenGLBackend/OpenGLUtilities.h"
+#include "OpenGLUtilities.h"
 
 #include <string>
 using std::to_string;

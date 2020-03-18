@@ -32,3 +32,6 @@ void OpenGLSurface::setFaceBackColor(const ColorRGBA& newColor)
 {
 	m_facesBackColor = newColor;
 }
+
+float     OpenGLSurface::getEdgeWidth() const { return m_edgesWidth; }
+ColorRGBA OpenGLSurface::getEdgeColor() const { return m_edgesColor; }

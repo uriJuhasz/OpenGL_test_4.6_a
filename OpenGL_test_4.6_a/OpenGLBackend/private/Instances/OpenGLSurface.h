@@ -19,8 +19,8 @@ public:
 	void setFaceBackColor(const ColorRGBA&) override;
 
 public:
-	virtual float     getEdgeWidth() const override;
-	virtual ColorRGBA getEdgeColor() const override;
+	float     getEdgeWidth() const override;
+	ColorRGBA getEdgeColor() const override;
 
 protected:
 	bool m_facesVisible = true;

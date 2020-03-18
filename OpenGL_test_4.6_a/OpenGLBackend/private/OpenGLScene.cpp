@@ -70,12 +70,16 @@ private:
     }
     OpenGLMeshInstance& addMesh(const Mesh& mesh) override
     {
-        auto& meshPrimitive = *m_meshPrimitives.emplace_back(make_unique<OpenGLMeshPrimitive>(*this, mesh));
-        return addObject((OpenGLMeshInstance*)nullptr, meshPrimitive);
+        const auto meshPrimitivePtr = m_meshPrimitives.emplace_back(make_unique<OpenGLMeshPrimitive>(*this, mesh)).get();
+        return addObject((OpenGLMeshInstance*)nullptr, std::ref(*meshPrimitivePtr));
     }
     OpenGLMeshInstance& makeInstance(const OpenGLMeshInstance& originalInstance) override
     {
         return addObject((OpenGLMeshInstance*)nullptr,originalInstance.getPrimitive());
+    }
+    OpenGLBezierPatchInstance& makeInstance(const OpenGLBezierPatchInstance& originalInstance) override
+    {
+        return addObject((OpenGLBezierPatchInstance*)nullptr, originalInstance.getPrimitive());
     }
 
 
@@ -84,7 +88,7 @@ private:
     OpenGLBezierPatchInstance& addBezierPatch(const BezierPatch& bezierPatch) override
     {
         const auto& patchPrimitive = *m_bezierPatchPrimitives.emplace_back(make_unique<OpenGLBezierPatchPrimitive>(*this, bezierPatch));
-        return addObject((OpenGLBezierPatchInstance*)nullptr, patchPrimitive);
+        return addObject((OpenGLBezierPatchInstance*)nullptr, std::ref(patchPrimitive));
     }
     OpenGLSphere& addSphere(const Vector3& center, const float radius) override
     {
@@ -357,3 +361,7 @@ void OpenGLSceneImpl::makeAndAttachShader(const GLuint shaderProgram, const GLen
     }
 }
 
+std::unique_ptr<OpenGLScene> OpenGLScene::makeScene(OpenGLWindow& window)
+{
+    return make_unique<OpenGLSceneImpl>(window);
+}

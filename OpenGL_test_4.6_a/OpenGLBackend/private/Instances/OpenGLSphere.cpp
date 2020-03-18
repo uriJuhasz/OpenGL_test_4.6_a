@@ -7,6 +7,11 @@ OpenGLSphere::OpenGLSphere(OpenGLScene& scene, const float radius)
 {
 }
 
+SceneObject& OpenGLSphere::createInstance() const
+{
+    return getScene().addSphere(getCenter(), m_radius);
+}
+
 void OpenGLSphere::render()
 {
     auto& shader = getScene().getSphereEdgeShader();
@@ -25,4 +30,19 @@ void OpenGLSphere::render()
     }
 
 	
+}
+
+void OpenGLSphere::setRadius(const float newRadius)
+{
+    m_radius = newRadius;
+}
+
+float OpenGLSphere::getRadius() const
+{
+    return m_radius;
+}
+
+Vector3 OpenGLSphere::getCenter() const
+{
+    return Vector3(m_modelMatrix.at(0, 3), m_modelMatrix.at(1, 3), m_modelMatrix.at(2, 3));
 }

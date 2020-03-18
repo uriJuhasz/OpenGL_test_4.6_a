@@ -12,13 +12,12 @@ public:
 	OpenGLBezierPatchPrimitive(OpenGLScene& scene, const BezierPatch&);
 	~OpenGLBezierPatchPrimitive();
 
-	void render(const bool renderFaces, const bool renderEdges = false);
+	void render(const bool renderFaces, const bool renderEdges = false) const;
 
 private:
 	GLuint m_vertexArrayObject;
 	GLuint m_vertexBuffer;
 
 	int m_numVertices = 0;
-	int m_numVerticesPerPatch = 0;
 };
 

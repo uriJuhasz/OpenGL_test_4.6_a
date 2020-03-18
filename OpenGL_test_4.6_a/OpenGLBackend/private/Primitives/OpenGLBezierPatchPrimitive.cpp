@@ -17,7 +17,8 @@ OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const
     vector<Vector3> verticesV(vertices.begin(), vertices.end());
     m_vertexBuffer = glsMakeBuffer(verticesV, 0);
 
-    glPatchParameteri(GL_PATCH_VERTICES, m_numVerticesPerPatch);
+    const auto numVerticesPerPatch = patch.getVertices().size();
+    glPatchParameteri(GL_PATCH_VERTICES, numVerticesPerPatch);
 }
 
 OpenGLBezierPatchPrimitive::~OpenGLBezierPatchPrimitive()
@@ -26,10 +27,8 @@ OpenGLBezierPatchPrimitive::~OpenGLBezierPatchPrimitive()
     glDeleteVertexArrays(1, &m_vertexArrayObject);
 }
 
-void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool renderEdges)
+void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool renderEdges) const
 {
-    glBindVertexArray(m_vertexArrayObject);
-    glPatchParameteri(GL_PATCH_VERTICES, m_numVerticesPerPatch);
     constexpr bool showPatchFaces = true;
     if (renderFaces)
     {

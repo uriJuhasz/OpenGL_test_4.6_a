@@ -5,6 +5,7 @@
 
 class OpenGLWindow;
 class OpenGLMeshInstance;
+class OpenGLBezierPatchInstance;
 
 class OpenGLScene :
 	public virtual Scene
@@ -25,5 +26,6 @@ public:
 
 public:
 	virtual OpenGLMeshInstance& makeInstance(const OpenGLMeshInstance&) = 0;
+	virtual OpenGLBezierPatchInstance& makeInstance(const OpenGLBezierPatchInstance&) = 0;
 };
 
