@@ -12,14 +12,19 @@ SceneObject& OpenGLSphere::createInstance() const
     return getScene().addSphere(getCenter(), m_radius);
 }
 
+constexpr int c_numVerticesPerPatch = 1;
 void OpenGLSphere::render()
 {
+    if (!isVisible())
+        return;
+    glBindVertexArray(0);
+    glPatchParameteri(GL_PATCH_VERTICES, c_numVerticesPerPatch);
     auto& shader = getScene().getSphereEdgeShader();
 	Vector4 vertex(m_modelMatrix.at(0,3), m_modelMatrix.at(1, 3), m_modelMatrix.at(2, 3), m_radius);
     if (m_edgesVisible)
     {
         glUseProgram(shader.m_shaderProgramID);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 //        glLineWidth(m_edgesWidth);
 //        glEnable(GL_CULL_FACE);
 //        glDepthFunc(GL_LEQUAL);

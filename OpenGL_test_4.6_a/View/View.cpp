@@ -178,7 +178,7 @@ void ViewImpl::setupScene()
             auto& bezierPatch0 = *m_bezierPatch;
             auto& sceneBezierPatch = scene.addBezierPatch(bezierPatch0);
             sceneBezierPatch.setVisibility(true);
-            sceneBezierPatch.setFaceVisibility(true);
+            sceneBezierPatch.setFaceVisibility(false);
             sceneBezierPatch.setEdgeVisibility(true);
             sceneBezierPatch.setTransformation(makeTranslationMatrix({ -1.5f,0.0f,-1.5f }));
             sceneBezierPatch.setFaceFrontColor(ColorRGBA::Red);

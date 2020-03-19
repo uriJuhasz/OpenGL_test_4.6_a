@@ -184,7 +184,6 @@ public:
                 const auto& light = *m_pointLights[lightIndex];
                 if (shader.hasLight(lightIndex))
                 {
-                    std::cout << "  Shader[" << shader.m_shaderProgramID << "].setLight" << lightIndex << "Position = " << light.getPosition() << std::endl;
                     shader.setParameter("light" + lis + "Position", light.getPosition());
                     shader.setParameter("light" + lis + "Color", light.m_color.m_value);
                     shader.setParameter("light" + lis + "SpecularExponent", light.m_specularExponent);
@@ -193,9 +192,9 @@ public:
         }
 
         const auto pixelWidth = m_window.getFramebufferSize()[0];
-        m_sphereEdgeShader->setParameter("pixelWidth", pixelWidth);
-        m_bezierFaceShader->setParameter("pixelWidth", pixelWidth);
-        m_bezierEdgeShader->setParameter("pixelWidth", pixelWidth);
+//        m_sphereEdgeShader->setParameter("pixelWidth", pixelWidth);
+//        m_bezierFaceShader->setParameter("pixelWidth", pixelWidth);
+//        m_bezierEdgeShader->setParameter("pixelWidth", pixelWidth);
 
         for (auto& instancePtr : m_sceneObjects)
             instancePtr->render();
@@ -295,12 +294,12 @@ void OpenGLSceneImpl::loadShaders()
         glEnable(GL_CULL_FACE);
         glDepthFunc(GL_LEQUAL);*/
         m_sphereEdgeShader = makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
-        for (auto shaderPtr : { m_sphereEdgeShader.get(), m_bezierFaceShader.get(), m_bezierEdgeShader.get() })
-        {
-            auto& shader = *shaderPtr;
-            shader.setParameter("maxTessellationLevel", glsGetUInt(GL_MAX_TESS_GEN_LEVEL));
-            shader.setParameter("desiredPixelsPerTriangle", 5.0f);
-        }
+    }
+    for (auto shaderPtr : { m_sphereEdgeShader.get(), m_bezierFaceShader.get(), m_bezierEdgeShader.get() })
+    {
+        auto& shader = *shaderPtr;
+        shader.setParameter("maxTessellationLevel", glsGetUInt(GL_MAX_TESS_GEN_LEVEL));
+        shader.setParameter("desiredPixelsPerTriangle", 20.0f);
     }
 }
 

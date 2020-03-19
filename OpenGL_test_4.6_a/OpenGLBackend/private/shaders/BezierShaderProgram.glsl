@@ -213,13 +213,13 @@ vec3 calculateBaseColor(vec2 uvCoord)
 }
 
 uniform float innerRadius = 0.05;
-uniform float outerRadius = 1.4;
+uniform float outerRadius = 0.7;
 void main() 
 {
 	vec2 uvCoord = gVertexData.uvCoord;
 	float radius = length(uvCoord-vec2(0.5,0.5));
-//	if (radius<innerRadius || outerRadius<radius)
-//		discard;
+	if (radius<innerRadius || outerRadius<radius)
+		discard;
 
 	vec3 normal = normalize(gVertexData.normal) * (gl_FrontFacing ? 1 : -1);
 

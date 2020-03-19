@@ -20,12 +20,6 @@ OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const
 
     vector<Vector3> verticesV(vertices.begin(), vertices.end());
     m_vertexBuffer = glsMakeBuffer(verticesV, 0);
-
-    const GLint numVerticesPerPatch = toInt(vertices.size());
-    cout << "   OpenGLBezierPatchPrimitive.setNumVerticesPerPatch(" << numVerticesPerPatch << ")" << endl;
-    glPatchParameteri(GL_PATCH_VERTICES, numVerticesPerPatch);
-
-    m_numVertices = numVerticesPerPatch;
 }
 
 OpenGLBezierPatchPrimitive::~OpenGLBezierPatchPrimitive()
@@ -34,9 +28,14 @@ OpenGLBezierPatchPrimitive::~OpenGLBezierPatchPrimitive()
     glDeleteVertexArrays(1, &m_vertexArrayObject);
 }
 
+constexpr int c_numVerticesPerPatch = 16;
 void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool renderEdges) const
 {
     constexpr bool showPatchFaces = true;
+
+    glBindVertexArray(m_vertexArrayObject);
+    glPatchParameteri(GL_PATCH_VERTICES, c_numVerticesPerPatch);
+
     if (renderFaces)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -49,7 +48,7 @@ void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool rende
         glPolygonOffset(1.0f, 0.0f);
 
         glUseProgram(m_scene.getBezierPatchFaceShader().m_shaderProgramID);
-        glDrawArrays(GL_PATCHES, 0, m_numVertices);
+        glDrawArrays(GL_PATCHES, 0, c_numVerticesPerPatch);
     }
     if (renderEdges)
     {
@@ -58,7 +57,7 @@ void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool rende
         glDepthFunc(GL_LEQUAL);
 
         glUseProgram(m_scene.getBezierPatchEdgeShader().m_shaderProgramID);
-        glDrawArrays(GL_PATCHES, 0, m_numVertices);
+        glDrawArrays(GL_PATCHES, 0, c_numVerticesPerPatch);
     }
 }
 

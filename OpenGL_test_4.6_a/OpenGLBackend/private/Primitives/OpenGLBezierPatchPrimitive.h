@@ -22,8 +22,6 @@ private:
 	GLuint m_vertexArrayObject;
 	GLuint m_vertexBuffer;
 
-	int m_numVertices = 0;
-
 	bool m_cullBackfaces = false;
 };
 

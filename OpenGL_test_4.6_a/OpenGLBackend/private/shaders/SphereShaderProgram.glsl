@@ -9,7 +9,7 @@ void main( )
 {
 	vCenter = position.xyz;
 	vRadius = position.w;
-	gl_Position = vec4( 0., 0., 0., 1. );
+	gl_Position = position;
 }
 
 #endif
@@ -61,6 +61,7 @@ void main( )
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position; 
 	
 	float tessellationLevel = calculateTessellationLevel(center, radius);
+
 	gl_TessLevelOuter[0] = tessellationLevel;
 	gl_TessLevelOuter[1] = tessellationLevel;
 }

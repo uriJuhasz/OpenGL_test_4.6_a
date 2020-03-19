@@ -18,10 +18,11 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 uniform int maxTessellationLevel = 64;
+uniform int minTessellationLevel = 2;
 
-uniform int pixelWidth;
+uniform int pixelWidth = 1920;
 
-uniform float desiredPixelsPerTriangle = 20;
+uniform float desiredPixelsPerTriangle = 5;
 
 vec3 wc2ndc(vec3 wc)
 {
@@ -37,7 +38,7 @@ float calculateTessellationLevel(vec3 center, float radius)
 	float clipCoordinateDiameter = length(p0NDC - p1NDC);
 	float pixelDiameter = clipCoordinateDiameter * pixelWidth / 2;
 
-	return clamp(pixelDiameter/desiredPixelsPerTriangle,2,maxTessellationLevel);
+	return clamp(pixelDiameter/desiredPixelsPerTriangle,minTessellationLevel,maxTessellationLevel);
 }
 
 void main()
@@ -137,7 +138,7 @@ void main()
 {
 	vec2 uvCoord = teUVCoord;
 	float radius = length(uvCoord-vec2(0.5,0.5));
-	if (radius<0.05 || radius > 1.4)
+	if (radius<0.05 || radius > 0.7)
 		discard;
 		
 	fragmentColor = edgeColor;
