@@ -25,13 +25,11 @@ OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLScene& scene, const Mesh& mesh)
     , m_numFaces(mesh.numFaces())
     , m_numEdges(mesh.numEdges())
 {
-    std::cout << "+OpenGLMeshPrimitive[" << this << "]" << std::endl;
     insertMesh(mesh);
 }
 
 OpenGLMeshPrimitive::~OpenGLMeshPrimitive()
 {
-    std::cout << "~OpenGLMeshPrimitive[" << this << "]" << std::endl;
     constexpr int c_maxVertexAttributes = 3;
     if (m_vertexArrayObjectIDForFaces)
     {
@@ -68,8 +66,8 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
         glDepthFunc(GL_LESS);
         glPolygonMode(GL_FRONT, GL_FILL);
         glEnable(GL_CULL_FACE);
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glPolygonOffset(1.0f, 0.0f);
+//        glEnable(GL_POLYGON_OFFSET_FILL);
+//        glPolygonOffset(1.0f, 0.0f);
         glDrawElements(GL_TRIANGLES, m_numFaces * 3, GL_UNSIGNED_INT, 0);
     }
     if (renderEdges)
@@ -80,9 +78,9 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
 
         glLineWidth(2.0f);
         glDepthFunc(GL_LEQUAL);
-        static bool aaLines = false;
+        static bool aaLines = true;
         const bool antialiasedLines = aaLines;
-        aaLines = !aaLines;
+//        aaLines = !aaLines;
         if (antialiasedLines)
         {
             glEnable(GL_BLEND);

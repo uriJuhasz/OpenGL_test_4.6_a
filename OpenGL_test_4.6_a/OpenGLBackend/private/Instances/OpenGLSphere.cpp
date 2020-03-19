@@ -20,11 +20,11 @@ void OpenGLSphere::render()
     {
         glUseProgram(shader.m_shaderProgramID);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth(m_edgesWidth);
-        glEnable(GL_CULL_FACE);
-        glDepthFunc(GL_LEQUAL);
-        glUseProgram(shader.m_shaderProgramID);
-	    glBegin(GL_PATCHES);
+//        glLineWidth(m_edgesWidth);
+//        glEnable(GL_CULL_FACE);
+//        glDepthFunc(GL_LEQUAL);
+
+        glBegin(GL_PATCHES);
 	    glVertex4fv(vertex.data());
 	    glEnd();
     }

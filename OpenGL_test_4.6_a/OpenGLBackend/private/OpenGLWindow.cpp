@@ -6,7 +6,6 @@
 
 #include "OpenGLWindow.h"
 #include "OpenGLContext.h"
-#include "OpenGLShaderProgram.h"
 
 #include "OpenGLUtilities.h"
 

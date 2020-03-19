@@ -3,7 +3,11 @@
 #include "OpenGLBackend/private/OpenGLUtilities.h"
 #include "OpenGLBackend/private/OpenGLShaderProgram.h"
 
+#include "Utilities/Misc.h"
 #include <vector>
+
+#include <iostream>
+using namespace std;
 
 using std::vector;
 
@@ -17,8 +21,11 @@ OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const
     vector<Vector3> verticesV(vertices.begin(), vertices.end());
     m_vertexBuffer = glsMakeBuffer(verticesV, 0);
 
-    const auto numVerticesPerPatch = patch.getVertices().size();
+    const GLint numVerticesPerPatch = toInt(vertices.size());
+    cout << "   OpenGLBezierPatchPrimitive.setNumVerticesPerPatch(" << numVerticesPerPatch << ")" << endl;
     glPatchParameteri(GL_PATCH_VERTICES, numVerticesPerPatch);
+
+    m_numVertices = numVerticesPerPatch;
 }
 
 OpenGLBezierPatchPrimitive::~OpenGLBezierPatchPrimitive()
@@ -33,11 +40,13 @@ void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool rende
     if (renderFaces)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-/*        if (m_cullBackfaces)
+        if (m_cullBackfaces)
             glEnable(GL_CULL_FACE);
         else
-            glDisable(GL_CULL_FACE);*/
+            glDisable(GL_CULL_FACE);
         glDepthFunc(GL_LESS);
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(1.0f, 0.0f);
 
         glUseProgram(m_scene.getBezierPatchFaceShader().m_shaderProgramID);
         glDrawArrays(GL_PATCHES, 0, m_numVertices);
@@ -46,11 +55,18 @@ void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool rende
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDisable(GL_CULL_FACE);
-        glLineWidth(1.0f);
         glDepthFunc(GL_LEQUAL);
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glPolygonOffset(-1.0, 0.0);
+
         glUseProgram(m_scene.getBezierPatchEdgeShader().m_shaderProgramID);
         glDrawArrays(GL_PATCHES, 0, m_numVertices);
     }
+}
+
+OpenGLTessellationShaderProgram& OpenGLBezierPatchPrimitive::getFaceShader() const
+{
+    return m_scene.getBezierPatchFaceShader();
+}
+OpenGLTessellationShaderProgram& OpenGLBezierPatchPrimitive::getEdgeShader() const
+{
+    return m_scene.getBezierPatchEdgeShader();
 }

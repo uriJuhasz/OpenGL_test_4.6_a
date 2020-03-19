@@ -32,7 +32,8 @@ uniform int minTessellationLevel = 6;
 
 uniform int pixelWidth;
 
-uniform float desiredPixelsPerTriangle = 5.0f;
+uniform float desiredPixelsPerTriangle = 5;
+
 vec3 wc2ndc(vec3 wc)
 {
 	vec4 cc = projectionMatrix*vec4(wc,1);
@@ -57,7 +58,7 @@ void main( )
 
 	tcCenter = center;
 	tcRadius = radius;
-	gl_out[ gl_InvocationID ].gl_Position = gl_in[ 0 ].gl_Position; 
+	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position; 
 	
 	float tessellationLevel = calculateTessellationLevel(center, radius);
 	gl_TessLevelOuter[0] = tessellationLevel;

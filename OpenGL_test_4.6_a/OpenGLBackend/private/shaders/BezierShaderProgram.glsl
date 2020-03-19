@@ -170,18 +170,18 @@ void main()
 
 #ifdef COMPILING_FS
 
-uniform vec3 viewerPosition;
+uniform vec3 viewerPosition = vec3(0,0,-10);
 
-uniform vec3 frontColor;
-uniform vec3 backColor;
+uniform vec3 frontColor = vec3(1,0,0);
+uniform vec3 backColor = vec3(0,0,1);
 
-uniform vec3 light0Position;
-uniform vec3 light0Color;
-uniform float light0SpecularExponent;
+uniform vec3 light0Position = vec3(0,100,0);
+uniform vec3 light0Color = vec3(1,1,1);
+uniform float light0SpecularExponent =  100;
 	
-uniform vec3 light1Position;
-uniform vec3 light1Color;
-uniform float light1SpecularExponent;
+uniform vec3 light1Position = vec3(0,-100,0);
+uniform vec3 light1Color = vec3(1,1,1);
+uniform float light1SpecularExponent = 100;
 
 layout (location=1) in VertexData gVertexData;
 
@@ -211,16 +211,20 @@ vec3 calculateBaseColor(vec2 uvCoord)
 		vec3(0,0,1)*(clamp(uvCoord.x+uvCoord.y-1.0f,0,1))
 	;
 }
+
+uniform float innerRadius = 0.05;
+uniform float outerRadius = 1.4;
 void main() 
 {
 	vec2 uvCoord = gVertexData.uvCoord;
 	float radius = length(uvCoord-vec2(0.5,0.5));
-	if (radius<0.2)
-		discard;
+//	if (radius<innerRadius || outerRadius<radius)
+//		discard;
 
-	vec3 normal = normalize(gVertexData.normal) *(gl_FrontFacing ? 1 : -1);
+	vec3 normal = normalize(gVertexData.normal) * (gl_FrontFacing ? 1 : -1);
 
-	vec3 color = gl_FrontFacing ? calculateBaseColor(uvCoord) : vec3(1,1,1)-calculateBaseColor(uvCoord);//backColor;
+	vec2 vuCoord = vec2(uvCoord[1],uvCoord[0]);
+	vec3 color = gl_FrontFacing ? calculateBaseColor(uvCoord) : vec3(1,1,1)-calculateBaseColor(uvCoord);
 
 	vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
 	vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);

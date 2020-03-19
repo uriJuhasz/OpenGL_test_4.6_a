@@ -238,12 +238,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\BezierShaderProgram.glsl" />
-    <None Include="shaders\SphereShaderProgram.glsl" />
-    <None Include="shaders\MeshFaceShaderProgram.glsl" />
-    <None Include="shaders\MeshEdgeShaderProgram.glsl" />
-    <None Include="shaders\BoundingBoxShaderProgram.glsl" />
-    <None Include="shaders\BezierWireframeShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\shaders\BezierShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\shaders\BezierWireframeShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\shaders\BoundingBoxShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\shaders\MeshEdgeShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\shaders\MeshFaceShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\shaders\SphereShaderProgram.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />

@@ -1,22 +1,20 @@
 #include "OpenGLMeshInstance.h"
 
-#include <iostream>
-
 OpenGLMeshInstance::OpenGLMeshInstance(const OpenGLMeshPrimitive& meshPrimitive)
 	: OpenGLGraphicObject(meshPrimitive.getScene())
 	, OpenGLSurface(meshPrimitive.getScene())
 	, m_meshPrimitive(meshPrimitive)
 {
-	std::cout << "+OpenGLMeshInstance[" << this << "] primitive=" << &m_meshPrimitive << std::endl;
 }
 
 OpenGLMeshInstance::~OpenGLMeshInstance()
 {
-	std::cout << "~OpenGLMeshInstance[" << this << "] primitive=" << &m_meshPrimitive << std::endl;
 }
 
 void OpenGLMeshInstance::render()
 {
+	if (!isVisible())
+		return;
 	if (m_facesVisible)
 	{
 		auto& faceShader = m_meshPrimitive.getFaceShader();

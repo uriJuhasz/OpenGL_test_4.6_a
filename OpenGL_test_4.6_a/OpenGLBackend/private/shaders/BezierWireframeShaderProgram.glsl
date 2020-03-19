@@ -127,7 +127,7 @@ void main( )
 
 #ifdef COMPILING_FS
 
-uniform vec4 edgeColor;
+uniform vec4 edgeColor = vec4(1,1,1,1);
 
 in vec2 teUVCoord;
 
@@ -137,7 +137,7 @@ void main()
 {
 	vec2 uvCoord = teUVCoord;
 	float radius = length(uvCoord-vec2(0.5,0.5));
-	if (radius<0.2)
+	if (radius<0.05 || radius > 1.4)
 		discard;
 		
 	fragmentColor = edgeColor;

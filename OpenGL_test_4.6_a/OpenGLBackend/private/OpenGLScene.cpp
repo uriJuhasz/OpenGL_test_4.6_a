@@ -35,7 +35,7 @@ using std::ifstream;
 using std::to_string;
 using std::endl;
 using std::stringstream;
-static const string c_shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\shaders\)";
+static const string c_shaderBasePath = R"(C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\shaders\)";
 
 class OpenGLSceneImpl final
     : public OpenGLScene
@@ -100,7 +100,7 @@ private:
 public:
     PointLight& addPointLight() override
     {
-        return m_pointLights.emplace_back();
+        return *m_pointLights.emplace_back(make_unique<PointLight>());
     }
 
 private:
@@ -109,7 +109,7 @@ private:
     vector<unique_ptr<OpenGLGraphicObject>> m_sceneObjects;
 
 private:
-    vector<PointLight> m_pointLights;
+    vector<unique_ptr<PointLight>> m_pointLights;
 
     vector<unique_ptr<OpenGLMeshPrimitive>> m_meshPrimitives;
     vector<unique_ptr<OpenGLBezierPatchPrimitive>> m_bezierPatchPrimitives;
@@ -181,10 +181,11 @@ public:
             for (int lightIndex = 0; lightIndex < maxShaderLights; ++lightIndex)
             {
                 const string lis = to_string(lightIndex);
-                const auto& light = m_pointLights[lightIndex];
+                const auto& light = *m_pointLights[lightIndex];
                 if (shader.hasLight(lightIndex))
                 {
-                    shader.setParameter("light" + lis + "Position", light.m_position);
+                    std::cout << "  Shader[" << shader.m_shaderProgramID << "].setLight" << lightIndex << "Position = " << light.getPosition() << std::endl;
+                    shader.setParameter("light" + lis + "Position", light.getPosition());
                     shader.setParameter("light" + lis + "Color", light.m_color.m_value);
                     shader.setParameter("light" + lis + "SpecularExponent", light.m_specularExponent);
                 }
@@ -193,7 +194,8 @@ public:
 
         const auto pixelWidth = m_window.getFramebufferSize()[0];
         m_sphereEdgeShader->setParameter("pixelWidth", pixelWidth);
-        m_sphereEdgeShader->setParameter("modelMatrix", unitMatrix4x4);
+        m_bezierFaceShader->setParameter("pixelWidth", pixelWidth);
+        m_bezierEdgeShader->setParameter("pixelWidth", pixelWidth);
 
         for (auto& instancePtr : m_sceneObjects)
             instancePtr->render();
@@ -288,13 +290,17 @@ void OpenGLSceneImpl::loadShaders()
 
     m_bezierFaceShader = makeTessellationShaderProgram("BezierShaderProgram.glsl", "BezierFace");
     m_bezierEdgeShader = makeTessellationShaderProgram("BezierWireframeShaderProgram.glsl", "BezierEdge");
-
-    m_sphereEdgeShader = makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
-    for (auto shaderPtr : { m_sphereEdgeShader.get(), m_bezierEdgeShader.get() })
     {
-        auto& shader = *shaderPtr;
-        shader.setParameter("maxTessellationLevel", glsGetUInt(GL_MAX_TESS_GEN_LEVEL));
-        shader.setParameter("desiredPixelsPerTriangle", 5.0f);
+/*        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glEnable(GL_CULL_FACE);
+        glDepthFunc(GL_LEQUAL);*/
+        m_sphereEdgeShader = makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
+        for (auto shaderPtr : { m_sphereEdgeShader.get(), m_bezierFaceShader.get(), m_bezierEdgeShader.get() })
+        {
+            auto& shader = *shaderPtr;
+            shader.setParameter("maxTessellationLevel", glsGetUInt(GL_MAX_TESS_GEN_LEVEL));
+            shader.setParameter("desiredPixelsPerTriangle", 5.0f);
+        }
     }
 }
 

@@ -14,10 +14,16 @@ public:
 
 	void render(const bool renderFaces, const bool renderEdges = false) const;
 
+public:
+	OpenGLTessellationShaderProgram& getFaceShader() const;
+	OpenGLTessellationShaderProgram& getEdgeShader() const;
+
 private:
 	GLuint m_vertexArrayObject;
 	GLuint m_vertexBuffer;
 
 	int m_numVertices = 0;
+
+	bool m_cullBackfaces = false;
 };
 

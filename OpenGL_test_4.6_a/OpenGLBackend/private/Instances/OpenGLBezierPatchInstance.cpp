@@ -14,6 +14,25 @@ OpenGLBezierPatchInstance& OpenGLBezierPatchInstance::createInstance() const
 
 void OpenGLBezierPatchInstance::render()
 {
+	if (!isVisible())
+		return;
+
+	if (m_facesVisible)
+	{
+		auto& faceShader = m_primitive.getFaceShader();
+
+		faceShader.setParameter("modelMatrix", m_modelMatrix);
+		faceShader.setParameter("viewerPosition", m_scene.getCamera().m_position);
+	}
+	if (m_edgesVisible)
+	{
+		auto& edgeShader = m_primitive.getEdgeShader();
+
+		edgeShader.setParameter("modelMatrix", m_modelMatrix);
+		edgeShader.setParameter("edgeColor", m_edgesColor.m_value);
+
+		glLineWidth(m_edgesWidth);
+	}
 	m_primitive.render(m_facesVisible,m_edgesVisible);
 }
 
