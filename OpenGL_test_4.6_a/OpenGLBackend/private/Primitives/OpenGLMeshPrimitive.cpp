@@ -11,13 +11,6 @@
 using std::vector;
 using std::array;
 
-static int glGetVertexAttribInt(const GLenum type, const int attributeIndex)
-{
-    GLint val;
-    glGetVertexAttribiv(attributeIndex, type, &val);
-    return val;
-}
-
 GLuint insertMesh(const Mesh& mesh);
 
 OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLScene& scene, const Mesh& mesh)
@@ -30,25 +23,7 @@ OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLScene& scene, const Mesh& mesh)
 
 OpenGLMeshPrimitive::~OpenGLMeshPrimitive()
 {
-    constexpr int c_maxVertexAttributes = 3;
-    if (m_vertexArrayObjectIDForFaces)
-    {
-        glBindVertexArray(m_vertexArrayObjectIDForFaces);
-        for (int i = 0; i < c_maxVertexAttributes; ++i)
-        {
-            if (glGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_ENABLED, i))
-            {
-                GLuint bufferID = glGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, 2);
-                glDeleteBuffers(1, &bufferID);
-            }
-            
-        }
-        GLuint vertexIndexBufferID = 0;
-        glGetVertexArrayiv(m_vertexArrayObjectIDForFaces,GL_ELEMENT_ARRAY_BUFFER_BINDING, (GLint*)&vertexIndexBufferID);
-        std::cout << " Deleting vertex index buffer " << vertexIndexBufferID << std::endl;
-        glDeleteBuffers(1,&vertexIndexBufferID);
-    }
-    glDeleteVertexArrays(1, &m_vertexArrayObjectIDForFaces);
+    deleteVertexArrayObjectAndAllBuffers(m_vertexArrayObjectIDForFaces, 3);
 }
 
 void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges) const
@@ -125,50 +100,6 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
         }
     }
 }
-
-GLuint glsCreateBuffer()
-{
-    GLuint bufferID = 0;
-    glCreateBuffers(1, &bufferID);
-    return bufferID;
-}
-template<unsigned int D>static GLuint glsCreateBuffer(
-    const vector<Vector<D>>& values
-)
-{
-    const auto valueSize = sizeof(values[0]); // sizeof(values[0]);
-    const auto numValues = toInt(values.size());
-
-    const auto bufferID = glsCreateBuffer();
-    //    std::cout << "  Created buffer " << bufferID << " for attribute " << attributeIndex << std::endl;
-    glNamedBufferStorage(bufferID, numValues * valueSize, values.data(), 0);
-    return bufferID;
-}
-
-template<unsigned int D>static void glsAttachBufferToAttribute(
-    const GLuint vertexArrayObjectID,
-    const GLuint bufferID,
-    const int attributeIndex
-    )
-{
-    glVertexArrayVertexBuffer(vertexArrayObjectID, attributeIndex, bufferID, 0, D*sizeof(float));
-    glEnableVertexArrayAttrib(vertexArrayObjectID, attributeIndex);
-    glVertexArrayAttribFormat(vertexArrayObjectID, attributeIndex, D, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(vertexArrayObjectID, attributeIndex, attributeIndex);
-}
-
-template<unsigned int D>static GLuint glsCreateAndAttachBufferToAttribute(
-    const GLuint vertexArrayObjectID,
-    const int attributeIndex,
-    const vector<Vector<D>>& values
-)
-{
-    const auto bufferID = glsCreateBuffer(values);
-    glsAttachBufferToAttribute<D>(vertexArrayObjectID, bufferID, attributeIndex);
-
-    return bufferID;
-}
-
 void OpenGLMeshPrimitive::insertMesh(const Mesh& mesh)
 {
     const int numVertices = mesh.numVertices();

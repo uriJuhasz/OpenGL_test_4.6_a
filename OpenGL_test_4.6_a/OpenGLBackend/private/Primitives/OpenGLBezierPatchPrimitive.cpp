@@ -10,22 +10,22 @@
 using namespace std;
 
 using std::vector;
+using std::array;
 
+template<class C> vector<typename C::value_type> toVector(const C& c)
+{
+    return vector<typename C::value_type>(c.begin(), c.end());
+}
 OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const BezierPatch& patch)
     : OpenGLPrimitive(scene)
 {
-    const auto& vertices = patch.getVertices();
-
     m_vertexArrayObject = glsGenAndBindVertexArrayObject();
-
-    vector<Vector3> verticesV(vertices.begin(), vertices.end());
-    m_vertexBuffer = glsMakeBuffer(verticesV, 0);
+    glsCreateAndAttachBufferToAttribute(m_vertexArrayObject, 0, toVector(patch.getVertices()));
 }
 
 OpenGLBezierPatchPrimitive::~OpenGLBezierPatchPrimitive()
 {
-    glDeleteBuffers(1, &m_vertexBuffer);
-    glDeleteVertexArrays(1, &m_vertexArrayObject);
+    deleteVertexArrayObjectAndAllBuffers(m_vertexArrayObject, 1);
 }
 
 constexpr int c_numVerticesPerPatch = 16;

@@ -6,6 +6,7 @@
 template<unsigned int D> class Vector final
 {
 public:
+    constexpr unsigned int dimension() { return D; }
     typedef Vector<D> MyType;
 
     constexpr Vector() : m_value()

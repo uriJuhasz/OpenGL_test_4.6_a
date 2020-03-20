@@ -1,5 +1,7 @@
 #include "OpenGLSphere.h"
 
+#include "OpenGLBackend/private/OpenGLUtilities.h"
+
 OpenGLSphere::OpenGLSphere(OpenGLScene& scene, const float radius)
 	: OpenGLSurface(scene)
     , OpenGLGraphicObject(scene)
@@ -21,13 +23,12 @@ void OpenGLSphere::render()
     glPatchParameteri(GL_PATCH_VERTICES, c_numVerticesPerPatch);
     auto& shader = getScene().getSphereEdgeShader();
 	Vector4 vertex(m_modelMatrix.at(0,3), m_modelMatrix.at(1, 3), m_modelMatrix.at(2, 3), m_radius);
-    if (m_edgesVisible)
     {
         glUseProgram(shader.m_shaderProgramID);
-//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-//        glLineWidth(m_edgesWidth);
-//        glEnable(GL_CULL_FACE);
-//        glDepthFunc(GL_LEQUAL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glLineWidth(m_edgesWidth);
+        glEnable(GL_CULL_FACE);
+        glDepthFunc(GL_LEQUAL);
 
         glBegin(GL_PATCHES);
 	    glVertex4fv(vertex.data());

@@ -26,6 +26,7 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 uniform int maxTessellationLevel = 64;
+uniform int minTessellationLevel = 2;
 
 uniform int pixelWidth;
 
@@ -45,7 +46,7 @@ float calculateTessellationLevel(vec3 center, float radius)
 	float clipCoordinateDiameter = length(p0NDC - p1NDC);
 	float pixelDiameter = clipCoordinateDiameter * pixelWidth / 2;
 
-	return clamp(pixelDiameter/desiredPixelsPerTriangle,2,maxTessellationLevel);
+	return clamp(pixelDiameter/desiredPixelsPerTriangle,minTessellationLevel,maxTessellationLevel);
 }
 
 void main()

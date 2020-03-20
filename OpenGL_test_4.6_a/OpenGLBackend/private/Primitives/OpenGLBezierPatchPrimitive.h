@@ -20,7 +20,6 @@ public:
 
 private:
 	GLuint m_vertexArrayObject;
-	GLuint m_vertexBuffer;
 
 	bool m_cullBackfaces = false;
 };

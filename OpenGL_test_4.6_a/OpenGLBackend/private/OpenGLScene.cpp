@@ -192,9 +192,9 @@ public:
         }
 
         const auto pixelWidth = m_window.getFramebufferSize()[0];
-//        m_sphereEdgeShader->setParameter("pixelWidth", pixelWidth);
-//        m_bezierFaceShader->setParameter("pixelWidth", pixelWidth);
-//        m_bezierEdgeShader->setParameter("pixelWidth", pixelWidth);
+        m_sphereEdgeShader->setParameter("pixelWidth", pixelWidth);
+        m_bezierFaceShader->setParameter("pixelWidth", pixelWidth);
+        m_bezierEdgeShader->setParameter("pixelWidth", pixelWidth);
 
         for (auto& instancePtr : m_sceneObjects)
             instancePtr->render();

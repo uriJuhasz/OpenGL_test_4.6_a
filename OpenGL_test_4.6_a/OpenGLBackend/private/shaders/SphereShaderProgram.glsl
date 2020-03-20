@@ -28,11 +28,11 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 uniform int maxTessellationLevel = 64;
-uniform int minTessellationLevel = 6;
+uniform int minTessellationLevel = 4;
 
-uniform int pixelWidth;
+uniform int pixelWidth = 1920;
 
-uniform float desiredPixelsPerTriangle = 5;
+uniform float desiredPixelsPerTriangle = 20;
 
 vec3 wc2ndc(vec3 wc)
 {
@@ -79,9 +79,9 @@ patch in vec3 tcCenter;
 out vec3 teNormal;
 out vec4 teColor;
 
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+uniform mat4 modelMatrix = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+uniform mat4 viewMatrix = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+uniform mat4 projectionMatrix = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 
 const float pi = 3.14159265;
 
