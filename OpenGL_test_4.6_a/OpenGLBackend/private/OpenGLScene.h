@@ -22,6 +22,7 @@ public:
 	virtual OpenGLTessellationShaderProgram& getBezierPatchEdgeShader() const = 0;
 
 public:
+	virtual OpenGLTessellationShaderProgram& getSphereFaceShader() const = 0;
 	virtual OpenGLTessellationShaderProgram& getSphereEdgeShader() const = 0;
 
 public:

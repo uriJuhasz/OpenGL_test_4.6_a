@@ -53,48 +53,17 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
 
         glLineWidth(2.0f);
         glDepthFunc(GL_LEQUAL);
-        static bool aaLines = true;
-        const bool antialiasedLines = aaLines;
-//        aaLines = !aaLines;
-        if (antialiasedLines)
-        {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }
-        else
-        {
-            glDisable(GL_BLEND);
-        }
 
         if (renderFaces)
         {
             glPolygonMode(GL_FRONT, GL_LINE);
             glEnable(GL_CULL_FACE);
-            if (antialiasedLines)
-            {
-                glEnable(GL_POLYGON_SMOOTH);
-                glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-            }
-            else
-            {
-                glDisable(GL_POLYGON_SMOOTH);
-            }
-
             glBindVertexArray(m_vertexArrayObjectIDForFaces);
             glDrawElements(GL_TRIANGLES, m_numFaces*3, GL_UNSIGNED_INT, 0);
 
         }
         else
         {
-            if (antialiasedLines)
-            {
-                glEnable(GL_LINE_SMOOTH);
-                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-            }
-            else
-            {
-                glEnable(GL_LINE_SMOOTH);
-            }
             glBindVertexArray(m_vertexArrayObjectIDForEdges);
             glDrawElements(GL_LINES, m_numEdges * 2, GL_UNSIGNED_INT, 0);
         }

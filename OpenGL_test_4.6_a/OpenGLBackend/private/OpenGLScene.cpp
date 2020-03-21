@@ -149,11 +149,16 @@ public:
     {
         return *m_sphereEdgeShader;
     }
+    OpenGLTessellationShaderProgram& getSphereFaceShader() const override
+    {
+        return *m_sphereFaceShader;
+    }
 
     unique_ptr<OpenGLStandardShaderProgram> m_meshFaceShader;
     unique_ptr<OpenGLStandardShaderProgram> m_meshEdgeShader;
     unique_ptr<OpenGLTessellationShaderProgram> m_bezierFaceShader;
     unique_ptr<OpenGLTessellationShaderProgram> m_bezierEdgeShader;
+    unique_ptr<OpenGLTessellationShaderProgram> m_sphereFaceShader;
     unique_ptr<OpenGLTessellationShaderProgram> m_sphereEdgeShader;
 
 public:
@@ -164,6 +169,7 @@ public:
             m_meshEdgeShader.get(),
             m_bezierFaceShader.get(),
             m_bezierEdgeShader.get(),
+            m_sphereFaceShader.get(),
             m_sphereEdgeShader.get()
         };
 
@@ -188,13 +194,41 @@ public:
                     shader.setParameter("light" + lis + "Color", light.m_color.m_value);
                     shader.setParameter("light" + lis + "SpecularExponent", light.m_specularExponent);
                 }
+                shader.setParameterIfExists("viewerPosition", getCamera().m_position);
             }
         }
 
+        const vector<OpenGLShaderProgram*> allAdaptiveTessellationShaders = {
+            m_bezierFaceShader.get(),
+            m_bezierEdgeShader.get(),
+            m_sphereFaceShader.get(),
+            m_sphereEdgeShader.get()
+        };
+
         const auto pixelWidth = m_window.getFramebufferSize()[0];
-        m_sphereEdgeShader->setParameter("pixelWidth", pixelWidth);
-        m_bezierFaceShader->setParameter("pixelWidth", pixelWidth);
-        m_bezierEdgeShader->setParameter("pixelWidth", pixelWidth);
+        for (auto shaderPtr : allAdaptiveTessellationShaders)
+            shaderPtr->setParameter("pixelWidth", pixelWidth);
+
+        { //Smooth lines
+            constexpr bool antialiasedLines = true;
+            if (antialiasedLines)
+            {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+//                glEnable(GL_POLYGON_SMOOTH);
+//                glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+                glEnable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+            }
+            else
+            {
+                glDisable(GL_BLEND);
+                glDisable(GL_POLYGON_SMOOTH);
+                glDisable(GL_LINE_SMOOTH);
+            }
+        }
 
         for (auto& instancePtr : m_sceneObjects)
             instancePtr->render();
@@ -287,15 +321,13 @@ void OpenGLSceneImpl::loadShaders()
     m_meshFaceShader = makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");
     m_meshEdgeShader = makeStandardShaderProgram("MeshEdgeShaderProgram.glsl", "meshEdge");
 
-    m_bezierFaceShader = makeTessellationShaderProgram("BezierShaderProgram.glsl", "BezierFace");
-    m_bezierEdgeShader = makeTessellationShaderProgram("BezierWireframeShaderProgram.glsl", "BezierEdge");
-    {
-/*        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glEnable(GL_CULL_FACE);
-        glDepthFunc(GL_LEQUAL);*/
-        m_sphereEdgeShader = makeTessellationShaderProgram("SphereShaderProgram.glsl", "Sphere");
-    }
-    for (auto shaderPtr : { m_sphereEdgeShader.get(), m_bezierFaceShader.get(), m_bezierEdgeShader.get() })
+    m_bezierFaceShader = makeTessellationShaderProgram("BezierFaceShaderProgram.glsl", "BezierFace");
+    m_bezierEdgeShader = makeTessellationShaderProgram("BezierEdgeShaderProgram.glsl", "BezierEdge");
+
+    m_sphereFaceShader = makeTessellationShaderProgram("SphereFaceShaderProgram.glsl", "SphereFace");
+    m_sphereEdgeShader = makeTessellationShaderProgram("SphereEdgeShaderProgram.glsl", "SphereEdge");
+
+    for (auto shaderPtr : { m_sphereFaceShader.get(), m_sphereEdgeShader.get(), m_bezierFaceShader.get(), m_bezierEdgeShader.get() })
     {
         auto& shader = *shaderPtr;
         shader.setParameter("maxTessellationLevel", glsGetUInt(GL_MAX_TESS_GEN_LEVEL));

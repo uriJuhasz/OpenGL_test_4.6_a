@@ -10,33 +10,66 @@ bool OpenGLShaderProgram::hasLight(const int lightIndex) const
 	return glGetUniformLocation(m_shaderProgramID, ("light" + to_string(lightIndex) + "Position").c_str());
 }
 
+template<class F, class ...Args> inline void setParameterT(const GLuint programID, const std::string& name, F f, Args... args)
+{
+	const auto location = glGetUniformLocation(programID, name.c_str());
+	f(programID, location, args...);
+	glsCheckErrors();
+}
+
 void OpenGLShaderProgram::setParameter(const std::string& name, const float value)
 {
-	glUseProgram(m_shaderProgramID);
-	glUniform1f(glGetUniformLocation(m_shaderProgramID, name.c_str()), value);
-	glsCheckErrors();
+	setParameterT(m_shaderProgramID, name, glProgramUniform1f, value);
 }
 void OpenGLShaderProgram::setParameter(const std::string& name, const Vector3& value)
 {
-	glUseProgram(m_shaderProgramID);
-	glUniform3fv(glGetUniformLocation(m_shaderProgramID, name.c_str()), 1, value.data());
-	glsCheckErrors();
+	setParameterT(m_shaderProgramID, name, glProgramUniform3fv, 1, value.data());
 }
 void OpenGLShaderProgram::setParameter(const std::string& name, const Vector4& value)
 {
-	glUseProgram(m_shaderProgramID);
-	glUniform4fv(glGetUniformLocation(m_shaderProgramID, name.c_str()), 1, value.data());
-	glsCheckErrors();
+	setParameterT(m_shaderProgramID, name, glProgramUniform4fv, 1, value.data());
 }
-void OpenGLShaderProgram::setParameter(const std::string& name, const Matrix4x4 value)
+void OpenGLShaderProgram::setParameter(const std::string& name, const Matrix4x4& value)
 {
-	glUseProgram(m_shaderProgramID);
-	glUniformMatrix4fv(glGetUniformLocation(m_shaderProgramID, name.c_str()),1, true, value.data());
-	glsCheckErrors();
+	setParameterT(m_shaderProgramID, name, glProgramUniformMatrix4fv, 1, true, value.data());
 }
 void OpenGLShaderProgram::setParameter(const std::string& name, const int value)
 {
-	glUseProgram(m_shaderProgramID);
-	glUniform1i(glGetUniformLocation(m_shaderProgramID, name.c_str()), value);
+	setParameterT(m_shaderProgramID, name, glProgramUniform1i, value);
+}
+
+template<class F, class ...Args> inline void setParameterIfExistsT(const GLuint programID, const std::string& name, F f, Args... args)
+{
+	const auto location = glGetUniformLocation(programID, name.c_str());
+	if (location != -1)
+	{
+		f(programID, location, args...);
+	}
 	glsCheckErrors();
+}
+
+void OpenGLShaderProgram::setParameterIfExists(const std::string& name, const float value)
+{
+	setParameterIfExistsT(m_shaderProgramID, name, glProgramUniform1f, value);
+}
+void OpenGLShaderProgram::setParameterIfExists(const std::string& name, const Vector2& value)
+{
+	setParameterIfExistsT(m_shaderProgramID, name, glProgramUniform2fv, 1, value.data());
+}
+void OpenGLShaderProgram::setParameterIfExists(const std::string& name, const Vector3& value)
+{
+	setParameterIfExistsT(m_shaderProgramID, name, glProgramUniform3fv, 1, value.data());
+}
+void OpenGLShaderProgram::setParameterIfExists(const std::string& name, const Vector4& value)
+{
+	setParameterIfExistsT(m_shaderProgramID, name, glProgramUniform4fv, 1, value.data());
+}
+
+void OpenGLShaderProgram::setParameterIfExists(const std::string& name, const Matrix4x4& value)
+{
+	setParameterIfExistsT(m_shaderProgramID, name, glProgramUniformMatrix4fv, 1, true, value.data());
+}
+void OpenGLShaderProgram::setParameterIfExists(const std::string& name, const int value)
+{
+	setParameterIfExistsT(m_shaderProgramID, name, glProgramUniform1i, value);
 }

@@ -1,10 +1,10 @@
 #pragma once
-#include "SceneObject.h"
+#include "SceneSurface.h"
 
 #include "Math/Vector.h"
 
 class SceneSphere
-	: public virtual SceneObject
+	: public virtual SceneSurface
 {
 public:
 	virtual void setRadius(const float) = 0;

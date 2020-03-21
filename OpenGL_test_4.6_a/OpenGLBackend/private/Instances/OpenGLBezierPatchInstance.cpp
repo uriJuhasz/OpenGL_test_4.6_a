@@ -22,7 +22,6 @@ void OpenGLBezierPatchInstance::render()
 		auto& faceShader = m_primitive.getFaceShader();
 
 		faceShader.setParameter("modelMatrix", m_modelMatrix);
-		faceShader.setParameter("viewerPosition", m_scene.getCamera().m_position);
 	}
 	if (m_edgesVisible)
 	{

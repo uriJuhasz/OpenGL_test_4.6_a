@@ -20,9 +20,17 @@ public:
 	void setParameter(const std::string& name, const float value);
 	void setParameter(const std::string& name, const Vector3& value);
 	void setParameter(const std::string& name, const Vector4& value);
-	void setParameter(const std::string& name, const Matrix4x4 value);
+	void setParameter(const std::string& name, const Matrix4x4& value);
 
 	void setParameter(const std::string& name, const int value);
+
+	void setParameterIfExists(const std::string& name, const float value);
+	void setParameterIfExists(const std::string& name, const Vector2& value);
+	void setParameterIfExists(const std::string& name, const Vector3& value);
+	void setParameterIfExists(const std::string& name, const Vector4& value);
+	void setParameterIfExists(const std::string& name, const Matrix4x4& value);
+
+	void setParameterIfExists(const std::string& name, const int value);
 
 	GLuint m_shaderProgramID;
 private:

@@ -98,7 +98,7 @@ void ViewImpl::setupScene()
         auto& pointLight1 = scene.addPointLight();
         const Vector3 target(0.0f, 0.0f, 0.0f);
         pointLight0.setPosition(target + Vector3(0.0f, 100.0f, 0.0f));
-        pointLight1.setPosition(target + Vector3(0.0f, -100.0f, 0.0f));
+        pointLight1.setPosition(target + Vector3(100.0f, 0.0f, 0.0f));
     }
 
     /////////////////////////////////////////
@@ -205,6 +205,8 @@ void ViewImpl::setupScene()
             {
                 auto& sphere = m_scene->addSphere(Vector3(sphereDef[0], sphereDef[1], sphereDef[2]), sphereDef[3]);
                 sphere.setVisibility(true);
+                sphere.setFaceVisibility(true);
+                sphere.setEdgeVisibility(false);
             }
         }
     }
