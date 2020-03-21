@@ -1,13 +1,43 @@
 ------------------------------------------------------------------------
 Implement Line thing or mesh with deleted edges
+Bounding box
 
-Sphere faces
+Sphere faces + normalize shader
 
-Fix OpenGLPatch to use DSA (Doesn't work in Intel OpenGL 4.0)
+Fix camera control
 
-Polyline primitive
-Line segments primitive
-Implement more patch primitives - torus, ellipsoid, cone, cylinder, (polycylinder?)
+Scene:
+Line smoothing
+
+
+Surface:
+Show vertices/edges/faces
+Backplane cull
+Vertex size, edge width
+
+
+Colouring modes:
+Faces:
+* Uniform colour front/back
+* Per face colour
+* Per vertex colour
+* Texture
+* Procedural (formula)
+Edges
+* Uniform colour
+* Per edge colour
+* Per vertex colour
+* Texture 1d
+* Procedural
+Vertices
+* Uniform
+* Per vertex
+
+Primitives:
+ Points
+ Polyline primitive
+ Line segments primitive
+ Implement more patch primitives - torus, ellipsoid, cone, cylinder, (polycylinder?)
 Knot3
 
 Material class
@@ -15,6 +45,9 @@ MeshSceneElement (Mesh+Material+visibility etc) class
 Mesh+Visualization class
 
 NURBS shader
+
+Bezier - move control points
+Bezier - patch trimming?
 
 ============================================================
 Selection
