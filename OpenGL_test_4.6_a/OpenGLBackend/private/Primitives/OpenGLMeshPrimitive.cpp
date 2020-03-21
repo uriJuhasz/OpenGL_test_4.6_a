@@ -35,15 +35,16 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
     {
         const auto& faceShader = m_scene.getMeshFaceShader();
 
-        glBindVertexArray(m_vertexArrayObjectIDForFaces);
-        glUseProgram(faceShader.m_shaderProgramID);
 
         glDepthFunc(GL_LESS);
         glPolygonMode(GL_FRONT, GL_FILL);
         glEnable(GL_CULL_FACE);
 //        glEnable(GL_POLYGON_OFFSET_FILL);
 //        glPolygonOffset(1.0f, 0.0f);
+        glBindVertexArray(m_vertexArrayObjectIDForFaces);
+        glUseProgram(faceShader.m_shaderProgramID);
         glDrawElements(GL_TRIANGLES, m_numFaces * 3, GL_UNSIGNED_INT, 0);
+        glUseProgram(0);
     }
     if (renderEdges)
     {
@@ -60,13 +61,13 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
             glEnable(GL_CULL_FACE);
             glBindVertexArray(m_vertexArrayObjectIDForFaces);
             glDrawElements(GL_TRIANGLES, m_numFaces*3, GL_UNSIGNED_INT, 0);
-
         }
         else
         {
             glBindVertexArray(m_vertexArrayObjectIDForEdges);
             glDrawElements(GL_LINES, m_numEdges * 2, GL_UNSIGNED_INT, 0);
         }
+        glUseProgram(0);
     }
 }
 void OpenGLMeshPrimitive::insertMesh(const Mesh& mesh)

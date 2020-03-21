@@ -1,6 +1,7 @@
 #include "OpenGLSphere.h"
 
 #include "OpenGLBackend/private/OpenGLUtilities.h"
+#include <iostream>
 
 OpenGLSphere::OpenGLSphere(OpenGLScene& scene, const float radius)
 	: OpenGLSurface(scene)
@@ -29,9 +30,11 @@ void OpenGLSphere::render()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_CULL_FACE);
         glDepthFunc(GL_LESS);
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glPolygonOffset(1.0f, 0.0f);
-
+        if (m_edgesVisible)
+        {
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(1.0f, 0.0f);
+        }
         auto& shader = getScene().getSphereFaceShader();
 /*        if (m_edgesVisible)
         {
@@ -41,27 +44,37 @@ void OpenGLSphere::render()
         else
         {
             shader.setParameter("drawEdges", 0);
-        }*/
+        }
+        */
 
         glUseProgram(shader.m_shaderProgramID);
 
         glBegin(GL_PATCHES);
         glVertex4fv(vertex.data());
         glEnd();
+
+        glUseProgram(0);
     }
+
     if (m_edgesVisible)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glLineWidth(m_edgesWidth);
-        glDisable(GL_CULL_FACE);
-        glDepthFunc(GL_LEQUAL);
-
+        if (m_facesVisible)
+        {
+            glDepthFunc(GL_LEQUAL);
+        }
+        else
+        {
+            glDisable(GL_CULL_FACE);
+        }
         auto& shader = getScene().getSphereEdgeShader();
-        glUseProgram(shader.m_shaderProgramID);
 
+        glUseProgram(shader.m_shaderProgramID);
         glBegin(GL_PATCHES);
 	    glVertex4fv(vertex.data());
 	    glEnd();
+        glUseProgram(0);
     }
 }
 

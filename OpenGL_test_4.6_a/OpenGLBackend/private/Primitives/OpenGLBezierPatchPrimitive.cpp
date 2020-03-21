@@ -49,6 +49,7 @@ void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool rende
 
         glUseProgram(m_scene.getBezierPatchFaceShader().m_shaderProgramID);
         glDrawArrays(GL_PATCHES, 0, c_numVerticesPerPatch);
+        glUseProgram(0);
     }
     if (renderEdges)
     {
@@ -58,6 +59,7 @@ void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool rende
 
         glUseProgram(m_scene.getBezierPatchEdgeShader().m_shaderProgramID);
         glDrawArrays(GL_PATCHES, 0, c_numVerticesPerPatch);
+        glUseProgram(0);
     }
 }
 

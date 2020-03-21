@@ -24,8 +24,6 @@ void main( )
 
 layout( vertices = 1 ) out;
 
-out float tcTesselationLevel[];
-
 uniform int minTessellationLevel = 4;
 uniform int maxTessellationLevel = 64;
 
@@ -60,8 +58,6 @@ void main( )
 	
 	float tessellationLevel = calculateTessellationLevel(center, radius);
 
-	tcTesselationLevel[gl_InvocationID] = tessellationLevel;
-
 	gl_TessLevelOuter[0] = tessellationLevel;
 	gl_TessLevelOuter[1] = tessellationLevel;
 	gl_TessLevelOuter[2] = tessellationLevel;
@@ -77,9 +73,10 @@ void main( )
 
 layout( quads, equal_spacing, ccw) in;
 
-in float tcTesselationLevel[];
-
 layout (location=1) out VertexData teVertexData;
+//out vec2 teLocalUV;
+
+uniform int drawEdges = 1;
 
 const float pi = radians(180);
 
@@ -106,6 +103,12 @@ void main( )
 		(modelMatrix*vec4(normal,0)).xyz,
 		vec2(u,v)
 	);
+/*	if (drawEdges==1)
+	{
+		const float tessellationLevel = gl_TessLevelInner[0];
+		teLocalUV = vec2(mod(int(u*tessellationLevel),2),mod(int(v*tessellationLevel),2));
+	}*/
+
 }
 
 #endif
@@ -113,6 +116,7 @@ void main( )
 #ifdef COMPILING_FS
 
 layout (location=1) in VertexData teVertexData;
+//in vec2 teLocalUV;
 
 out vec4 fragmentColor;
 
@@ -171,28 +175,27 @@ vec3 calculateBaseColor(vec2 uvCoordX)
 	;
 }
 
-uniform int drawEdges = 1;
+/*\uniform int drawEdges = 1;
 uniform vec4 edgeColor = vec4(1,1,1,1);
 
-const float eps = 0.0001;
+const float eps = 0.1;
 bool isQuadEdgeCoord(float x)
 {
 	return abs(x-0)<eps || abs(1-x)<eps;
 }
-bool isQuadEdge(vec2 uvCoord)
+bool isQuadEdge(vec2 uv)
 {
-	return isQuadEdgeCoord(uvCoord[0]) || isQuadEdgeCoord(uvCoord[1]);
+	return isQuadEdgeCoord(uv[0]) || isQuadEdgeCoord(uv[1]);
 }
-
-
+*/
 void main() {
 	vec2 uvCoord = teVertexData.uvCoord;
 
-	if (false) //(drawEdges==1) && isQuadEdge(uvCoord))
+/*	if ((drawEdges==1) && isQuadEdge(teLocalUV))
 	{
 		fragmentColor = edgeColor;
 	}
-	else
+	else*/
 	{
 		vec3 normal = normalize(teVertexData.normal);
 		vec2 vuCoord = vec2(uvCoord[1],uvCoord[0]);
