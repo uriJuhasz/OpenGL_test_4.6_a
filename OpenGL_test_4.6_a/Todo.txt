@@ -8,6 +8,7 @@ Fix OpenGLPatch to use DSA (Doesn't work in Intel OpenGL 4.0)
 Polyline primitive
 Line segments primitive
 Implement more patch primitives - torus, ellipsoid, cone, cylinder, (polycylinder?)
+Knot3
 
 Material class
 MeshSceneElement (Mesh+Material+visibility etc) class
