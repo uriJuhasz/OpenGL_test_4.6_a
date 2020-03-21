@@ -101,6 +101,25 @@ void ViewImpl::setupScene()
         pointLight1.setPosition(target + Vector3(100.0f, 0.0f, 0.0f));
     }
 
+    ////////////////////////////////////////////////////////////////
+    //Sphere
+    {
+        const vector<Vector4> patchParameters = {
+            Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+            Vector4(-4.0f, 0.0f, 0.0f, 2.0f),
+            Vector4(7.0f, 0.0f, 0.0f, 5.0f),
+            Vector4(0.0f, 6.0f, 0.0f, 10.0f),
+            Vector4(0.0f, -10.0f, 0.0f, 20.0f)
+        };
+        for (const auto sphereDef : patchParameters)
+        {
+            auto& sphere = m_scene->addSphere(Vector3(sphereDef[0], sphereDef[1], sphereDef[2]), sphereDef[3]);
+            sphere.setVisibility(true);
+            sphere.setFaceVisibility(true);
+            sphere.setEdgeVisibility(true);
+        }
+    }
+
     /////////////////////////////////////////
     /////////////////////////////////////////
     //Mesh setup
@@ -191,24 +210,6 @@ void ViewImpl::setupScene()
             scene.setCamera(camera);
         }
 
-        ////////////////////////////////////////////////////////////////
-        //Sphere
-        {
-            const vector<Vector4> patchParameters = {
-                Vector4(0.0f, 0.0f, 0.0f, 1.0f),
-                Vector4(-20.0f, 0.0f, 0.0f, 2.0f),
-                Vector4(20.0f, 0.0f, 0.0f, 5.0f),
-                Vector4(0.0f, 20.0f, 0.0f, 10.0f),
-                Vector4(0.0f, -30.0f, -.0f, 20.0f)
-            };
-            for (const auto sphereDef : patchParameters)
-            {
-                auto& sphere = m_scene->addSphere(Vector3(sphereDef[0], sphereDef[1], sphereDef[2]), sphereDef[3]);
-                sphere.setVisibility(true);
-                sphere.setFaceVisibility(true);
-                sphere.setEdgeVisibility(false);
-            }
-        }
     }
 }
     using std::clamp;
@@ -331,7 +332,7 @@ void ViewImpl::mouseWheelCallback(const Vector2& wheelDelta)
 {
     auto sceneCamera = m_scene->getCamera();
     const auto dy = wheelDelta[1];
-    constexpr float factor = 1.0f;
+    constexpr float factor = 0.2f;
     const auto forward = sceneCamera.m_target - sceneCamera.m_position;
     const auto distance = length(forward);
     constexpr float minimalDistance = 2.0f;

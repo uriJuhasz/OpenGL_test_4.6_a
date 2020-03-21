@@ -11,11 +11,11 @@ struct VertexData
 
 #ifdef COMPILING_VS
 
-layout (location = 0) in vec4 position;
+layout (location = 0) in vec3 position;
 
 void main( )
 {
-	gl_Position = position;
+	gl_Position = vec4(position,1);
 }
 
 #endif
@@ -171,15 +171,37 @@ vec3 calculateBaseColor(vec2 uvCoordX)
 	;
 }
 
-void main() {
-	vec3 normal = normalize(teVertexData.normal);
-	vec2 uvCoord = teVertexData.uvCoord;
-	vec2 vuCoord = vec2(uvCoord[1],uvCoord[0]);
-	vec3 color =  calculateBaseColor(uvCoord);//gl_FrontFacing ? calculateBaseColor(uvCoord) : vec3(1,1,1)-calculateBaseColor(uvCoord);
+uniform int drawEdges = 1;
+uniform vec4 edgeColor = vec4(1,1,1,1);
 
-	vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
-	vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);
-	fragmentColor = vec4(light0Component + light1Component ,1);
+const float eps = 0.0001;
+bool isQuadEdgeCoord(float x)
+{
+	return abs(x-0)<eps || abs(1-x)<eps;
+}
+bool isQuadEdge(vec2 uvCoord)
+{
+	return isQuadEdgeCoord(uvCoord[0]) || isQuadEdgeCoord(uvCoord[1]);
+}
+
+
+void main() {
+	vec2 uvCoord = teVertexData.uvCoord;
+
+	if (false) //(drawEdges==1) && isQuadEdge(uvCoord))
+	{
+		fragmentColor = edgeColor;
+	}
+	else
+	{
+		vec3 normal = normalize(teVertexData.normal);
+		vec2 vuCoord = vec2(uvCoord[1],uvCoord[0]);
+		vec3 color =  calculateBaseColor(uvCoord);
+
+		vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
+		vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);
+		fragmentColor = vec4(light0Component + light1Component ,1);
+	}
 }
 
 #endif

@@ -215,6 +215,7 @@ vec3 calculateBaseColor(vec2 uvCoord)
 
 uniform float innerRadius = 0.05;
 uniform float outerRadius = 0.7;
+
 void main() 
 {
 	vec2 uvCoord = gVertexData.uvCoord;

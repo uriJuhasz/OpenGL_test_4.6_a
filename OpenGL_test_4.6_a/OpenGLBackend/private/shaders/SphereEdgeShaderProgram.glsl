@@ -2,13 +2,20 @@ uniform mat4 modelMatrix = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 uniform mat4 viewMatrix = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 uniform mat4 projectionMatrix = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 
+struct VertexData
+{
+    vec3 position;
+    vec3 normal;
+    vec2 uvCoord;
+};
+
 #ifdef COMPILING_VS
 
-layout (location = 0) in vec4 position;
+layout (location = 0) in vec3 position;
 
 void main( )
 {
-	gl_Position = position;
+	gl_Position = vec4(position,1);
 }
 
 #endif
@@ -16,8 +23,6 @@ void main( )
 #ifdef COMPILING_TCS
 
 layout( vertices = 1 ) out;
-
-out float tcTesselationLevel[];
 
 uniform int minTessellationLevel = 4;
 uniform int maxTessellationLevel = 64;
@@ -51,11 +56,14 @@ void main( )
 
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position; 
 	
-	float tessellationLevel = calculateTessellationLevel(center, radius) * 2;
+	float tessellationLevel = calculateTessellationLevel(center, radius);
 
-	tcTesselationLevel[gl_InvocationID] = tessellationLevel;
 	gl_TessLevelOuter[0] = tessellationLevel;
 	gl_TessLevelOuter[1] = tessellationLevel;
+	gl_TessLevelOuter[2] = tessellationLevel;
+	gl_TessLevelOuter[3] = tessellationLevel;
+	gl_TessLevelInner[0] = tessellationLevel;
+	gl_TessLevelInner[1] = tessellationLevel;
 }
 
 
@@ -63,50 +71,69 @@ void main( )
 
 #ifdef COMPILING_TES
 
-layout(isolines, equal_spacing) in;
+layout( quads, equal_spacing, ccw) in;
 
-in float tcTesselationLevel[];
 
-out vec3 teNormal;
-out vec4 teColor;
+layout (location=1) out VertexData teVertexData;
 
 const float pi = radians(180);
 
 void main( )
 {
-	vec4 inPosition = gl_in[0].gl_Position;
+	const float tessellationLevel = gl_TessLevelInner[0];
+
+	const vec4 inPosition = gl_in[0].gl_Position;
 	vec3 center = inPosition.xyz;
 	float radius = inPosition.w;
 
-	float u0 = gl_TessCoord.y;
-	float v0 = gl_TessCoord.x;
+	float u = gl_TessCoord.x;
+	float v = gl_TessCoord.y;
 
-	bool h = (u0<0.5);
-	float u = h ? u0*2 :   v0;
-	float v = h ? v0   : 2*u0-1;
-	
-	float phi = pi * ( u - 0.5 );
-	float theta = 2 * pi * ( v - 0.5 );
+	float phi   = pi * (u - 0.5);
+	float theta = 2 * pi * v;
 	float cosphi = cos(phi);
 	vec3 posUnit = vec3( cosphi*cos(theta), sin(phi), cosphi*sin(theta) );
 
-	teNormal = normalize(posUnit);
-	teColor = (u0<0.5) ? vec4(1,0,0,1) : vec4(0,0,1,1);
+	vec3 normal = normalize(posUnit);
 	vec3 pos = posUnit * radius + center;
-	gl_Position = projectionMatrix*viewMatrix*modelMatrix* vec4(pos, 1);
+	vec4 worldPosition = modelMatrix* vec4(pos, 1);
+	gl_Position = projectionMatrix*viewMatrix*worldPosition;
+
+	vec2 cbUV = vec2(mod(int(u*tessellationLevel),2),mod(int(v*tessellationLevel),2));
+
+	teVertexData = VertexData(
+	    worldPosition.xyz,
+		(modelMatrix*vec4(normal,0)).xyz,
+		cbUV //vec2(u,v)
+	);
 }
 
 #endif
 
 #ifdef COMPILING_FS
 
-in vec3 teNormal;
-in vec4 teColor;
+layout (location=1) in VertexData teVertexData;
 
-out vec4 frag_color;
+uniform vec4 edgeColor = vec4(1,1,1,1); 
 
+out vec4 fragmentColor;
+
+
+const float eps = 0.0001;
+bool isQuadEdgeCoord(float x)
+{
+	return abs(x-0)<eps || abs(1-x)<eps;
+}
+bool isQuadEdge(vec2 uvCoord)
+{
+	return isQuadEdgeCoord(uvCoord[0]) || isQuadEdgeCoord(uvCoord[1]);
+}
 void main() {
-  frag_color = teColor;
+	vec2 uvCoord = teVertexData.uvCoord;
+	if (!isQuadEdge(uvCoord))
+		discard;
+
+	fragmentColor = edgeColor;
 }
 
 #endif

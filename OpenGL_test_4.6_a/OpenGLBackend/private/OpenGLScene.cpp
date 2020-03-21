@@ -216,9 +216,6 @@ public:
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-//                glEnable(GL_POLYGON_SMOOTH);
-//                glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-
                 glEnable(GL_LINE_SMOOTH);
                 glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
             }
@@ -327,11 +324,17 @@ void OpenGLSceneImpl::loadShaders()
     m_sphereFaceShader = makeTessellationShaderProgram("SphereFaceShaderProgram.glsl", "SphereFace");
     m_sphereEdgeShader = makeTessellationShaderProgram("SphereEdgeShaderProgram.glsl", "SphereEdge");
 
-    for (auto shaderPtr : { m_sphereFaceShader.get(), m_sphereEdgeShader.get(), m_bezierFaceShader.get(), m_bezierEdgeShader.get() })
+    for (auto shaderPtr : { m_bezierFaceShader.get(), m_bezierEdgeShader.get() })
     {
         auto& shader = *shaderPtr;
         shader.setParameter("maxTessellationLevel", glsGetUInt(GL_MAX_TESS_GEN_LEVEL));
         shader.setParameter("desiredPixelsPerTriangle", 20.0f);
+    }
+    for (auto shaderPtr : { m_sphereFaceShader.get(), m_sphereEdgeShader.get()})
+    {
+        auto& shader = *shaderPtr;
+        shader.setParameter("maxTessellationLevel", glsGetUInt(GL_MAX_TESS_GEN_LEVEL));
+        shader.setParameter("desiredPixelsPerTriangle", 5.0f);
     }
 }
 

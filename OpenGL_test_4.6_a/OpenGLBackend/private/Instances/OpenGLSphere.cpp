@@ -26,7 +26,6 @@ void OpenGLSphere::render()
     
     if (m_facesVisible)
     {
-
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_CULL_FACE);
         glDepthFunc(GL_LESS);
@@ -34,16 +33,24 @@ void OpenGLSphere::render()
         glPolygonOffset(1.0f, 0.0f);
 
         auto& shader = getScene().getSphereFaceShader();
+/*        if (m_edgesVisible)
+        {
+            shader.setParameter("drawEdges", 1);
+            shader.setParameter("edgeColor", m_edgesColor.m_value);
+        }
+        else
+        {
+            shader.setParameter("drawEdges", 0);
+        }*/
+
         glUseProgram(shader.m_shaderProgramID);
 
         glBegin(GL_PATCHES);
         glVertex4fv(vertex.data());
         glEnd();
     }
-
     if (m_edgesVisible)
     {
-        
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glLineWidth(m_edgesWidth);
         glDisable(GL_CULL_FACE);
