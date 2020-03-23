@@ -2,13 +2,7 @@
 Implement Line thing or mesh with deleted edges
 Bounding box
 
-Sphere faces + normalize shader
-
 Fix camera control
-
-Scene:
-Line smoothing
-
 
 Surface:
 Show vertices/edges/faces

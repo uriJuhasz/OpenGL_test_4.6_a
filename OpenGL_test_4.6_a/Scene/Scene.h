@@ -20,8 +20,8 @@ public:
     virtual void setCamera(const Camera& camera) = 0;
 
 public:
-    virtual SceneMesh       & addMesh(const Mesh& mesh) = 0;
-    virtual SceneBezierPatch& addBezierPatch(const BezierPatch& patch) = 0;
+    virtual SceneMesh       & addMesh(const std::shared_ptr<const Mesh>& mesh) = 0;
+    virtual SceneBezierPatch& addBezierPatch(const std::shared_ptr<const BezierPatch>& patch) = 0;
     virtual SceneSphere     & addSphere(const Vector3& center, const float radius) = 0;
 
 public:

@@ -15,9 +15,12 @@ public:
 	const OpenGLBezierPatchPrimitive& getPrimitive() const;
 
 public:
-	void render() override;
+	void renderMain() override;
+
+public:
+	BoundingBox getBoundingBox() const override;
 
 private:
-	const OpenGLBezierPatchPrimitive& m_primitive;
+	const OpenGLBezierPatchPrimitive& m_patchPrimitive;
 };
 

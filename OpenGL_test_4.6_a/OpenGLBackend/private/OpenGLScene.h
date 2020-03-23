@@ -14,6 +14,9 @@ public:
 	static std::unique_ptr<OpenGLScene> makeScene(OpenGLWindow&);
 
 public:
+	virtual OpenGLStandardShaderProgram& getBoundingBoxShader() const = 0;
+
+public:
 	virtual OpenGLStandardShaderProgram& getMeshFaceShader() const = 0;
 	virtual OpenGLStandardShaderProgram& getMeshEdgeShader() const = 0;
 

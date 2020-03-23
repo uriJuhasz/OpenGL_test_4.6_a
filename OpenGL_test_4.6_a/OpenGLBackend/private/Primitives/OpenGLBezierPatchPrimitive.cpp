@@ -12,13 +12,11 @@ using namespace std;
 using std::vector;
 using std::array;
 
-template<class C> vector<typename C::value_type> toVector(const C& c)
-{
-    return vector<typename C::value_type>(c.begin(), c.end());
-}
-OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const BezierPatch& patch)
+OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const std::shared_ptr<const BezierPatch> patchPtr)
     : OpenGLPrimitive(scene)
+    , m_patchPtr(patchPtr)
 {
+    const auto& patch = *patchPtr;
     m_vertexArrayObject = glsGenAndBindVertexArrayObject();
     glsCreateAndAttachBufferToAttribute(m_vertexArrayObject, 0, toVector(patch.getVertices()));
 }
@@ -70,4 +68,9 @@ OpenGLTessellationShaderProgram& OpenGLBezierPatchPrimitive::getFaceShader() con
 OpenGLTessellationShaderProgram& OpenGLBezierPatchPrimitive::getEdgeShader() const
 {
     return m_scene.getBezierPatchEdgeShader();
+}
+
+const BezierPatch& OpenGLBezierPatchPrimitive::getPatch() const
+{
+    return *m_patchPtr;
 }

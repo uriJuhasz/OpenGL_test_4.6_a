@@ -440,7 +440,7 @@ void OpenGLWindowImpl::openGLMessageCallback(
     const auto severityString = getOpenGLErrorSeverityString(severity);
 
     std::cerr << "OpenGL Message - source: " << sourceTypeString << ", type: " << errorTypeString << ", severity: " << severityString << ", id: " << id << ": " << message << '\n';
-    if (true) // severity != GL_DEBUG_SEVERITY_NOTIFICATION && type != GL_DEBUG_TYPE_PERFORMANCE)
+    if (id!=131218) // severity != GL_DEBUG_SEVERITY_NOTIFICATION && type != GL_DEBUG_TYPE_PERFORMANCE)
     {
         std::cerr << "";
     }

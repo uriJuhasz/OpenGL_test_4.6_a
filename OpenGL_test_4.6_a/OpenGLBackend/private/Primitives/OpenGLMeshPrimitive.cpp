@@ -13,17 +13,23 @@ using std::array;
 
 GLuint insertMesh(const Mesh& mesh);
 
-OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLScene& scene, const Mesh& mesh)
+OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLScene& scene, const std::shared_ptr<const Mesh> meshPtr)
     : OpenGLPrimitive(scene)
-    , m_numFaces(mesh.numFaces())
-    , m_numEdges(mesh.numEdges())
+    , m_meshPtr(meshPtr)
+    , m_numFaces(meshPtr->numFaces())
+    , m_numEdges(meshPtr->numEdges())
 {
-    insertMesh(mesh);
+    insertMesh(*meshPtr);
 }
 
 OpenGLMeshPrimitive::~OpenGLMeshPrimitive()
 {
     deleteVertexArrayObjectAndAllBuffers(m_vertexArrayObjectIDForFaces, 3);
+}
+
+const Mesh& OpenGLMeshPrimitive::getMesh() const
+{
+    return *m_meshPtr;
 }
 
 void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges) const

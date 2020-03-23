@@ -16,7 +16,7 @@ SceneObject& OpenGLSphere::createInstance() const
 }
 
 constexpr int c_numVerticesPerPatch = 1;
-void OpenGLSphere::render()
+void OpenGLSphere::renderMain()
 {
     if (!isVisible())
         return;
@@ -91,4 +91,11 @@ float OpenGLSphere::getRadius() const
 Vector3 OpenGLSphere::getCenter() const
 {
     return Vector3(m_modelMatrix.at(0, 3), m_modelMatrix.at(1, 3), m_modelMatrix.at(2, 3));
+}
+
+OpenGLGraphicObject::BoundingBox OpenGLSphere::getBoundingBox() const
+{
+    const auto center = getCenter();
+    const auto radius = getRadius();
+    return BoundingBox(center-Vector3(radius,radius,radius),center + Vector3(radius,radius,radius));
 }

@@ -11,11 +11,11 @@ struct VertexData
 
 #ifdef COMPILING_VS
 
-layout (location = 0) in vec3 position;
+layout (location = 0) in vec4 centerRadius;
 
 void main( )
 {
-	gl_Position = vec4(position,1);
+	gl_Position = centerRadius;
 }
 
 #endif

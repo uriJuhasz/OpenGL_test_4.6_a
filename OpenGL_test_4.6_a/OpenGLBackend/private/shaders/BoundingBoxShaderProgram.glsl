@@ -1,13 +1,13 @@
+uniform mat4 viewMatrix = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+uniform mat4 projectionMatrix = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+
 #ifdef COMPILING_VS
 
 layout (location = 0) in vec3 position;
 
-uniform mat4 modelMatrix;
-
 void main() 
 {
-  vec4 pos4 = modelMatrix * vec4(position, 1.0);
-  gl_Position = pos4;
+  gl_Position = vec4(position, 1.0);
 }
 
 #endif
@@ -17,8 +17,6 @@ void main()
 layout (lines) in;
 layout (line_strip, max_vertices = 24) out;
 
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
 
 void emitVertexData(vec3 position)
 {

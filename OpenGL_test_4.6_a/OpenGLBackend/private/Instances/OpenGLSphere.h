@@ -15,13 +15,16 @@ public:
 	SceneObject& createInstance() const override;
 
 public:
-	void render() override;
+	void renderMain() override;
 
 public:
 	void setRadius(const float) override;
 	float getRadius() const override;
 
 	Vector3 getCenter() const override;
+
+public:
+	BoundingBox getBoundingBox() const override;
 
 private:
 	float m_radius = 1.0f;

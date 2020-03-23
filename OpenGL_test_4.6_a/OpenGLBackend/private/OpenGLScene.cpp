@@ -28,6 +28,7 @@ using std::vector;
 using std::array;
 using std::string;
 using std::unique_ptr;
+using std::shared_ptr;
 using std::make_unique;
 
 using std::to_string;
@@ -68,7 +69,7 @@ private:
         m_sceneObjects.emplace_back(move(ptr));
         return ref;
     }
-    OpenGLMeshInstance& addMesh(const Mesh& mesh) override
+    OpenGLMeshInstance& addMesh(const shared_ptr<const Mesh>& mesh) override
     {
         const auto meshPrimitivePtr = m_meshPrimitives.emplace_back(make_unique<OpenGLMeshPrimitive>(*this, mesh)).get();
         return addObject((OpenGLMeshInstance*)nullptr, std::ref(*meshPrimitivePtr));
@@ -85,15 +86,15 @@ private:
 
 
 private:
-    OpenGLBezierPatchInstance& addBezierPatch(const BezierPatch& bezierPatch) override
+    OpenGLBezierPatchInstance& addBezierPatch(const shared_ptr<const BezierPatch>& bezierPatchPtr) override
     {
-        const auto& patchPrimitive = *m_bezierPatchPrimitives.emplace_back(make_unique<OpenGLBezierPatchPrimitive>(*this, bezierPatch));
+        const auto& patchPrimitive = *m_bezierPatchPrimitives.emplace_back(make_unique<OpenGLBezierPatchPrimitive>(*this, bezierPatchPtr));
         return addObject((OpenGLBezierPatchInstance*)nullptr, std::ref(patchPrimitive));
     }
     OpenGLSphere& addSphere(const Vector3& center, const float radius) override
     {
         auto& sphere = addObject((OpenGLSphere*)nullptr, std::ref(*this), radius);
-        sphere.setTransformation(makeTranslationMatrix(center));
+        sphere.setModelMatrix(makeTranslationMatrix(center));
         return sphere;
     }
 
@@ -128,6 +129,10 @@ private:
     void makeAndAttachShader(const GLuint shaderProgram, const GLenum shaderType, const string& shaderFileName, const string& title);
 
 public:
+    OpenGLStandardShaderProgram& getBoundingBoxShader() const override
+    {
+        return *m_boundingBoxShader;
+    }
     OpenGLStandardShaderProgram& getMeshFaceShader() const override
     {
         return *m_meshFaceShader;
@@ -154,6 +159,8 @@ public:
         return *m_sphereFaceShader;
     }
 
+    unique_ptr<OpenGLStandardShaderProgram> m_boundingBoxShader;
+
     unique_ptr<OpenGLStandardShaderProgram> m_meshFaceShader;
     unique_ptr<OpenGLStandardShaderProgram> m_meshEdgeShader;
     unique_ptr<OpenGLTessellationShaderProgram> m_bezierFaceShader;
@@ -165,6 +172,7 @@ public:
     void render() const
     {
         const vector<OpenGLShaderProgram*> allShaders = {
+            m_boundingBoxShader.get(),
             m_meshFaceShader.get(),
             m_meshEdgeShader.get(),
             m_bezierFaceShader.get(),
@@ -314,6 +322,8 @@ void makeAndAttachSingleShaderCC(const GLuint shaderProgramID, const GLenum shad
 void OpenGLSceneImpl::loadShaders()
 {
     setShaderBasePath(c_shaderBasePath);
+
+    m_boundingBoxShader = makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBox");
 
     m_meshFaceShader = makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");
     m_meshEdgeShader = makeStandardShaderProgram("MeshEdgeShaderProgram.glsl", "meshEdge");

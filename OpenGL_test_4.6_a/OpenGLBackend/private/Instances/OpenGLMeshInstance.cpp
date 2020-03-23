@@ -1,5 +1,12 @@
 #include "OpenGLMeshInstance.h"
 
+#include "Utilities/Misc.h"
+
+using std::vector;
+using std::array;
+using std::min;
+using std::max;
+
 OpenGLMeshInstance::OpenGLMeshInstance(const OpenGLMeshPrimitive& meshPrimitive)
 	: OpenGLGraphicObject(meshPrimitive.getScene())
 	, OpenGLSurface(meshPrimitive.getScene())
@@ -11,10 +18,13 @@ OpenGLMeshInstance::~OpenGLMeshInstance()
 {
 }
 
-void OpenGLMeshInstance::render()
+const Mesh& OpenGLMeshInstance::getMesh() const
 {
-	if (!isVisible())
-		return;
+	return m_meshPrimitive.getMesh();
+}
+
+void OpenGLMeshInstance::renderMain()
+{
 	if (m_facesVisible)
 	{
 		auto& faceShader = m_meshPrimitive.getFaceShader();
@@ -34,5 +44,10 @@ void OpenGLMeshInstance::render()
 OpenGLMeshInstance& OpenGLMeshInstance::createInstance() const
 {
 	return getScene().makeInstance(*this);
+}
+
+OpenGLGraphicObject::BoundingBox OpenGLMeshInstance::getBoundingBox() const
+{
+	return calculateBoundingBox(m_meshPrimitive.getMesh().m_vertices);
 }
 

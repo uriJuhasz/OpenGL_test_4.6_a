@@ -42,8 +42,8 @@ public:
 
 public: //Mesh
     unique_ptr<Scene> m_scene;
-    unique_ptr<Mesh> m_mesh;
-    unique_ptr<BezierPatch> m_bezierPatch;
+    shared_ptr<Mesh> m_mesh;
+    shared_ptr<BezierPatch> m_bezierPatch;
     array<Vector3, 2> m_meshBoundingBox;
 
 public:
@@ -105,11 +105,11 @@ void ViewImpl::setupScene()
     //Sphere
     {
         const vector<Vector4> patchParameters = {
-            Vector4(0.0f, 0.0f, 0.0f, 1.0f),
-            Vector4(-4.0f, 0.0f, 0.0f, 2.0f),
-            Vector4(7.0f, 0.0f, 0.0f, 5.0f),
-            Vector4(0.0f, 6.0f, 0.0f, 10.0f),
-            Vector4(0.0f, -10.0f, 0.0f, 20.0f)
+            Vector4(2.0f, 0.0f, 0.0f, 1.0f),
+            Vector4(-5.0f, 0.0f, 0.0f, 2.0f),
+            Vector4(7.0f, 0.0f, 0.0f, 3.0f),
+            Vector4(0.0f, 10.0f, 0.0f, 5.0f),
+            Vector4(0.0f, -100.0f, 0.0f, 10.0f)
         };
         for (const auto sphereDef : patchParameters)
         {
@@ -126,9 +126,9 @@ void ViewImpl::setupScene()
     {
         auto& mesh = *m_mesh;
         mesh.calculateTopology();
-        auto& sceneMeshObject = scene.addMesh(mesh);
-        sceneMeshObject.setFaceVisibility(false);
-        sceneMeshObject.setVisibility(false);
+        auto& sceneMeshObject = scene.addMesh(m_mesh);
+        sceneMeshObject.setFaceVisibility(true);
+        sceneMeshObject.setVisibility(true);
 
         { //Bounding box
             const auto& vertices = mesh.m_vertices;
@@ -193,13 +193,12 @@ void ViewImpl::setupScene()
                 Vector3(0,0,2), Vector3(1, 1,2), Vector3(2, 0,2), Vector3(3,-1,2),
                 Vector3(0,0,3), Vector3(1, 1,3), Vector3(2,-1,3), Vector3(3,-1,3)
             };
-            m_bezierPatch = make_unique<BezierPatch>(patchParameters);
-            auto& bezierPatch0 = *m_bezierPatch;
-            auto& sceneBezierPatch = scene.addBezierPatch(bezierPatch0);
+            m_bezierPatch = make_shared<BezierPatch>(patchParameters);
+            auto& sceneBezierPatch = scene.addBezierPatch(m_bezierPatch);
             sceneBezierPatch.setVisibility(true);
             sceneBezierPatch.setFaceVisibility(true);
             sceneBezierPatch.setEdgeVisibility(true);
-            sceneBezierPatch.setTransformation(makeTranslationMatrix({ -1.5f,0.0f,-1.5f }));
+            sceneBezierPatch.setModelMatrix(makeTranslationMatrix({ -1.5f,0.0f,-1.5f }));
             sceneBezierPatch.setFaceFrontColor(ColorRGBA::Red);
             sceneBezierPatch.setFaceBackColor(ColorRGBA::Blue);
             sceneBezierPatch.setEdgeColor(ColorRGBA::White);
@@ -207,7 +206,7 @@ void ViewImpl::setupScene()
             auto camera = scene.getCamera();
             camera.m_target = Vector3();
             camera.m_position = -Vector3(0.0f, 0.0f, 1.0f) * 10.0f;
-            scene.setCamera(camera);
+            // scene.setCamera(camera);
         }
 
     }

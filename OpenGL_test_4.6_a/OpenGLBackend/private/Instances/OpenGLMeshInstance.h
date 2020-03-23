@@ -14,17 +14,24 @@ public:
 	~OpenGLMeshInstance();
 
 public:
-	void render() override;
+	const Mesh& getMesh() const override;
+
+public:
+	void renderMain() override;
 
 public:
 	void setEdgeVisibility(const int edgeIndex, const bool isVisible) override {}
 	const std::vector<bool> getEdgeVisibility() const override { return std::vector<bool>(); }
+
 
 public:
 	OpenGLMeshInstance& createInstance() const override;
 
 public:
 	const OpenGLMeshPrimitive& getPrimitive() const { return m_meshPrimitive; }
+
+protected:
+	BoundingBox getBoundingBox() const override;
 
 private:
 	const OpenGLMeshPrimitive& m_meshPrimitive;
