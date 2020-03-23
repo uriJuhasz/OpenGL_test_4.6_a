@@ -20,7 +20,7 @@ public:
 	void renderMain() override;
 
 public:
-	void setEdgeVisibility(const int edgeIndex, const bool isVisible) override {}
+	void setSingleEdgeVisibility(const int edgeIndex, const bool isVisible) override {}
 	const std::vector<bool> getEdgeVisibility() const override { return std::vector<bool>(); }
 
 

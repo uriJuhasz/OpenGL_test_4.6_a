@@ -9,7 +9,7 @@ class SceneMesh :
 	public virtual SceneSurface
 {
 public:
-	virtual void setEdgeVisibility(const int edgeIndex, const bool isVisible) = 0;
+	virtual void setSingleEdgeVisibility(const int edgeIndex, const bool isVisible) = 0;
 
 public:
 	virtual const Mesh& getMesh() const = 0;

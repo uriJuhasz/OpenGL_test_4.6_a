@@ -137,9 +137,7 @@ uniform float light1SpecularExponent = 100;
 
 vec3 calculateLight(vec3 lightPosition, vec3 lightColor, float lightSpecularExponent, vec3 baseColor, vec3 normal)
 {
-	vec3 ambientColor =  ambientLightIntensity * baseColor;
-	
-	vec3 color = ambientColor;
+	vec3 color = vec3(0,0,0);
 
 	vec3 lightDirection = normalize(lightPosition-teVertexData.position);
 	float diffuseLight = dot(lightDirection,normal);
@@ -199,11 +197,13 @@ void main() {
 	{
 		vec3 normal = normalize(teVertexData.normal);
 		vec2 vuCoord = vec2(uvCoord[1],uvCoord[0]);
-		vec3 color =  calculateBaseColor(uvCoord);
+		vec3 baseColor =  calculateBaseColor(uvCoord);
+		
+		vec3 ambientLightComponent = ambientLightIntensity * baseColor;
 
-		vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
-		vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);
-		fragmentColor = vec4(light0Component + light1Component ,1);
+		vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,baseColor, normal);
+		vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,baseColor, normal);
+		fragmentColor = vec4(ambientLightComponent+light0Component + light1Component ,1);
 	}
 }
 

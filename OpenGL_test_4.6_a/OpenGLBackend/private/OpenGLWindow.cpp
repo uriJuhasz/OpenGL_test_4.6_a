@@ -36,6 +36,8 @@ public:
     {
         if (!context)
             throw new Exception("GLFWWindow: context is invalid");
+        constexpr int numSamples = 4;
+        glfwWindowHint(GLFW_SAMPLES, numSamples);
         if (const auto window = glfwCreateWindow(c_defaultWidth, c_defaultHeight, title.c_str(), nullptr, nullptr))
         {
             m_glfwWindow = window;
@@ -60,6 +62,8 @@ public:
 
                 if (glfwRawMouseMotionSupported())
                     glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
+                glEnable(GL_MULTISAMPLE);
             }
             else
             {

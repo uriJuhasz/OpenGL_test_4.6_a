@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
+Array of lights per shader
 Implement Line thing or mesh with deleted edges
-Bounding box
 
 Fix camera control
 

@@ -41,7 +41,6 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
     {
         const auto& faceShader = m_scene.getMeshFaceShader();
 
-
         glDepthFunc(GL_LESS);
         glPolygonMode(GL_FRONT, GL_FILL);
         glEnable(GL_CULL_FACE);
@@ -58,7 +57,6 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
 
         glUseProgram(edgeShader.m_shaderProgramID);
 
-        glLineWidth(2.0f);
         glDepthFunc(GL_LEQUAL);
 
         if (renderFaces)

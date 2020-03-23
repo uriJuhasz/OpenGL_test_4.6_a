@@ -116,7 +116,7 @@ void ViewImpl::setupScene()
             auto& sphere = m_scene->addSphere(Vector3(sphereDef[0], sphereDef[1], sphereDef[2]), sphereDef[3]);
             sphere.setVisibility(true);
             sphere.setFaceVisibility(true);
-            sphere.setEdgeVisibility(true);
+            sphere.setEdgeVisibility(false);
         }
     }
 
@@ -127,8 +127,9 @@ void ViewImpl::setupScene()
         auto& mesh = *m_mesh;
         mesh.calculateTopology();
         auto& sceneMeshObject = scene.addMesh(m_mesh);
-        sceneMeshObject.setFaceVisibility(true);
         sceneMeshObject.setVisibility(true);
+        sceneMeshObject.setFaceVisibility(true);
+        sceneMeshObject.setEdgeVisibility(false);
 
         { //Bounding box
             const auto& vertices = mesh.m_vertices;
@@ -197,7 +198,7 @@ void ViewImpl::setupScene()
             auto& sceneBezierPatch = scene.addBezierPatch(m_bezierPatch);
             sceneBezierPatch.setVisibility(true);
             sceneBezierPatch.setFaceVisibility(true);
-            sceneBezierPatch.setEdgeVisibility(true);
+            sceneBezierPatch.setEdgeVisibility(false);
             sceneBezierPatch.setModelMatrix(makeTranslationMatrix({ -1.5f,0.0f,-1.5f }));
             sceneBezierPatch.setFaceFrontColor(ColorRGBA::Red);
             sceneBezierPatch.setFaceBackColor(ColorRGBA::Blue);
@@ -206,132 +207,17 @@ void ViewImpl::setupScene()
             auto camera = scene.getCamera();
             camera.m_target = Vector3();
             camera.m_position = -Vector3(0.0f, 0.0f, 1.0f) * 10.0f;
-            // scene.setCamera(camera);
+            scene.setCamera(camera);
         }
 
     }
 }
-    using std::clamp;
-    /*
-    void ViewImpl::renderScene()
-    {
-        const auto viewportDimensions = m_backendWindow.getViewportDimensions();
-
-        const auto sceneCamera = m_sceneCamera;
-        const auto viewMatrix = sceneCamera.makeViewMatrix();
-        const auto projectionMatrix = sceneCamera.makeProjectionMatrix(viewportDimensions[0] / viewportDimensions[1]);
-
-        //////////////////////
-        constexpr bool renderSphere = false;
-        constexpr bool showBezierPatch = false;
-        constexpr bool renderMesh = true;
-        constexpr bool renderMeshFaces = renderMesh && true;
-        constexpr bool renderWireframe = renderMesh && true;
-        constexpr bool showBoundingBox = renderMesh && true;
-
-        //////////////////////
-        //Patch sphere
-        if (renderSphere)
-        {
-            auto& shaderProgram = *m_sphereShaderProgram;
-
-            {
-                const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
-                shaderProgram.setParameter("pixelWidth", pixelWidth);
-            }
-
-            m_backendSpherePatch->render(false, true);
-        }
-
-        //////////////////////
-        //Bezier patch
-        if (showBezierPatch)
-        {
-            {
-                auto& shaderProgram = *m_bezierShaderProgram;
-                shaderProgram.setParameter("viewMatrix", viewMatrix);
-                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-                shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
-
-                {
-                    const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
-                    shaderProgram.setParameter("pixelWidth", pixelWidth);
-                }
-
-                m_backendBezierPatch->render(true, false);
-            }
-            {
-                auto& shaderProgram = *m_bezierEdgeShaderProgram;
-                shaderProgram.setParameter("viewMatrix", viewMatrix);
-                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-                {
-                    const auto pixelWidth = m_backendWindow.getFramebufferSize()[0];
-                    shaderProgram.setParameter("pixelWidth", pixelWidth);
-                }
-
-                m_backendBezierPatch->render(false, true);
-            }
-        }
-
-        //////////////////////
-        //Render mesh
-        if (renderMesh)
-        {
-            for (int i = 0; i < 2; ++i)
-            {
-                const auto modelMatrix = (i == 0)
-                    ? makeTranslationMatrix(Vector3(-20, 0, 0))
-                    : makeTranslationMatrix(Vector3( 20, 0, 0));
-
-                if (renderMeshFaces)
-                {
-                    auto& shaderProgram = *m_meshFaceShaderProgram;
-
-                    shaderProgram.setParameter("modelMatrix", modelMatrix);
-                    shaderProgram.setParameter("viewMatrix", viewMatrix);
-                    shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-                    shaderProgram.setParameter("viewerPosition", sceneCamera.m_position);
-
-                    m_backendMesh->render(true, false);
-                }
-
-                if (renderWireframe)
-                {
-                    auto& shaderProgram = *m_meshEdgeShaderProgram;
-
-                    shaderProgram.setParameter("modelMatrix", modelMatrix);
-                    shaderProgram.setParameter("viewMatrix", viewMatrix);
-                    shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-                    shaderProgram.setParameter("edgeColor", Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-
-                    m_backendMesh->render(false, true);
-                }
-            }
-            ///////////////////////
-            //Bounding box
-            if (showBoundingBox)
-            {
-                glBindVertexArray(m_meshBoundingBoxVertexArrayObjectID);
-                auto& shaderProgram = *m_meshBoundingboxShaderProgram;
-                shaderProgram.setParameter("viewMatrix", viewMatrix);
-                shaderProgram.setParameter("projectionMatrix", projectionMatrix);
-
-                shaderProgram.setParameter("edgeColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-
-                glDrawArrays(GL_LINES, 0, 2);
-            }
-        }
-    }
-    */
 
 void ViewImpl::mouseWheelCallback(const Vector2& wheelDelta)
 {
     auto sceneCamera = m_scene->getCamera();
     const auto dy = wheelDelta[1];
-    constexpr float factor = 0.2f;
+    constexpr float factor = 1.0f;
     const auto forward = sceneCamera.m_target - sceneCamera.m_position;
     const auto distance = length(forward);
     constexpr float minimalDistance = 2.0f;
