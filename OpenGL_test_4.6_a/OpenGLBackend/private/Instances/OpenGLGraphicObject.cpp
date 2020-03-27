@@ -1,5 +1,7 @@
 #include "OpenGLGraphicObject.h"
 
+#include "OpenGLBackend/private/OpenGLUtilities.h"
+
 #include "Utilities/Misc.h"
 
 using std::vector;
@@ -45,12 +47,15 @@ void OpenGLGraphicObject::renderBoundingBox()
 	shader.setParameter("edgeColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 
 	const auto boundingBox = getBoundingBox().get();
-	glPatchParameteri(GL_PATCH_VERTICES, 2);
-	glBegin(GL_LINES);
-	for (int i=0; i<2; ++i)
-		glVertex3fv(boundingBox[i].data());
-	glEnd();
-	glUseProgram(0);
+	{
+		const auto vertexArrayObject = glsGenAndBindVertexArrayObject();
+		const vector<Vector3> vertices = { boundingBox[0],boundingBox[1] };
+		glsCreateAndAttachBufferToAttribute(vertexArrayObject, 0, vertices);
+		glUseProgram(shader.m_shaderProgramID);
+		glDrawArrays(GL_LINES, 0, 2);
+		glUseProgram(0);
+		glsDeleteVertexArrayObjectAndAllBuffers(vertexArrayObject,1);
+	}
 }
 
 void OpenGLGraphicObject::setModelMatrix(const Matrix4x4& newModelMatrix)
