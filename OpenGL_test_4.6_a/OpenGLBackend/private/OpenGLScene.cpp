@@ -129,6 +129,11 @@ private:
     void makeAndAttachShader(const GLuint shaderProgram, const GLenum shaderType, const string& shaderFileName, const string& title);
 
 public:
+    OpenGLStandardShaderProgram& getPointsShader() const override
+    {
+        return *m_pointsShader;
+    }
+
     OpenGLStandardShaderProgram& getBoundingBoxShader() const override
     {
         return *m_boundingBoxShader;
@@ -159,6 +164,8 @@ public:
         return *m_sphereFaceShader;
     }
 
+    unique_ptr<OpenGLStandardShaderProgram> m_pointsShader;
+
     unique_ptr<OpenGLStandardShaderProgram> m_boundingBoxShader;
 
     unique_ptr<OpenGLStandardShaderProgram> m_meshFaceShader;
@@ -172,6 +179,7 @@ public:
     void render() const
     {
         const vector<OpenGLShaderProgram*> allShaders = {
+            m_pointsShader.get(),
             m_boundingBoxShader.get(),
             m_meshFaceShader.get(),
             m_meshEdgeShader.get(),
@@ -322,6 +330,8 @@ void makeAndAttachSingleShaderCC(const GLuint shaderProgramID, const GLenum shad
 void OpenGLSceneImpl::loadShaders()
 {
     setShaderBasePath(c_shaderBasePath);
+
+    m_pointsShader = makeStandardShaderProgram("PointsShader.glsl", "points");
 
     m_boundingBoxShader = makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBox");
 

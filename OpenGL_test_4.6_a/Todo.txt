@@ -1,5 +1,9 @@
 ------------------------------------------------------------------------
+Bezier - move control points
+Bezier - patch trimming?
+
 Array of lights per shader
+
 Implement Line thing or mesh with deleted edges
 
 Fix camera control
@@ -8,7 +12,6 @@ Surface:
 Show vertices/edges/faces
 Backplane cull
 Vertex size, edge width
-
 
 Colouring modes:
 Faces:
@@ -39,9 +42,6 @@ MeshSceneElement (Mesh+Material+visibility etc) class
 Mesh+Visualization class
 
 NURBS shader
-
-Bezier - move control points
-Bezier - patch trimming?
 
 ============================================================
 Selection

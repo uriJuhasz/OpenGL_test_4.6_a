@@ -1,5 +1,5 @@
 #pragma once
-#include "Scene/Scene.h"
+#include "Backend/Scene/Scene.h"
 #include "OpenGLShaderProgram.h"
 #include <memory>
 
@@ -12,6 +12,9 @@ class OpenGLScene :
 {
 public:
 	static std::unique_ptr<OpenGLScene> makeScene(OpenGLWindow&);
+
+public:
+	virtual OpenGLStandardShaderProgram& getPointsShader() const = 0;
 
 public:
 	virtual OpenGLStandardShaderProgram& getBoundingBoxShader() const = 0;

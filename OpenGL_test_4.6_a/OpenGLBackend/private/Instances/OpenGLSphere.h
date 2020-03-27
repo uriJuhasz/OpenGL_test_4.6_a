@@ -1,6 +1,6 @@
 #pragma once
 #include "OpenGLSurface.h"
-#include "Scene/SceneObjects/SceneSphere.h"
+#include "Backend/Scene/SceneObjects/SceneSphere.h"
 
 #include "OpenGLBackend/private/OpenGLWindow.h"
 

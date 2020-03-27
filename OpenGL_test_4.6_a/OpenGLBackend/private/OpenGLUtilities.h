@@ -35,6 +35,6 @@ template GLuint glsCreateAndAttachBufferToAttribute<2>(const GLuint vertexArrayO
 template GLuint glsCreateAndAttachBufferToAttribute<3>(const GLuint vertexArrayObjectID, const int attributeIndex, const std::vector<Vector<3>>& values);
 template GLuint glsCreateAndAttachBufferToAttribute<4>(const GLuint vertexArrayObjectID, const int attributeIndex, const std::vector<Vector<4>>& values);
 
-int glGetVertexAttribInt(const GLenum type, const int attributeIndex);
+int glsGetVertexAttribInt(const GLenum type, const int attributeIndex);
 
-void deleteVertexArrayObjectAndAllBuffers(GLuint vertexArrayObject, int maxBufferIndex);
+void glsDeleteVertexArrayObjectAndAllBuffers(GLuint vertexArrayObject, int maxBufferIndex);

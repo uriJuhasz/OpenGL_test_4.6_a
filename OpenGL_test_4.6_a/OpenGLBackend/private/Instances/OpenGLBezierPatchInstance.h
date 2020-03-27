@@ -1,7 +1,7 @@
 #pragma once
 #include "OpenGLSurface.h"
 #include "../Primitives/OpenGLBezierPatchPrimitive.h"
-#include "Scene/SceneObjects/SceneBezierPatch.h"
+#include "Backend/Scene/SceneObjects/SceneBezierPatch.h"
 
 class OpenGLBezierPatchInstance
 	: public OpenGLSurface
@@ -22,5 +22,6 @@ public:
 
 private:
 	const OpenGLBezierPatchPrimitive& m_patchPrimitive;
+	bool m_controlVisible = true;
 };
 

@@ -2,6 +2,9 @@
 
 #pragma warning (disable:4250)
 
+#include "Style/ColorRGB.h"
+#include "Style/ColorRGBA.h"
+
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
 
@@ -22,6 +25,9 @@ public:
 	void setParameter(const std::string& name, const Vector4& value);
 	void setParameter(const std::string& name, const Matrix4x4& value);
 
+	void setParameter(const std::string& name, const ColorRGB& value);
+	void setParameter(const std::string& name, const ColorRGBA& value);
+
 	void setParameter(const std::string& name, const int value);
 
 	void setParameterIfExists(const std::string& name, const float value);
@@ -29,6 +35,9 @@ public:
 	void setParameterIfExists(const std::string& name, const Vector3& value);
 	void setParameterIfExists(const std::string& name, const Vector4& value);
 	void setParameterIfExists(const std::string& name, const Matrix4x4& value);
+
+	void setParameterIfExists(const std::string& name, const ColorRGB& value);
+	void setParameterIfExists(const std::string& name, const ColorRGBA& value);
 
 	void setParameterIfExists(const std::string& name, const int value);
 

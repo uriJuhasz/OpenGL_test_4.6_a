@@ -21,6 +21,8 @@ public:
 public:
 	const BezierPatch& getPatch() const;
 
+public:
+	GLuint getVertexArrayObject() const { return m_vertexArrayObject; }
 private:
 	const std::shared_ptr<const BezierPatch> m_patchPtr;
 

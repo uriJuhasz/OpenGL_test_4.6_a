@@ -1,6 +1,6 @@
 #pragma once
 #include "OpenGLGraphicObject.h"
-#include "Scene/SceneObjects/SceneSurface.h"
+#include "Backend/Scene/SceneObjects/SceneSurface.h"
 
 class OpenGLSurface
 	: public virtual OpenGLGraphicObject

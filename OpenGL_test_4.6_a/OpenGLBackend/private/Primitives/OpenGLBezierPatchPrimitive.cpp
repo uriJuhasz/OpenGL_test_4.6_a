@@ -23,7 +23,7 @@ OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const
 
 OpenGLBezierPatchPrimitive::~OpenGLBezierPatchPrimitive()
 {
-    deleteVertexArrayObjectAndAllBuffers(m_vertexArrayObject, 1);
+    glsDeleteVertexArrayObjectAndAllBuffers(m_vertexArrayObject, 1);
 }
 
 constexpr int c_numVerticesPerPatch = 16;

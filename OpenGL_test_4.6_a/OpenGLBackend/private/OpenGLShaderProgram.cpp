@@ -25,6 +25,14 @@ void OpenGLShaderProgram::setParameter(const std::string& name, const Vector3& v
 {
 	setParameterT(m_shaderProgramID, name, glProgramUniform3fv, 1, value.data());
 }
+void OpenGLShaderProgram::setParameter(const std::string& name, const ColorRGB& value)
+{
+	setParameter(name, value.m_value);
+}
+void OpenGLShaderProgram::setParameter(const std::string& name, const ColorRGBA& value)
+{
+	setParameter(name,value.m_value);
+}
 void OpenGLShaderProgram::setParameter(const std::string& name, const Vector4& value)
 {
 	setParameterT(m_shaderProgramID, name, glProgramUniform4fv, 1, value.data());

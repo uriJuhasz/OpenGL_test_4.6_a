@@ -137,23 +137,23 @@ template<unsigned int D>GLuint glsCreateAndAttachBufferToAttribute(
     return bufferID;
 }
 
-int glGetVertexAttribInt(const GLenum type, const int attributeIndex)
+int glsGetVertexAttribInt(const GLenum type, const int attributeIndex)
 {
     GLint val;
     glGetVertexAttribiv(attributeIndex, type, &val);
     return val;
 }
 
-void deleteVertexArrayObjectAndAllBuffers(GLuint vertexArrayObject, int maxBufferIndex)
+void glsDeleteVertexArrayObjectAndAllBuffers(GLuint vertexArrayObject, int maxBufferIndex)
 {
     if (vertexArrayObject)
     {
         glBindVertexArray(vertexArrayObject);
         for (int i = 0; i < maxBufferIndex; ++i)
         {
-            if (glGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_ENABLED, i))
+            if (glsGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_ENABLED, i))
             {
-                GLuint bufferID = glGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, 2);
+                GLuint bufferID = glsGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, i);
                 glDeleteBuffers(1, &bufferID);
             }
 

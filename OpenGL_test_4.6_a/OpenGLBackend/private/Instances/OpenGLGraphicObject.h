@@ -1,5 +1,5 @@
 #pragma once
-#include "Scene/SceneObjects/SceneObject.h"
+#include "Backend/Scene/SceneObjects/SceneObject.h"
 #include "OpenGLBackend/private/OpenGLScene.h"
 
 class OpenGLGraphicObject :

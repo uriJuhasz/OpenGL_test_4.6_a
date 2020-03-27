@@ -21,16 +21,7 @@
     <ClCompile Include="IO\MeshLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\Scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="View\View.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\PointLight.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpenGLBackend\OpenGLBackend.cpp">
@@ -55,9 +46,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WindowsDebugOutputRedirect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\SceneObjects\SceneObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.cpp">
@@ -87,9 +75,6 @@
     <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLPrimitive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Backend\GraphicObjects\BackendGraphicObjects.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Backend\Backend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -103,6 +88,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpenGLBackend\private\OpenGLScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Backend\Scene\SceneObjects\SceneObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Backend\Scene\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Backend\Scene\PointLight.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Backend\Scene\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -119,16 +116,7 @@
     <ClInclude Include="IO\MeshLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="View\View.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\PointLight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Backend\BackendContext.h">
@@ -161,9 +149,6 @@
     <ClInclude Include="WindowsDebugOutputRedirect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\SceneObjects\SceneObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -171,15 +156,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenGLBackend\private\Instances\OpenGLGraphicObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Backend\GraphicObjects\BackendGraphicObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Backend\GraphicObjects\BackendMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Backend\GraphicObjects\BackendBezierPatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Geometry\BezierPatch.h">
@@ -197,43 +173,43 @@
     <ClInclude Include="OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\SceneObjects\SceneBezierPatch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLPrimitive.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Backend\GraphicObjects\BackendSphere.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Backend\GraphicObjects\BackendGraphicObjectFaceStyleMixin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Backend\GraphicObjects\BackendGraphicObjectEdgeStyleMixin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Backend\GraphicObjects\BackendSurface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenGLBackend\private\Instances\OpenGLSphere.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\SceneObjects\SceneSphere.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OpenGLBackend\private\Instances\OpenGLSurface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\SceneObjects\SceneMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\SceneObjects\SceneSurface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenGLBackend\private\OpenGLUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenGLBackend\private\OpenGLScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\Scene\SceneObjects\SceneBezierPatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\Scene\SceneObjects\SceneMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\Scene\SceneObjects\SceneObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\Scene\SceneObjects\SceneSphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\Scene\SceneObjects\SceneSurface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\Scene\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\Scene\PointLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\Scene\Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -245,6 +221,7 @@
     <None Include="OpenGLBackend\private\shaders\BezierEdgeShaderProgram.glsl" />
     <None Include="OpenGLBackend\private\shaders\SphereEdgeShaderProgram.glsl" />
     <None Include="OpenGLBackend\private\shaders\SphereFaceShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\shaders\PointsShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />

@@ -15,7 +15,7 @@ void main()
 
 #ifdef COMPILING_FS
 
-uniform vec4 edgeColor;
+uniform vec4 edgeColor = vec4(1,0,0,1);
 
 out vec4 frag_color;
 

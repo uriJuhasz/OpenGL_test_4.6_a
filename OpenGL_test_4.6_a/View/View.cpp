@@ -1,10 +1,10 @@
 #include "View.h"
 
-#include "Scene/Scene.h"
-#include "Scene/Camera.h"
-#include "Scene/SceneObjects/SceneMesh.h"
-#include "Scene/SceneObjects/SceneBezierPatch.h"
-#include "Scene/SceneObjects/SceneSphere.h"
+#include "Backend/Scene/Scene.h"
+#include "Backend/Scene/Camera.h"
+#include "Backend/Scene/SceneObjects/SceneMesh.h"
+#include "Backend/Scene/SceneObjects/SceneBezierPatch.h"
+#include "Backend/Scene/SceneObjects/SceneSphere.h"
 
 #include "Backend/BackendWindow.h"
 
@@ -98,7 +98,7 @@ void ViewImpl::setupScene()
         auto& pointLight1 = scene.addPointLight();
         const Vector3 target(0.0f, 0.0f, 0.0f);
         pointLight0.setPosition(target + Vector3(0.0f, 100.0f, 0.0f));
-        pointLight1.setPosition(target + Vector3(100.0f, 0.0f, 0.0f));
+        pointLight1.setPosition(target + Vector3(100.0f, -100.0f, 0.0f));
     }
 
     ////////////////////////////////////////////////////////////////
@@ -114,7 +114,7 @@ void ViewImpl::setupScene()
         for (const auto sphereDef : patchParameters)
         {
             auto& sphere = m_scene->addSphere(Vector3(sphereDef[0], sphereDef[1], sphereDef[2]), sphereDef[3]);
-            sphere.setVisibility(true);
+            sphere.setVisibility(false);
             sphere.setFaceVisibility(true);
             sphere.setEdgeVisibility(false);
         }
@@ -127,7 +127,7 @@ void ViewImpl::setupScene()
         auto& mesh = *m_mesh;
         mesh.calculateTopology();
         auto& sceneMeshObject = scene.addMesh(m_mesh);
-        sceneMeshObject.setVisibility(true);
+        sceneMeshObject.setVisibility(false);
         sceneMeshObject.setFaceVisibility(true);
         sceneMeshObject.setEdgeVisibility(false);
 

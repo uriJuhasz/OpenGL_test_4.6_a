@@ -14,6 +14,7 @@ public:
     static const ColorRGBA Red;
     static const ColorRGBA Green;
     static const ColorRGBA Blue;
+    static const ColorRGBA Yellow;
 };
 
 

@@ -1,7 +1,4 @@
 #include <GL/glew.h>
-#ifdef _WIN32
-#include <GL/wglew.h>
-#endif
 #include <GLFW/glfw3.h>
 
 #include "OpenGLWindow.h"
@@ -18,7 +15,7 @@
 #include "Utilities/Exception.h"
 #include "Utilities/Misc.h"
 
-#include "Scene/PointLight.h"
+#include "Backend/Scene/PointLight.h"
 
 #include <cassert>
 #include <vector>
@@ -205,41 +202,6 @@ public:
         glewExperimental = GL_TRUE;
         glewInit();
 
-        //Look at GPUs
-#ifdef _WIN32
-        {
-            if (WGLEW_NV_gpu_affinity)
-            {
-                for (UINT gpu = 0; true; ++gpu)
-                {
-                    HGPUNV hGPU = 0;
-                    if (!wglEnumGpusNV(gpu, &hGPU))
-                        break;
-
-                    GPU_DEVICE gpuDevice;
-                    gpuDevice.cb = sizeof(gpuDevice);
-                    const bool found = wglEnumGpuDevicesNV(hGPU, 0, &gpuDevice);
-                    assert(found);
-
-                    std::cout << "GPU " << gpu << ": " << gpuDevice.DeviceString;
-
-                    if (gpuDevice.Flags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
-                    {
-                        const RECT& rect = gpuDevice.rcVirtualScreen;
-                        std::cout << " used on [" << rect.left << ' ' << rect.top << ' '
-                            << rect.right - rect.left << ' '
-                            << rect.bottom - rect.top << ']';
-                    }
-                    else
-                        std::cout << " offline";
-
-                    std::cout << std::endl;
-                }
-            }
-            else
-                cout << " Cannot select GPU";
-        }
-#endif
         // get version info
         cout << endl;
 
@@ -451,4 +413,42 @@ void OpenGLWindowImpl::openGLMessageCallback(
 }
 
 
+//Look at GPUs
+#ifdef NAMNAMBULU
+#ifdef _WIN32
+#include <GL/wglew.h>
+#endif
+{
+    if (WGLEW_NV_gpu_affinity)
+    {
+        for (UINT gpu = 0; true; ++gpu)
+        {
+            HGPUNV hGPU = 0;
+            if (!wglEnumGpusNV(gpu, &hGPU))
+                break;
+
+            GPU_DEVICE gpuDevice;
+            gpuDevice.cb = sizeof(gpuDevice);
+            const bool found = wglEnumGpuDevicesNV(hGPU, 0, &gpuDevice);
+            assert(found);
+
+            std::cout << "GPU " << gpu << ": " << gpuDevice.DeviceString;
+
+            if (gpuDevice.Flags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
+            {
+                const RECT& rect = gpuDevice.rcVirtualScreen;
+                std::cout << " used on [" << rect.left << ' ' << rect.top << ' '
+                    << rect.right - rect.left << ' '
+                    << rect.bottom - rect.top << ']';
+            }
+            else
+                std::cout << " offline";
+
+            std::cout << std::endl;
+        }
+    }
+    else
+        cout << " Cannot select GPU";
+}
+#endif
 

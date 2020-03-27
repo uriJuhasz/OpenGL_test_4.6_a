@@ -24,7 +24,7 @@ OpenGLMeshPrimitive::OpenGLMeshPrimitive(OpenGLScene& scene, const std::shared_p
 
 OpenGLMeshPrimitive::~OpenGLMeshPrimitive()
 {
-    deleteVertexArrayObjectAndAllBuffers(m_vertexArrayObjectIDForFaces, 3);
+    glsDeleteVertexArrayObjectAndAllBuffers(m_vertexArrayObjectIDForFaces, 3);
 }
 
 const Mesh& OpenGLMeshPrimitive::getMesh() const

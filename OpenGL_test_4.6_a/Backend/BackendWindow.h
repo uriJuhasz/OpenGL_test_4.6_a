@@ -2,8 +2,6 @@
 
 #include "BackendViewInterface.h"
 #include "BackendContext.h"
-#include "GraphicObjects/BackendMesh.h"
-#include "GraphicObjects/BackendBezierPatch.h"
 
 #include "Geometry/Mesh.h"
 #include "Geometry/BezierPatch.h"

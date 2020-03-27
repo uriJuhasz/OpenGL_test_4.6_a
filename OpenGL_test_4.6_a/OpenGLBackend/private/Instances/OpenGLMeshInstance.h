@@ -1,6 +1,6 @@
 #pragma once
 #include "OpenGLSurface.h"
-#include "Scene/SceneObjects/SceneMesh.h"
+#include "Backend/Scene/SceneObjects/SceneMesh.h"
 #include "../Primitives/OpenGLMeshPrimitive.h"
 
 class OpenGLWindow;
