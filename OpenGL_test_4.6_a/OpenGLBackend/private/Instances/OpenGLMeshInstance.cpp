@@ -36,7 +36,7 @@ void OpenGLMeshInstance::renderMain()
 		auto& edgeShader = m_meshPrimitive.getEdgeShader();
 
 		edgeShader.setParameter("modelMatrix", m_modelMatrix);
-		edgeShader.setParameter("edgeColor", m_edgesColor.m_value);
+		edgeShader.setParameter("fixedFragmentColor", m_edgesColor.m_value);
 	}
 	glLineWidth(getEdgeWidth());
 	m_meshPrimitive.render(m_facesVisible, m_edgesVisible);

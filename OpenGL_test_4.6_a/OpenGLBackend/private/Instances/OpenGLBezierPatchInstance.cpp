@@ -48,7 +48,7 @@ void OpenGLBezierPatchInstance::renderMain()
 			glPointSize(c_controlPointSize);
 			auto& shader = getScene().getPointsShader();
 			shader.setParameter("modelMatrix", m_modelMatrix);
-			shader.setParameter("pointColor", ColorRGBA::Red);
+			shader.setParameter("fixedFragmentColor", ColorRGBA::Red);
 			glUseProgram(shader.m_shaderProgramID);
 			glDrawArrays(GL_POINTS, 0, c_numVerticesPerPatch);
 			glUseProgram(0);
@@ -84,7 +84,7 @@ void OpenGLBezierPatchInstance::renderMain()
 			{
 				auto& shader = getScene().getMeshEdgeShader();
 				shader.setParameter("modelMatrix", m_modelMatrix);
-				shader.setParameter("edgeColor", ColorRGBA::Yellow);
+				shader.setParameter("fixedFragmentColor", ColorRGBA::Yellow);
 				glUseProgram(shader.m_shaderProgramID);
 				glDrawElements(GL_LINES, numEdges * 2, GL_UNSIGNED_INT, 0);
 				glUseProgram(0);			

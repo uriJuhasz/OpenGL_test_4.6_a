@@ -127,11 +127,16 @@ private:
 
     GLuint makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title);
     void makeAndAttachShader(const GLuint shaderProgram, const GLenum shaderType, const string& shaderFileName, const string& title);
+    std::unique_ptr<OpenGLStandardShaderProgram> makeStandardShaderProgramModular(
+        const string& vertexShader,
+        const string& geometryShader,
+        const string& fragmentShader,
+        const string& title);
 
 public:
     OpenGLStandardShaderProgram& getPointsShader() const override
     {
-        return *m_pointsShader;
+        return *m_fixedColorShader;
     }
 
     OpenGLStandardShaderProgram& getBoundingBoxShader() const override
@@ -144,7 +149,7 @@ public:
     }
     OpenGLStandardShaderProgram& getMeshEdgeShader() const override
     {
-        return *m_meshEdgeShader;
+        return *m_fixedColorShader;
     }
     OpenGLTessellationShaderProgram& getBezierPatchFaceShader() const override
     {
@@ -164,12 +169,12 @@ public:
         return *m_sphereFaceShader;
     }
 
-    unique_ptr<OpenGLStandardShaderProgram> m_pointsShader;
+    unique_ptr<OpenGLStandardShaderProgram> m_fixedColorShader;
 
     unique_ptr<OpenGLStandardShaderProgram> m_boundingBoxShader;
 
     unique_ptr<OpenGLStandardShaderProgram> m_meshFaceShader;
-    unique_ptr<OpenGLStandardShaderProgram> m_meshEdgeShader;
+
     unique_ptr<OpenGLTessellationShaderProgram> m_bezierFaceShader;
     unique_ptr<OpenGLTessellationShaderProgram> m_bezierEdgeShader;
     unique_ptr<OpenGLTessellationShaderProgram> m_sphereFaceShader;
@@ -179,10 +184,9 @@ public:
     void render() const
     {
         const vector<OpenGLShaderProgram*> allShaders = {
-            m_pointsShader.get(),
+            m_fixedColorShader.get(),
             m_boundingBoxShader.get(),
             m_meshFaceShader.get(),
-            m_meshEdgeShader.get(),
             m_bezierFaceShader.get(),
             m_bezierEdgeShader.get(),
             m_sphereFaceShader.get(),
@@ -285,11 +289,13 @@ string loadShader(const string& fileName)
         buffer << f.rdbuf();
         r = buffer.str();
     }
+    else
+        throw new int();
 
     return r;
 }
 
-GLuint makeSingleShaderCC(const GLenum  shaderType, const string& shaderSource)
+GLuint makeSingleShaderCC(const GLenum shaderType, const string& shaderSource)
 {
     const auto ccString = string(
     (shaderType == GL_VERTEX_SHADER) ? "VS" :
@@ -331,12 +337,12 @@ void OpenGLSceneImpl::loadShaders()
 {
     setShaderBasePath(c_shaderBasePath);
 
-    m_pointsShader = makeStandardShaderProgram("PointsShader.glsl", "points");
+    m_fixedColorShader = makeStandardShaderProgramModular("allTranformations.vert", "", "fixedColor.frag", "points");
+//    m_pointsShader = makeStandardShaderProgram("PointsShader.glsl", "points");
 
     m_boundingBoxShader = makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBox");
 
     m_meshFaceShader = makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");
-    m_meshEdgeShader = makeStandardShaderProgram("MeshEdgeShaderProgram.glsl", "meshEdge");
 
     m_bezierFaceShader = makeTessellationShaderProgram("BezierFaceShaderProgram.glsl", "BezierFace");
     m_bezierEdgeShader = makeTessellationShaderProgram("BezierEdgeShaderProgram.glsl", "BezierEdge");
@@ -401,7 +407,7 @@ std::unique_ptr<OpenGLTessellationShaderProgram> OpenGLSceneImpl::makeTessellati
     return make_unique<OpenGLTessellationShaderProgram>(shaderProgramID);
 }
 
-GLuint OpenGLSceneImpl::makeSingleShader(const GLenum  shaderType, const string& shaderPath, const string& title)
+GLuint OpenGLSceneImpl::makeSingleShader(const GLenum shaderType, const string& shaderPath, const string& title)
 {
     const auto shader = glCreateShader(shaderType);
     const auto shaderSource = loadShader(m_shaderBasePath + shaderPath);
@@ -419,6 +425,28 @@ void OpenGLSceneImpl::makeAndAttachShader(const GLuint shaderProgram, const GLen
     {
         glAttachShader(shaderProgram, makeSingleShader(shaderType, shaderFileName, title + "_" + getShaderTypeSuffixString(shaderType)));
     }
+}
+
+std::unique_ptr<OpenGLStandardShaderProgram> OpenGLSceneImpl::makeStandardShaderProgramModular(
+    const string& vertexShader,
+    const string& geometryShader,
+    const string& fragmentShader,
+    const string& title)
+{
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+    const auto shaderProgram = glCreateProgram();
+
+    makeAndAttachShader(shaderProgram, GL_VERTEX_SHADER, vertexShader, title);
+    makeAndAttachShader(shaderProgram, GL_GEOMETRY_SHADER, geometryShader, title);
+    makeAndAttachShader(shaderProgram, GL_FRAGMENT_SHADER, fragmentShader, title);
+    glLinkProgram(shaderProgram);
+    glsCheckShaderProgramErrors(title, shaderProgram);
+
+    glsCheckErrors();
+
+    return make_unique<OpenGLStandardShaderProgram>(shaderProgram);
 }
 
 std::unique_ptr<OpenGLScene> OpenGLScene::makeScene(OpenGLWindow& window)

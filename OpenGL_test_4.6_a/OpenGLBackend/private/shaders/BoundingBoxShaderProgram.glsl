@@ -27,11 +27,6 @@ void emitVertexData(vec3 position)
 void main() 
 {
     vec3 bb[2] = { gl_in[0].gl_Position.xyz,  gl_in[1].gl_Position.xyz};
-/*    vec3 bvs[8];
-    for (int i=0; i<8; ++i)
-    {
-        bvs[i]=vec3(p[(((i+1)%8)/2)%2][0],p[(i/2)%2][1],p[i/4][2]);
-    }*/
 
     vec3 bvs[8] = {
         vec3(bb[0][0],bb[0][1],bb[0][2]),
@@ -43,13 +38,7 @@ void main()
         vec3(bb[1][0],bb[1][1],bb[1][2]),
         vec3(bb[0][0],bb[1][1],bb[1][2])
     };
-/*
-    const int[24] bbEdges = {
-        0,1, 1,2, 2,3, 3,0,
-        4,5, 5,6, 6,7, 7,4,
-        0,4, 1,5, 2,6, 3,7
-    };
-    */
+
     const int bbEdgeStrip[] = {
         0, 1,5,1, 2,6,2, 3,7,3, 0,  4,5,6,7, 4
     };
@@ -70,6 +59,5 @@ out vec4 frag_color;
 void main() {
   frag_color = edgeColor;
 }
-
 
 #endif
