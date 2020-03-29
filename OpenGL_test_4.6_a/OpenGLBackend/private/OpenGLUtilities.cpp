@@ -8,8 +8,12 @@
 #include <sstream>
 #include <cassert>
 
-using namespace std;
-
+using std::string;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::array;
 
 string toString(const vector<char>& v)
 {
@@ -56,7 +60,7 @@ void glsCheckErrors()
     if (err != GL_NO_ERROR)
     {
         do {
-            cerr << " OpenGL error: " << err << gluErrorString(err) << endl;
+            cerr << " OpenGL error: " << err << " - " << gluErrorString(err) << endl;
             err = glGetError();
         } while (err != GL_NO_ERROR);
     }
@@ -82,12 +86,12 @@ template<unsigned int D> GLuint glsMakeBuffer(const vector<Vector<D>>& vs, const
 }
 
 
-GLuint glsGenAndBindVertexArrayObject()
+GLuint glsCreateVertexArrayObject()
 {
     GLuint vertexArrayObjectID = 0;
-//    glCreateVertexArrays(1, &vertexArrayObjectID); 
-    glGenVertexArrays(1, &vertexArrayObjectID);
-    glBindVertexArray(vertexArrayObjectID);
+    glCreateVertexArrays(1, &vertexArrayObjectID); 
+//    glGenVertexArrays(1, &vertexArrayObjectID);
+//    glBindVertexArray(vertexArrayObjectID);
     return vertexArrayObjectID;
 }
 
@@ -163,4 +167,24 @@ void glsDeleteVertexArrayObjectAndAllBuffers(GLuint vertexArrayObject, int maxBu
         glDeleteBuffers(1, &vertexIndexBufferID);
     }
     glDeleteVertexArrays(1, &vertexArrayObject);
+}
+
+GLuint glsCreateAndAttachIndexBuffer(const GLuint vertexArrayObjectID, const int size, const void* data)
+{
+    const auto indexBufferID = glsCreateBuffer();
+    glNamedBufferStorage(indexBufferID, size, data, 0);
+    glVertexArrayElementBuffer(vertexArrayObjectID, indexBufferID);
+    return indexBufferID;
+}
+GLuint glsCreateAndAttachFaceBuffer(const GLuint vertexArrayObjectID, const std::vector<Mesh::Face>& faces)
+{
+    return glsCreateAndAttachIndexBuffer(vertexArrayObjectID, numElements(faces) * sizeof(faces[0]), faces.data());
+}
+GLuint glsCreateAndAttachEdgeBuffer(const GLuint vertexArrayObjectID, const vector<array<int, 2>>& edges)
+{
+    return glsCreateAndAttachIndexBuffer(vertexArrayObjectID, numElements(edges) * sizeof(edges[0]), edges.data());
+}
+GLuint glsCreateAndAttachTriangleStripBuffer(const GLuint vertexArrayObjectID, const std::vector<int>& triangleStrip)
+{
+    return glsCreateAndAttachIndexBuffer(vertexArrayObjectID, numElements(triangleStrip) * sizeof(triangleStrip[0]), triangleStrip.data());
 }

@@ -44,15 +44,18 @@ void OpenGLGraphicObject::renderBoundingBox()
 	auto& shader = m_scene.getBoundingBoxShader();
 	glUseProgram(shader.m_shaderProgramID);
 
-	shader.setParameter("edgeColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	shader.setParameter("fixedFragmentColor", Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 
 	const auto boundingBox = getBoundingBox().get();
 	{
-		const auto vertexArrayObject = glsGenAndBindVertexArrayObject();
+		const auto vertexArrayObject = glsCreateVertexArrayObject();
 		const vector<Vector3> vertices = { boundingBox[0],boundingBox[1] };
 		glsCreateAndAttachBufferToAttribute(vertexArrayObject, 0, vertices);
+
 		glUseProgram(shader.m_shaderProgramID);
+		glBindVertexArray(vertexArrayObject);
 		glDrawArrays(GL_LINES, 0, 2);
+
 		glUseProgram(0);
 		glsDeleteVertexArrayObjectAndAllBuffers(vertexArrayObject,1);
 	}

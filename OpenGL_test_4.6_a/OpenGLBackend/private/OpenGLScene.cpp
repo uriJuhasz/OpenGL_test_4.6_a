@@ -45,8 +45,10 @@ public:
     explicit OpenGLSceneImpl(OpenGLWindow& window)
         : m_window(window)
     {
-        loadShaders();
+        initialize();
     }
+
+    void initialize();
 
 private:
     const Camera& getCamera() const override
@@ -169,6 +171,8 @@ public:
         return *m_sphereFaceShader;
     }
 
+    unique_ptr<OpenGLStandardShaderProgram> m_flatTextureShader;
+
     unique_ptr<OpenGLStandardShaderProgram> m_fixedColorShader;
 
     unique_ptr<OpenGLStandardShaderProgram> m_boundingBoxShader;
@@ -183,6 +187,9 @@ public:
 public:
     void render() const
     {
+        static ColorRGBA black = ColorRGBA::Black;
+        static float one = 1.0f;
+
         const vector<OpenGLShaderProgram*> allShaders = {
             m_fixedColorShader.get(),
             m_boundingBoxShader.get(),
@@ -247,8 +254,40 @@ public:
             }
         }
 
+        {
+            glClearNamedFramebufferfv(m_frameBufferID, GL_COLOR, 0, black.m_value.data());
+            glClearNamedFramebufferfv(m_frameBufferID, GL_DEPTH, 0, &one);
+            glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferID);
+            glEnable(GL_DEPTH_TEST);
+        }
+
         for (auto& instancePtr : m_sceneObjects)
             instancePtr->render();
+
+        if (true){
+            const auto ws = m_window.getViewportDimensions();
+            const auto w = (unsigned int)ws[0];
+            const auto h = (unsigned int)ws[1];
+
+//            glClearNamedFramebufferfv(0, GL_COLOR, 0, black.m_value.data());
+//            glClearNamedFramebufferfv(0, GL_DEPTH, 0, &zero);
+
+            glDisable(GL_DEPTH_TEST);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glBindVertexArray(m_screenVAO);
+            const auto shaderID = m_flatTextureShader->m_shaderProgramID;
+            glUseProgram(shaderID);
+            glUniform1i(glGetUniformLocation(shaderID, "mainTexture"),0);
+
+            glBindTextureUnit(0, m_screenTBO);
+//            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, 0);
+
+            glBindVertexArray(0);
+            glUseProgram(0);
+
+//            glBlitNamedFramebuffer(m_frameBufferID, 0, 0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        }
     }
 
 private:
@@ -258,6 +297,9 @@ private:
         m_shaderBasePath = path;
     }
 
+    GLuint m_frameBufferID = 0;
+    GLuint m_screenVAO = 0;
+    GLuint m_screenTBO = 0;
 };
 
 std::unique_ptr<OpenGLScene> makeScene(OpenGLWindow& window)
@@ -317,7 +359,6 @@ GLuint makeSingleShaderCC(const GLenum shaderType, const string& shaderSource)
         glCompileShader(shader);
         glsCheckShaderErrors(ccString, shader);
 
-        glsCheckErrors();
         return shader;
     }
     else
@@ -337,10 +378,13 @@ void OpenGLSceneImpl::loadShaders()
 {
     setShaderBasePath(c_shaderBasePath);
 
+    m_flatTextureShader = makeStandardShaderProgram("textureOnly.glsl", "textureOnly");
+
     m_fixedColorShader = makeStandardShaderProgramModular("allTranformations.vert", "", "fixedColor.frag", "points");
 //    m_pointsShader = makeStandardShaderProgram("PointsShader.glsl", "points");
 
-    m_boundingBoxShader = makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBox");
+    m_boundingBoxShader = makeStandardShaderProgramModular("nopVec3.vert", "boundingBox.geom", "fixedColor.frag", "boundingBox");
+//    m_boundingBoxShader = makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBox");
 
     m_meshFaceShader = makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");
 
@@ -380,8 +424,6 @@ std::unique_ptr<OpenGLStandardShaderProgram> OpenGLSceneImpl::makeStandardShader
     glLinkProgram(shaderProgram);
     glsCheckShaderProgramErrors(title, shaderProgram);
 
-    glsCheckErrors();
-
     std::cerr << "  Shader " << title << " : " << shaderProgram << endl;
     return make_unique<OpenGLStandardShaderProgram>(shaderProgram);
 }
@@ -400,8 +442,6 @@ std::unique_ptr<OpenGLTessellationShaderProgram> OpenGLSceneImpl::makeTessellati
     glLinkProgram(shaderProgramID);
     glsCheckShaderProgramErrors(title, shaderProgramID);
 
-    glsCheckErrors();
-
     std::cerr << "  Shader " << title << " : " << shaderProgramID << endl;
 
     return make_unique<OpenGLTessellationShaderProgram>(shaderProgramID);
@@ -416,7 +456,6 @@ GLuint OpenGLSceneImpl::makeSingleShader(const GLenum shaderType, const string& 
     glCompileShader(shader);
     glsCheckShaderErrors(title, shader);
 
-    glsCheckErrors();
     return shader;
 }
 void OpenGLSceneImpl::makeAndAttachShader(const GLuint shaderProgram, const GLenum shaderType, const string& shaderFileName, const string& title)
@@ -444,8 +483,6 @@ std::unique_ptr<OpenGLStandardShaderProgram> OpenGLSceneImpl::makeStandardShader
     glLinkProgram(shaderProgram);
     glsCheckShaderProgramErrors(title, shaderProgram);
 
-    glsCheckErrors();
-
     return make_unique<OpenGLStandardShaderProgram>(shaderProgram);
 }
 
@@ -453,3 +490,58 @@ std::unique_ptr<OpenGLScene> OpenGLScene::makeScene(OpenGLWindow& window)
 {
     return make_unique<OpenGLSceneImpl>(window);
 }
+
+void OpenGLSceneImpl::initialize()
+{
+    loadShaders();
+
+    {
+        const auto windowSize = m_window.getViewportDimensions();
+        const auto w = (unsigned int)(windowSize[0]);
+        const auto h = (unsigned int)(windowSize[1]);
+        GLuint fbo;
+        glCreateFramebuffers(1, &fbo);
+        GLuint rboColor;
+        {
+            glCreateRenderbuffers(1, &rboColor);
+            glNamedRenderbufferStorage(rboColor, GL_RGBA8, w, h);
+            //                glNamedFramebufferRenderbuffer(fbo, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rboColor);
+        }
+
+        GLuint rboDepth;
+        {
+            glCreateRenderbuffers(1, &rboDepth);
+            glNamedRenderbufferStorage(rboDepth, GL_DEPTH_COMPONENT, w, h);
+            glNamedFramebufferRenderbuffer(fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+        }
+
+        GLuint tboColor;
+        {
+            glCreateTextures(GL_TEXTURE_2D, 1, &tboColor);
+            glTextureParameteri(tboColor, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTextureParameteri(tboColor, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTextureStorage2D(tboColor, 1, GL_RGBA8, w, h);
+
+            glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, tboColor, 0);
+        }
+
+        m_frameBufferID = fbo;
+        m_screenTBO = tboColor;
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cerr << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    }
+
+    {
+        const auto vao = glsCreateVertexArrayObject();
+        static const vector<Vector3> vertices = { {-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0} };
+        static const vector<Vector2> uvCoords = { {0,0}    ,{1,0}   ,{1,1}  ,{0,1} };
+        static const vector<int> faceTriangleStrip = { 1, 2, 0, 3 };
+        const auto vertexBufferID = glsCreateAndAttachBufferToAttribute(vao, 0, vertices);
+        const auto uvcoordBufferID = glsCreateAndAttachBufferToAttribute(vao, 1, uvCoords);
+        const auto faceBufferID = glsCreateAndAttachTriangleStripBuffer(vao, faceTriangleStrip);
+        m_screenVAO = vao;
+    }
+}
+
+

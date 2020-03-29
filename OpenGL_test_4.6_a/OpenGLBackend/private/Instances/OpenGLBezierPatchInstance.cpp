@@ -58,34 +58,31 @@ void OpenGLBezierPatchInstance::renderMain()
 			glBindVertexArray(pvao);
 			const auto vertexBuffer = glsGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, 0);
 
-			const auto vertexArrayObject = glsGenAndBindVertexArrayObject();
+			const auto vertexArrayObject = glsCreateVertexArrayObject();
 			{
 				glsAttachBufferToAttribute<3>(vertexArrayObject, vertexBuffer, 0);
 			}
-			const auto indexBufferID = glsCreateBuffer();
-			int numEdges = 0;
+
+			vector<array<int, 2>> edgeBuffer; edgeBuffer.reserve(c_numVerticesPerPatch * 2);
 			{
-				vector<array<int, 2>> edgeBuffer; edgeBuffer.reserve(c_numVerticesPerPatch * 2);
 				for (int i = 0; i < 4; ++i)
 					for (int j = 0; j < 4; ++j)
 					{
 						if (j < 3)
-							edgeBuffer.emplace_back(array<int, 2>{i * 4 + j,  i      * 4 + j + 1 });
+							edgeBuffer.emplace_back(array<int, 2>{i * 4 + j, i * 4 + j + 1 });
 						if (i < 3)
 							edgeBuffer.emplace_back(array<int, 2>{i * 4 + j, (i + 1) * 4 + j     });
 					}
-
-				numEdges = toInt(edgeBuffer.size());
-				const auto edgeSize = sizeof(edgeBuffer[0]);
-				glNamedBufferStorage(indexBufferID, numEdges * edgeSize, edgeBuffer.data(), 0);
-				glVertexArrayElementBuffer(vertexArrayObject, indexBufferID);
 			}
-
+			const auto indexBufferID = glsCreateAndAttachEdgeBuffer(vertexArrayObject, edgeBuffer);
+			const auto numEdges = toInt(edgeBuffer.size());
 			{
 				auto& shader = getScene().getMeshEdgeShader();
 				shader.setParameter("modelMatrix", m_modelMatrix);
 				shader.setParameter("fixedFragmentColor", ColorRGBA::Yellow);
+				
 				glUseProgram(shader.m_shaderProgramID);
+				glBindVertexArray(vertexArrayObject);
 				glDrawElements(GL_LINES, numEdges * 2, GL_UNSIGNED_INT, 0);
 				glUseProgram(0);			
 			}

@@ -20,9 +20,7 @@ void main()
 {
     vec4 worldPos = modelMatrix * vec4(position, 1.0);
     gl_Position = worldPos;
-    originalVertex = VertexData(
-    worldPos.xyz, (modelMatrix*vec4(normal,0)).xyz, uvCoord
-    );
+    originalVertex = VertexData(worldPos.xyz, (modelMatrix*vec4(normal,0)).xyz, uvCoord);
 }
 
 
@@ -68,7 +66,6 @@ void main()
     for (int i=0; i<3;++i)
         emitVertexData(ovs[i]);
 //    emitVertexData(ovs[0]);
-//    emitVertexData(ovs[0]);
 
 /*
     VertexData realMid = VertexData(
@@ -103,6 +100,20 @@ void main()
 
 #ifdef COMPILING_FS
 layout (location=1) in VertexData geometryVertex;
+
+struct PointLight
+{
+    bool  enabled;
+    vec3  position;
+    vec3  color;
+    float specularExponent;    
+};
+
+const int maxLights = 16;
+layout(std140) uniform Lights
+{
+  PointLight pointLights[16];
+};
 
 uniform vec3 light0Position;
 uniform vec3 light0Color;

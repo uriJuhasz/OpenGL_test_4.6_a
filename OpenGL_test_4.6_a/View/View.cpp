@@ -60,7 +60,6 @@ ViewImpl::ViewImpl(BackendWindow& backendWindow)
     , m_scene(backendWindow.makeScene())
 {
     backendWindow.registerView(this);
-    backendWindow.init();
 }
 
 ViewImpl::~ViewImpl()
@@ -145,48 +144,8 @@ void ViewImpl::setupScene()
             scene.setCamera(camera);
         }
 
-        /*        {
-
-                    GLuint vertexArrayObjectID = 0;
-                    {
-                        glCreateVertexArrays(1, &vertexArrayObjectID);
-                        glBindVertexArray(vertexArrayObjectID);
-                    }
-                    {
-                        const auto values = vector<Vector3>{ m_meshBoundingBox[0],m_meshBoundingBox[1] };
-                        const int numValues = toInt(values.size());
-                        const auto valueSize = sizeof(values[0]);
-                        const auto attributeIndex = 0;
-                        const auto D = 3;
-                        GLuint bufferID = 0;
-                        glCreateBuffers(1, &bufferID);
-                        glNamedBufferStorage(bufferID, numValues * valueSize, values.data(), 0);
-                        glVertexArrayVertexBuffer(vertexArrayObjectID, attributeIndex, bufferID, 0, valueSize);
-                        glEnableVertexArrayAttrib(vertexArrayObjectID, attributeIndex);
-                        glVertexArrayAttribFormat(vertexArrayObjectID, attributeIndex, D, GL_FLOAT, GL_FALSE, 0);
-                        glVertexArrayAttribBinding(vertexArrayObjectID, attributeIndex, attributeIndex);
-                    }
-
-                    {
-                        const array<int, 2> indexArray = { 0,1 };
-                        const auto indexSize = sizeof(indexArray[0]);
-                        const auto numIndices = indexArray.size();
-                        GLuint indexBufferID;
-                        glCreateBuffers(1, &indexBufferID);
-                        glNamedBufferStorage(indexBufferID, numIndices * indexSize, indexArray.data(), GL_DYNAMIC_STORAGE_BIT);
-                        glVertexArrayElementBuffer(vertexArrayObjectID, indexBufferID);
-                    }
-                    m_meshBoundingBoxVertexArrayObjectID = vertexArrayObjectID;
-
-                    m_meshBoundingboxShaderProgram = backendContext.makeStandardShaderProgram("BoundingBoxShaderProgram.glsl", "boundingBoxLine");
-                    auto& shaderProgram = *m_meshBoundingboxShaderProgram;
-
-                    shaderProgram.setParameter("modelMatrix", modelMatrix);
-                }
-            }
-            */
-            ////////////////////////////////////////////////////////////////
-            //Bezier patch
+        ////////////////////////////////////////////////////////////////
+        //Bezier patch
         {
             const array<Vector3, 16> patchParameters = {
                 Vector3(0,2,0), Vector3(1, 1,0), Vector3(2, 1,0), Vector3(3, 2,0),

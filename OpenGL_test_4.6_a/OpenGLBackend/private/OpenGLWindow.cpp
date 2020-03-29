@@ -133,6 +133,7 @@ public:
         if (!m_view)
             return;
         m_view->setupScene();
+        glsCheckErrors();
 
         int frameIndex = 0;
 
@@ -147,17 +148,17 @@ public:
             const auto frameStartTime = chrono::high_resolution_clock::now();
 
             // wipe the drawing surface clear
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glsCheckErrors();
 
             m_view->renderScene();
+            glsCheckErrors();
 
-            // put the stuff we've been drawing onto the display
             glfwSwapBuffers(m_glfwWindow);
+            glsCheckErrors();
 
             const auto frameEndTime = chrono::high_resolution_clock::now();
             const auto frameTime = chrono::duration<double>(frameEndTime - frameStartTime).count();
-//            cout << "Frame time: " << frameTime * 1000.0f << "ms" << endl;
             const auto fps = 1.0 / frameTime;
             const auto title = "fps: " + to_string(fps) ;
             glfwSetWindowTitle(m_glfwWindow, title.c_str());
@@ -167,7 +168,6 @@ public:
             frameIndex++;
             updateFinished();
 
-            // update other events like input handling 
             glfwPollEvents();
         }
     }
@@ -195,7 +195,7 @@ public:
     }
 
 public:
-    void init() override
+    void initialize() override
     {
         if (!m_glfwWindow)
             return;
@@ -245,8 +245,7 @@ public:
         glDebugMessageCallback(openGLMessageCallback, this);
 
 
-        glEnable(GL_DEPTH_TEST); // enable z buffer
-
+        glEnable(GL_DEPTH_TEST); // enable Z buffer
 
     };
 

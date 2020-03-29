@@ -21,7 +21,7 @@ public:
     virtual ~BackendWindow() {}
 
 public:
-    virtual void init() = 0;
+    virtual void initialize() = 0;
 
     virtual operator bool() const = 0;
 

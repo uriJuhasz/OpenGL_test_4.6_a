@@ -7,6 +7,9 @@ public:
     constexpr explicit ColorRGBA(const float r, const float g, const float b, const float a)
         : m_value(r, g, b, a)
     {}
+
+    constexpr ColorRGBA(const ColorRGBA& other) : m_value(other.m_value) {};
+
     Vector4 m_value;
 
     static const ColorRGBA White;

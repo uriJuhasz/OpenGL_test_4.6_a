@@ -17,7 +17,7 @@ OpenGLBezierPatchPrimitive::OpenGLBezierPatchPrimitive(OpenGLScene& scene, const
     , m_patchPtr(patchPtr)
 {
     const auto& patch = *patchPtr;
-    m_vertexArrayObject = glsGenAndBindVertexArrayObject();
+    m_vertexArrayObject = glsCreateVertexArrayObject();
     glsCreateAndAttachBufferToAttribute(m_vertexArrayObject, 0, toVector(patch.getVertices()));
 }
 

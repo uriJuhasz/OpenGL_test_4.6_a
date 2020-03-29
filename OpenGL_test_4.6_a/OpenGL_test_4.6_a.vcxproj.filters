@@ -214,7 +214,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="OpenGLBackend\private\shaders\BoundingBoxShaderProgram.glsl" />
     <None Include="OpenGLBackend\private\shaders\MeshFaceShaderProgram.glsl" />
     <None Include="OpenGLBackend\private\shaders\BezierFaceShaderProgram.glsl" />
     <None Include="OpenGLBackend\private\shaders\BezierEdgeShaderProgram.glsl" />
@@ -222,6 +221,9 @@
     <None Include="OpenGLBackend\private\shaders\SphereFaceShaderProgram.glsl" />
     <None Include="OpenGLBackend\private\shaders\fixedColor.frag" />
     <None Include="OpenGLBackend\private\shaders\allTranformations.vert" />
+    <None Include="OpenGLBackend\private\shaders\nopVec3.vert" />
+    <None Include="OpenGLBackend\private\shaders\boundingBox.geom" />
+    <None Include="OpenGLBackend\private\shaders\textureOnly.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Todo.txt" />

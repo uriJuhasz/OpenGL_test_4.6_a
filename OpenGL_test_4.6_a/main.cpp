@@ -34,7 +34,8 @@ int main()
         
         const unique_ptr<BackendWindow> windowPtr(context.createWindow());
         auto& window = *windowPtr;
-        
+        window.initialize();
+
         const auto viewPtr = View::makeView(window);
         auto& view = *viewPtr;
 
