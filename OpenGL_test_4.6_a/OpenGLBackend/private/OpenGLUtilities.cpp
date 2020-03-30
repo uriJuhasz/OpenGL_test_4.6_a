@@ -188,3 +188,20 @@ GLuint glsCreateAndAttachTriangleStripBuffer(const GLuint vertexArrayObjectID, c
 {
     return glsCreateAndAttachIndexBuffer(vertexArrayObjectID, numElements(triangleStrip) * sizeof(triangleStrip[0]), triangleStrip.data());
 }
+
+template GLuint glsMakeBuffer<2>(const std::vector<Vector<2>>& vs, const int attributeIndex);
+template GLuint glsMakeBuffer<3>(const std::vector<Vector<3>>& vs, const int attributeIndex);
+template GLuint glsMakeBuffer<4>(const std::vector<Vector<4>>& vs, const int attributeIndex);
+
+
+template GLuint glsCreateBuffer<2>(const std::vector<Vector<2>>& values);
+template GLuint glsCreateBuffer<3>(const std::vector<Vector<3>>& values);
+template GLuint glsCreateBuffer<4>(const std::vector<Vector<4>>& values);
+
+template void glsAttachBufferToAttribute<2>(const GLuint vertexArrayObjectID, const GLuint bufferID, const int attributeIndex);
+template void glsAttachBufferToAttribute<3>(const GLuint vertexArrayObjectID, const GLuint bufferID, const int attributeIndex);
+template void glsAttachBufferToAttribute<4>(const GLuint vertexArrayObjectID, const GLuint bufferID, const int attributeIndex);
+
+template GLuint glsCreateAndAttachBufferToAttribute<2>(const GLuint vertexArrayObjectID, const int attributeIndex, const std::vector<Vector<2>>& values);
+template GLuint glsCreateAndAttachBufferToAttribute<3>(const GLuint vertexArrayObjectID, const int attributeIndex, const std::vector<Vector<3>>& values);
+template GLuint glsCreateAndAttachBufferToAttribute<4>(const GLuint vertexArrayObjectID, const int attributeIndex, const std::vector<Vector<4>>& values);

@@ -21,13 +21,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -45,9 +45,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <ClangTidyChecks>-clang-diagnostic-pragma-pack</ClangTidyChecks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <ClangTidyChecks>-clang-diagnostic-pragma-pack</ClangTidyChecks>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -57,28 +59,29 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.2.0\include;C:\Code\glfw-3.3.2\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <DisableSpecificWarnings>26451;4250</DisableSpecificWarnings>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <OpenMPSupport>false</OpenMPSupport>
+      <AdditionalOptions>-Wno-pragma-pack %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;Shell32.lib;glew32.lib;glu32.lib;assimp-vc142-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Code\glew-2.1.0\lib\Release\x64;C:\Code\glfw-3.3.2.bin.WIN64\lib-vc2019;C:\Code\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Code\glew-2.2.0\lib\Release\x64;C:\Code\glfw-3.3.2\out\install\x64-Debug\lib;C:\Code\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries />
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y C:\Code\Assimp-5.0.1\bin\assimp-vc142-mt.dll $(TargetDir)
-xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
+xcopy /y C:\Code\glew-2.2.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -90,18 +93,19 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.2.0\include;C:\Code\glfw-3.3.2\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <DisableSpecificWarnings>26451;4250</DisableSpecificWarnings>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <AdditionalOptions>-Wno-pragma-pack %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -109,16 +113,20 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;Shell32.lib;glew32.lib;glu32.lib;assimp-vc142-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Code\glew-2.1.0\lib\Release\x64;C:\Code\glfw-3.3.2.bin.WIN64\lib-vc2019;C:\Code\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Code\glew-2.2.0\lib\Release\x64;C:\Code\glfw-3.3.2\out\install\x64-Release\lib;C:\Code\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y C:\Code\Assimp-5.0.1\bin\assimp-vc142-mt.dll $(TargetDir)
-xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
+xcopy /y C:\Code\glew-2.2.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Backend\Backend.cpp" />
+    <Text Include="Backend\Scene\CMakeLists.txt" />
+    <Text Include="Backend\Scene\SceneObjects\CMakeLists.txt" />
+    <Text Include="CMakeLists.txt" />
+    <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.cpp" />
     <ClCompile Include="OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.cpp" />
     <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLPrimitive.cpp" />
@@ -141,12 +149,21 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="IO\MeshLoader.cpp" />
     <ClCompile Include="OpenGLBackend\private\OpenGLUtilities.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Main\main.cpp" />
     <ClCompile Include="Backend\Scene\PointLight.cpp" />
     <ClCompile Include="Backend\Scene\SceneObjects\SceneObject.cpp" />
     <ClCompile Include="Backend\Scene\Scene.cpp" />
     <ClCompile Include="View\View.cpp" />
-    <ClCompile Include="WindowsDebugOutputRedirect.cpp" />
+    <ClCompile Include="WindowsBackend\WindowsDebugOutputRedirect.cpp" />
+    <Text Include="OpenGLBackend\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\private\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\private\Instances\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\private\Primitives\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\private\Shaders\CMakeLists.txt" />
+    <Text Include="Style\CMakeLists.txt" />
+    <Text Include="Utilities\CMakeLists.txt" />
+    <Text Include="View\CMakeLists.txt" />
+    <Text Include="WindowsBackend\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Backend\BackendContext.h" />
@@ -183,23 +200,30 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
     <ClInclude Include="Backend\Scene\SceneObjects\SceneObject.h" />
     <ClInclude Include="Backend\Scene\Scene.h" />
     <ClInclude Include="Backend\BackendViewInterface.h" />
+    <ClInclude Include="Utilities\UninitializedAllocator.h" />
     <ClInclude Include="View\View.h" />
-    <ClInclude Include="WindowsDebugOutputRedirect.h" />
+    <ClInclude Include="WindowsBackend\WindowsDebugOutputRedirect.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="OpenGLBackend\private\shaders\allTranformations.vert" />
-    <None Include="OpenGLBackend\private\shaders\BezierFaceShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\BezierEdgeShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\boundingBox.geom" />
-    <None Include="OpenGLBackend\private\shaders\fixedColor.frag" />
-    <None Include="OpenGLBackend\private\shaders\MeshFaceShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\nopVec3.vert" />
-    <None Include="OpenGLBackend\private\shaders\SphereEdgeShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\SphereFaceShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\textureOnly.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\allTranformations.vert" />
+    <None Include="OpenGLBackend\private\Shaders\BezierFaceShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\BezierEdgeShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\boundingBox.geom" />
+    <None Include="OpenGLBackend\private\Shaders\fixedColor.frag" />
+    <None Include="OpenGLBackend\private\Shaders\MeshFaceShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\nopVec3.vert" />
+    <None Include="OpenGLBackend\private\Shaders\SphereEdgeShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\SphereFaceShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\textureOnly.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Todo.txt" />
+    <Text Include="Backend\CMakeLists.txt" />
+    <Text Include="Documentation\CMakeLists.txt" />
+    <Text Include="Documentation\Todo.txt" />
+    <Text Include="Geometry\CMakeLists.txt" />
+    <Text Include="IO\CMakeLists.txt" />
+    <Text Include="Main\CMakeLists.txt" />
+    <Text Include="Math\CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,10 +5,15 @@
 
 #pragma warning(push, 0) 
 #pragma warning (disable:26812)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpragma-pack"
+
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
+
+#pragma GCC diagnostic pop
 #pragma warning(pop)
 
 #include <iostream>

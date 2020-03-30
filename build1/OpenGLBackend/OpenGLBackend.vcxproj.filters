@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\OpenGLBackend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLUtilities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLShaderProgram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLGraphicObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLMeshInstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLSphere.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLSurface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLPrimitive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\OpenGLBackend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLUtilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLShaderProgram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLGraphicObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLMeshInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLSphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLSurface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLPrimitive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\allTranformations.vert" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\BezierEdgeShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\BezierFaceShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\boundingBox.geom" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\CMakeLists.txt" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\fixedColor.frag" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\MeshFaceShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\nopVec3.vert" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\SphereEdgeShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\SphereFaceShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\textureOnly.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{D69CD7C9-CCA9-321C-850F-CE432D7D9FE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{97AC33AD-1244-3F63-B20F-224CB9394E44}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

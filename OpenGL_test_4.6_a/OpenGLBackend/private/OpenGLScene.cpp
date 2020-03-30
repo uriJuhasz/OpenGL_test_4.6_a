@@ -185,7 +185,7 @@ public:
     unique_ptr<OpenGLTessellationShaderProgram> m_sphereEdgeShader;
 
 public:
-    void render() const
+    void render() const override
     {
         static ColorRGBA black = ColorRGBA::Black;
         static float one = 1.0f;
@@ -265,10 +265,6 @@ public:
             instancePtr->render();
 
         if (true){
-            const auto ws = m_window.getViewportDimensions();
-            const auto w = (unsigned int)ws[0];
-            const auto h = (unsigned int)ws[1];
-
 //            glClearNamedFramebufferfv(0, GL_COLOR, 0, black.m_value.data());
 //            glClearNamedFramebufferfv(0, GL_DEPTH, 0, &zero);
 
@@ -286,6 +282,13 @@ public:
             glBindVertexArray(0);
             glUseProgram(0);
 
+            {
+                int tw = 0, th = 0;
+                glGetTextureLevelParameteriv(m_screenTBO, 0, GL_TEXTURE_WIDTH, &tw);
+                glGetTextureLevelParameteriv(m_screenTBO, 0, GL_TEXTURE_HEIGHT, &th);
+                vector<array<int, 2>> textureRead(tw * th);
+                glGetTextureImage(m_screenTBO, 0, GL_RG, GL_INT, textureRead.size() * sizeof(textureRead[0]), textureRead.data());
+            }
 //            glBlitNamedFramebuffer(m_frameBufferID, 0, 0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
         }
     }
@@ -520,7 +523,7 @@ void OpenGLSceneImpl::initialize()
             glCreateTextures(GL_TEXTURE_2D, 1, &tboColor);
             glTextureParameteri(tboColor, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTextureParameteri(tboColor, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTextureStorage2D(tboColor, 1, GL_RGBA8, w, h);
+            glTextureStorage2D(tboColor, 1, GL_RGBA32F /*GL_RG16UI*/, w, h);
 
             glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, tboColor, 0);
         }
@@ -537,9 +540,9 @@ void OpenGLSceneImpl::initialize()
         static const vector<Vector3> vertices = { {-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0} };
         static const vector<Vector2> uvCoords = { {0,0}    ,{1,0}   ,{1,1}  ,{0,1} };
         static const vector<int> faceTriangleStrip = { 1, 2, 0, 3 };
-        const auto vertexBufferID = glsCreateAndAttachBufferToAttribute(vao, 0, vertices);
-        const auto uvcoordBufferID = glsCreateAndAttachBufferToAttribute(vao, 1, uvCoords);
-        const auto faceBufferID = glsCreateAndAttachTriangleStripBuffer(vao, faceTriangleStrip);
+        glsCreateAndAttachBufferToAttribute(vao, 0, vertices);
+        glsCreateAndAttachBufferToAttribute(vao, 1, uvCoords);
+        glsCreateAndAttachTriangleStripBuffer(vao, faceTriangleStrip);
         m_screenVAO = vao;
     }
 }

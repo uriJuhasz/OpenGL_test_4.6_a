@@ -1,0 +1,11 @@
+# CMake generation dependency list for this directory.
+C:/Code/glfw-3.3.2/out/install/x64-Release/lib/cmake/glfw3/glfw3Config.cmake
+C:/Code/glfw-3.3.2/out/install/x64-Release/lib/cmake/glfw3/glfw3ConfigVersion.cmake
+C:/Code/glfw-3.3.2/out/install/x64-Release/lib/cmake/glfw3/glfw3Targets-relwithdebinfo.cmake
+C:/Code/glfw-3.3.2/out/install/x64-Release/lib/cmake/glfw3/glfw3Targets.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindGLEW.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindOpenGL.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/SelectLibraryConfigurations.cmake
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a/OpenGLBackend/CMakeLists.txt

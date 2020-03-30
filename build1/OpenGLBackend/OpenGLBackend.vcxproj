@@ -1,0 +1,326 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D99AE682-E461-3FFF-81F7-BF1597CE64B9}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>OpenGLBackend</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\OpenGLBackend\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">OpenGLBackend.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">OpenGLBackend</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\OpenGLBackend\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">OpenGLBackend.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">OpenGLBackend</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\OpenGLBackend\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">OpenGLBackend.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">OpenGLBackend</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\OpenGLBackend\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">OpenGLBackend.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">OpenGLBackend</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;GLEW_STATIC;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;GLEW_STATIC;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a/OpenGLBackend/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a -BC:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1 --check-stamp-file C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/OpenGLBackend/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Config.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3ConfigVersion.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Targets-relwithdebinfo.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Targets.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindGLEW.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\SelectLibraryConfigurations.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\OpenGLBackend\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a/OpenGLBackend/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a -BC:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1 --check-stamp-file C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/OpenGLBackend/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Config.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3ConfigVersion.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Targets-relwithdebinfo.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Targets.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindGLEW.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\SelectLibraryConfigurations.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\OpenGLBackend\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a/OpenGLBackend/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a -BC:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1 --check-stamp-file C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/OpenGLBackend/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Config.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3ConfigVersion.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Targets-relwithdebinfo.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Targets.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindGLEW.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\SelectLibraryConfigurations.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\OpenGLBackend\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a/OpenGLBackend/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a -BC:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1 --check-stamp-file C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/OpenGLBackend/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Config.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3ConfigVersion.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Targets-relwithdebinfo.cmake;C:\Code\glfw-3.3.2\out\install\x64-Release\lib\cmake\glfw3\glfw3Targets.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindGLEW.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\SelectLibraryConfigurations.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\OpenGLBackend\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\OpenGLBackend.cpp" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\OpenGLBackend.h" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLContext.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLWindow.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLScene.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLUtilities.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLShaderProgram.cpp" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLContext.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLWindow.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLScene.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLUtilities.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\OpenGLShaderProgram.h" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLGraphicObject.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLMeshInstance.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLSphere.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLSurface.cpp" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLBezierPatchInstance.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLGraphicObject.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLMeshInstance.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLSphere.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Instances\OpenGLSurface.h" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLPrimitive.cpp" />
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.cpp" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLBezierPatchPrimitive.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLPrimitive.h" />
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.h" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\allTranformations.vert" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\BezierEdgeShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\BezierFaceShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\boundingBox.geom" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\CMakeLists.txt" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\fixedColor.frag" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\MeshFaceShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\nopVec3.vert" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\SphereEdgeShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\SphereFaceShaderProgram.glsl" />
+    <None Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\OpenGLBackend\private\Shaders\textureOnly.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\build1\ZERO_CHECK.vcxproj">
+      <Project>{B6DDF0E6-F4C8-3357-B0F3-C46F0670BCC9}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

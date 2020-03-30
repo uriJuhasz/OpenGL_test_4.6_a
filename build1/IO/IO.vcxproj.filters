@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\IO\MeshLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\IO\MeshLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\rossd\source\repos\OpenGL_test_4.6_a\OpenGL_test_4.6_a\IO\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{D69CD7C9-CCA9-321C-850F-CE432D7D9FE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{97AC33AD-1244-3F63-B20F-224CB9394E44}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

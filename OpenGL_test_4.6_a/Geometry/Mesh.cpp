@@ -1,6 +1,7 @@
 #include "Mesh.h"
 
 #include "Utilities/Misc.h"
+#include "Utilities/UninitializedAllocator.h"
 
 #include <vector>
 #include <array>
@@ -13,87 +14,6 @@
 #include <iterator>
 
 using namespace std;
-
-template<class T>class UninitializedAllocator final
-{
-public:
-	UninitializedAllocator() {}
-	UninitializedAllocator(const UninitializedAllocator&) {}
-	template<class U>UninitializedAllocator(const UninitializedAllocator<U>&) {}
-	UninitializedAllocator operator=(const UninitializedAllocator&) = delete;
-	UninitializedAllocator(UninitializedAllocator&&) = delete;
-	UninitializedAllocator operator=(UninitializedAllocator&&) = delete;
-
-public:
-	typedef T value_type;
-	typedef size_t size_type;
-	typedef ptrdiff_t difference_type;
-	typedef typename std::true_type propagate_on_container_move_assignment;
-	typedef typename std::true_type is_always_equal;
-
-	template <class U> using rebind_alloc = UninitializedAllocator<U>;
-
-	constexpr T* allocate(const size_type num)
-	{
-		return reinterpret_cast<T*>(::operator new(num * sizeof(T)));
-	}
-
-	void deallocate(T* const ptr, const size_t)
-	{
-		::operator delete(ptr);
-	}
-
-	static constexpr size_type max_size() noexcept
-	{
-		return numeric_limits<size_type>::max();
-	}
-
-};
-
-namespace std
-{
-	template<class T> class allocator_traits<UninitializedAllocator<T>> final
-	{
-	public:
-		typedef UninitializedAllocator<T> allocator_type;
-		typedef typename allocator_type::value_type value_type;
-		typedef typename allocator_type::size_type size_type;
-		typedef typename allocator_type::difference_type difference_type;
-		typedef T* pointer;
-		typedef const T* const_pointer;
-
-		template <class U> using rebind_alloc = UninitializedAllocator<U>;
-
-	public:
-		template< class T, class... Args > static constexpr void construct(allocator_type& allocator, T* p, Args&&... args)
-		{
-		}
-		template< class T> static constexpr void destroy(allocator_type& allocator, T* p)
-		{
-		}
-		static constexpr T* allocate(allocator_type& a, const size_type num)
-		{
-			return a.allocate(num);
-		}
-
-		static void deallocate(allocator_type& a, T* const ptr, const size_t size)
-		{
-			return a.deallocate(ptr, size);
-		}
-		static constexpr size_type max_size(const allocator_type& a) noexcept
-		{
-			return a.max_size();
-		}
-	};
-}
-template<class T>bool operator==(const UninitializedAllocator<T>& a, const UninitializedAllocator<T>& b)
-{
-	return true;
-}
-template<class T>bool operator!=(const UninitializedAllocator<T>& a, const UninitializedAllocator<T>& b)
-{
-	return false;
-}
 
 class IntRange final
 {
@@ -216,9 +136,9 @@ void calculateTopology1(Mesh& mesh)
 				assert(viS0 >= numVertices - 1 || eti < vertexEdgesRange[viS0 + 1].first);
 				++etis.second;
 				auto& ete = edgeTable[eti];
-				edgeTable[eti].m_vi = viS1;
-				edgeTable[eti].m_fiC[fii] = (fi << 2) + fei;
-				edgeTable[eti].m_fiC[1 - fii] = -1;
+				ete.m_vi = viS1;
+				ete.m_fiC[fii] = (fi << 2) + fei;
+				ete.m_fiC[1 - fii] = -1;
 			}
 		}
 	}
@@ -252,12 +172,12 @@ void calculateTopology1(Mesh& mesh)
 								}
 								else
 								{
-									const auto fiI = edgeTable[i].m_fiC[k] >> 2;
-									const auto feiI = edgeTable[i].m_fiC[k] & 3;
-									const auto fiJ = edgeTable[j].m_fiC[k] >> 2;
-									const auto feiJ = edgeTable[j].m_fiC[k] & 3;
-									const auto& fI = faces[fiI].m_vis;
-									const auto& fJ = faces[fiJ].m_vis;
+//									const auto fiI = edgeTable[i].m_fiC[k] >> 2;
+									//const auto feiI = edgeTable[i].m_fiC[k] & 3;
+//									const auto fiJ = edgeTable[j].m_fiC[k] >> 2;
+//									const auto feiJ = edgeTable[j].m_fiC[k] & 3;
+//									const auto& fI = faces[fiI].m_vis;
+//									const auto& fJ = faces[fiJ].m_vis;
 /* Duplicate edge warning - should we split?
                                    cerr << " Warning - triangle edges "
 										<< fiI << ":" << feiI << " [" << fI[0] << " " << fI[1] << " " << fI[2] << "]"
@@ -343,12 +263,14 @@ void calculateTopology1(Mesh& mesh)
 				{
 					auto& oveir = vertexEdgeIndicesRanges[ovi];
 					const auto o = oveir.m_num++;
+#ifdef _DEBUG
 					const auto wo = oveir.m_first + o;
 					assert(wo >= veir.m_first);
 					if (ovi < numVertices - 1)
 						assert(wo < vertexEdgeIndicesRanges[ovi + 1].m_first);
 					else
 						assert(wo < allVertexEdgeLists.size());
+#endif
 					allVertexEdgeLists[oveir.m_first + o] = ei;
 				}
 				for (int k = 0; k < 2; ++k)
@@ -398,11 +320,8 @@ void calculateTopology2(Mesh& mesh)
 	const auto numVertices = mesh.numVertices();
 	const int numFaces = mesh.numFaces();
 
-	const auto startTime = chrono::high_resolution_clock::now();
-
 	const IntRange vertexRange(0, numVertices);
 	const IntRange faceRange(0, numFaces);
-	typedef pair<int, int> IntPair;
 
 	/////////////////////////////////////////////////
 	//Step1
@@ -510,7 +429,6 @@ void calculateTopology2(Mesh& mesh)
 					const auto viS1 = max(vi0, vi1);
 					const auto fii = (vi0 < vi1) ? 0 : 1;
 					auto& etis = vertexEdgesRangeM[viS0];
-					const auto first = etis.m_first;
 					const auto last = etis.m_last++; //Atomic
 					auto& ete = edgeTableM[last];
 					ete.m_vi = viS1;
@@ -529,7 +447,7 @@ void calculateTopology2(Mesh& mesh)
 	{ //Step4
 		std::for_each(execution::par,vertexRange.begin(), vertexRange.end(),
 			//for (int vi = 0; vi < numVertices; ++vi)
-			[&faces,&vertexEdgesRangeM, &edgeTableM,&duplicatedEdgesM,&duplicateEdgesMutex ,&numEdgesM](const int vi)
+			[&vertexEdgesRangeM, &edgeTableM,&duplicatedEdgesM,&duplicateEdgesMutex ,&numEdgesM](const int vi)
 			{
 				auto& etis = vertexEdgesRangeM[vi]; //No need for atomics here
 				const int start = etis.m_first;
@@ -555,20 +473,8 @@ void calculateTopology2(Mesh& mesh)
 									else
 									{
 										const auto eteI = edgeTableM[i];
-										const auto fiI = eteI.m_fiC[k] >> 2;
-										const auto feiI = eteI.m_fiC[k] & 3;
 										const auto eteJ = edgeTableM[j];
-										const auto fiJ = eteJ.m_fiC[k] >> 2;
-										const auto feiJ = eteJ.m_fiC[k] & 3;
-										const auto& fI = faces[fiI].m_vis;
-										const auto& fJ = faces[fiJ].m_vis;
-/*										cerr << " Warning - triangle edges "
-											<< fiI << ":" << feiI << " [" << fI[0] << " " << fI[1] << " " << fI[2] << "]"
-											<< " and "
-											<< fiJ << ":" << feiJ << " [" << fJ[0] << " " << fJ[1] << " " << fJ[2] << "]"
-											<< " overlap on edge " << (k ? vi : eteJ.m_vi) << " - " << (k ? eteJ.m_vi : vi)
-											<< endl;
-											*/
+
 										lock_guard lock(duplicateEdgesMutex);
 										duplicatedEdgesM.emplace_back(array<int, 2>{eteI.m_fiC[k], eteJ.m_fiC[k]});
 									}
@@ -597,8 +503,6 @@ void calculateTopology2(Mesh& mesh)
 		auto& allVertexEdgeListsM = mesh.m_allVertexEdgeLists;
 		auto& vertexEdgeIndicesRangesM = mesh.m_vertexEdgeIndicesRanges;
 
-		const auto step50EndTime = chrono::high_resolution_clock::now();
-
 		const auto& vertexEdgesRange = vertexEdgesRangeM;
 		const auto& edgeTable = edgeTableM;
 
@@ -618,8 +522,8 @@ void calculateTopology2(Mesh& mesh)
 			for_each(execution::par, vertexRange.begin(), vertexRange.end(),
 				[&vertexEdgesRange, &step5DataM, &edgeTable](const int vi) {
 					const auto& ver = vertexEdgesRange[vi];
-					const auto first = ver.m_first;
-					const auto last = ver.m_last.load();
+//					const auto first = ver.m_first;
+//					const auto last = ver.m_last.load();
 					const auto numVertexEdges = ver.m_last - ver.m_first;
 					step5DataM[vi].m_nextOwn = numVertexEdges; //Count own
 					for (int ii = ver.m_first; ii < ver.m_last; ++ii)
@@ -670,7 +574,6 @@ void calculateTopology2(Mesh& mesh)
 		edgesM.resize(numEdges);
 		allVertexEdgeListsM.resize(numEdges * 2);
 
-		const auto& step5Data = step5DataM;
 		constexpr bool useManualThreads = false;
 		if (useManualThreads)
 		{ //Manual threads
@@ -861,7 +764,6 @@ template<class C, class T> bool contains(const C& c, const T v)
 }
 void Mesh::validateTopology()
 {
-	const auto& faces = m_faces;
 	const auto& edges = m_edges;
 	const auto F = numFaces();
 	const auto V = numVertices();
@@ -931,8 +833,7 @@ void Mesh::validateTopology()
 			if (fi != -1)
 			{
 				assert(0 <= fi && fi < F);
-				const auto& feis = m_faceEdges[fi].m_feis;
-				assert(contains(feis, ei));
+				assert(contains(m_faceEdges[fi].m_feis, ei));
 			}
 		}
 	}

@@ -1,0 +1,274 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "Main/OpenGL_4_6_Test_1.exe"
+		},
+		{
+			"path" : "Main/OpenGL_4_6_Test_1.pdb"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"target_link_libraries",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"Main/CMakeLists.txt",
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 3,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 5,
+				"parent" : 0
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 13,
+				"parent" : 3
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-m64 -fdiagnostics-absolute-paths  /DWIN32 /D_WINDOWS /GR /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD  "
+				},
+				{
+					"fragment" : "-std:c++17"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "IO::@5f12f00ceba7b49cda07"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "Geometry::@8bb03a0d1c401daaf107"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "Math::@d9195a680f797b78970e"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "Backend::@f80fd7e8befdbf2a81ef"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "Style::@03f96bac268e2701758e"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "View::@02ca73c7bd22da2f4e09"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "OpenGLBackend::@344a8f46e398795c6323"
+		}
+	],
+	"id" : "OpenGL_4_6_Test_1::@e4405d0c4cf2df57c995",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-m64 -fdiagnostics-absolute-paths  /DWIN32 /D_WINDOWS /GR /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:console",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "..\\OpenGLBackend\\OpenGLBackend.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "..\\View\\View.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "..\\IO\\IO.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "C:\\Code\\glew-2.2.0\\lib\\Release\\x64\\glew32s.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "C:\\Code\\glfw-3.3.2\\out\\install\\x64-Debug\\lib\\glfw3.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "opengl32.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "glu32.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "..\\Style\\Style.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "..\\Backend\\Backend.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "..\\Geometry\\Geometry.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "..\\Math\\Math.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "C:\\Code\\assimp\\assimp-5.0.1\\out\\install\\x64-Release\\lib\\assimp-vc142-mt.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "OpenGL_4_6_Test_1",
+	"nameOnDisk" : "OpenGL_4_6_Test_1.exe",
+	"paths" : 
+	{
+		"build" : "Main",
+		"source" : "Main"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "Main/main.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "OpenGLBackend/OpenGLBackend.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "View/View.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "Geometry/Mesh.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "Geometry/BezierPatch.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "Math/Vector.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "Math/Matrix.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "Backend/BackendContext.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "Backend/BackendViewInterface.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "Backend/BackendWindow.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 2,
+			"path" : "IO/MeshLoader.h",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "EXECUTABLE"
+}

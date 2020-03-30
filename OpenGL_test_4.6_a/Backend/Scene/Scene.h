@@ -15,6 +15,11 @@ class BackendWindow;
 
 class Scene
 {
+protected:
+    Scene() {}
+public:
+    virtual ~Scene() {}
+
 public:
     virtual const Camera& getCamera() const = 0;
     virtual void setCamera(const Camera& camera) = 0;

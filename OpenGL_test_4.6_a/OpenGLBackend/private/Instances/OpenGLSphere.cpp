@@ -4,8 +4,8 @@
 #include <iostream>
 
 OpenGLSphere::OpenGLSphere(OpenGLScene& scene, const float radius)
-	: OpenGLSurface(scene)
-    , OpenGLGraphicObject(scene)
+	: OpenGLGraphicObject(scene)
+    , OpenGLSurface(scene)
 	, m_radius(radius)
 {
 }

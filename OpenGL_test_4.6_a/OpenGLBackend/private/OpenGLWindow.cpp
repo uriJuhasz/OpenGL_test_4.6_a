@@ -104,13 +104,13 @@ public:
     OpenGLContext& getContext() override { return m_context; }
 
 public:
-    array<int, 2> getFramebufferSize() const
+    array<int, 2> getFramebufferSize() const override
     {
         int width, height;
         glfwGetFramebufferSize(m_glfwWindow, &width, &height);
         return { width,height };
     }
-    Vector2 getViewportDimensions() const
+    Vector2 getViewportDimensions() const override
     {
         array<int, 4> viewport;
         glGetIntegerv(GL_VIEWPORT, viewport.data());
@@ -119,7 +119,7 @@ public:
         return Vector2(vpw, vph);
     }
 
-    operator bool() const { return m_glfwWindow != nullptr; }
+    operator bool() const  override { return m_glfwWindow != nullptr; }
 
 public:
     void registerView(BackendViewInterface* view) override
@@ -128,7 +128,7 @@ public:
     }
 
 public:
-    void eventLoop()
+    void eventLoop() override
     {
         if (!m_view)
             return;
@@ -181,15 +181,15 @@ private:
     BackendViewInterface* m_view;
 
 public:
-    bool isLeftMouseButtonPressed() const
+    bool isLeftMouseButtonPressed() const override
     {
         return glfwGetMouseButton(m_glfwWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
     }
-    bool isMiddleMouseButtonPressed() const
+    bool isMiddleMouseButtonPressed() const override
     {
         return glfwGetMouseButton(m_glfwWindow, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
     }
-    bool isRightMouseButtonPressed() const
+    bool isRightMouseButtonPressed() const override
     {
         return glfwGetMouseButton(m_glfwWindow, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
     }
@@ -402,9 +402,7 @@ void OpenGLWindowImpl::openGLMessageCallback(
 {
     if (id == 131185)
         return; //Ignore warning on using Video memory
-    const auto* windowPtr = reinterpret_cast<const OpenGLWindowImpl*>(userParam);
-//    if (windowPtr)
-//        std::cerr<< "In window: " << windowPtr->
+
     const auto sourceTypeString = getOpenGLErrorSourceTypeString(source);
     const auto errorTypeString = getOpenGLErrorTypeString(type);
     const auto severityString = getOpenGLErrorSeverityString(severity);

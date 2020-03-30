@@ -42,12 +42,6 @@
     <ClCompile Include="OpenGLBackend\private\OpenGLShaderProgram.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowsDebugOutputRedirect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -102,6 +96,15 @@
     <ClCompile Include="Backend\Scene\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WindowsBackend\WindowsDebugOutputRedirect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Math.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\Matrix.h">
@@ -144,9 +147,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Backend\BackendViewInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowsDebugOutputRedirect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenGLBackend\private\Primitives\OpenGLMeshPrimitive.h">
@@ -212,20 +212,44 @@
     <ClInclude Include="Backend\Scene\Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Utilities\UninitializedAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsBackend\WindowsDebugOutputRedirect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="OpenGLBackend\private\shaders\MeshFaceShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\BezierFaceShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\BezierEdgeShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\SphereEdgeShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\SphereFaceShaderProgram.glsl" />
-    <None Include="OpenGLBackend\private\shaders\fixedColor.frag" />
-    <None Include="OpenGLBackend\private\shaders\allTranformations.vert" />
-    <None Include="OpenGLBackend\private\shaders\nopVec3.vert" />
-    <None Include="OpenGLBackend\private\shaders\boundingBox.geom" />
-    <None Include="OpenGLBackend\private\shaders\textureOnly.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\allTranformations.vert" />
+    <None Include="OpenGLBackend\private\Shaders\BezierEdgeShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\BezierFaceShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\boundingBox.geom" />
+    <None Include="OpenGLBackend\private\Shaders\fixedColor.frag" />
+    <None Include="OpenGLBackend\private\Shaders\MeshFaceShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\nopVec3.vert" />
+    <None Include="OpenGLBackend\private\Shaders\SphereEdgeShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\SphereFaceShaderProgram.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\textureOnly.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Todo.txt" />
+    <Text Include="Documentation\Todo.txt" />
+    <Text Include="Main\CMakeLists.txt" />
+    <Text Include="Math\CMakeLists.txt" />
+    <Text Include="Backend\CMakeLists.txt" />
+    <Text Include="Documentation\CMakeLists.txt" />
+    <Text Include="Geometry\CMakeLists.txt" />
+    <Text Include="IO\CMakeLists.txt" />
+    <Text Include="Style\CMakeLists.txt" />
+    <Text Include="Utilities\CMakeLists.txt" />
+    <Text Include="View\CMakeLists.txt" />
+    <Text Include="WindowsBackend\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\private\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\private\Instances\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\private\Primitives\CMakeLists.txt" />
+    <Text Include="OpenGLBackend\private\Shaders\CMakeLists.txt" />
+    <Text Include="Backend\Scene\CMakeLists.txt" />
+    <Text Include="Backend\Scene\SceneObjects\CMakeLists.txt" />
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

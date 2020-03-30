@@ -76,22 +76,17 @@ void OpenGLMeshPrimitive::render(const bool renderFaces, const bool renderEdges)
 }
 void OpenGLMeshPrimitive::insertMesh(const Mesh& mesh)
 {
-    const int numVertices = mesh.numVertices();
-    assert(mesh.m_normals.size() == numVertices);
-    assert(mesh.m_textureCoords.size() == numVertices);
+    assert(mesh.m_normals.size() == mesh.numVertices());
+    assert(mesh.m_textureCoords.size() == mesh.numVertices());
 
     const auto vertexArrayObjectIDForFaces = glsCreateVertexArrayObject();
 
     const auto vertexBufferID  = glsCreateAndAttachBufferToAttribute(vertexArrayObjectIDForFaces, 0, mesh.m_vertices);
-    const auto normalBufferID  = glsCreateAndAttachBufferToAttribute(vertexArrayObjectIDForFaces, 1, mesh.m_normals);
-    const auto uvcoordBufferID = glsCreateAndAttachBufferToAttribute(vertexArrayObjectIDForFaces, 2, mesh.m_textureCoords);
+    glsCreateAndAttachBufferToAttribute(vertexArrayObjectIDForFaces, 1, mesh.m_normals);
+    glsCreateAndAttachBufferToAttribute(vertexArrayObjectIDForFaces, 2, mesh.m_textureCoords);
 
     {//Faces
-        const auto& faces = mesh.m_faces;
-        const int numFaces = mesh.numFaces();
-        const auto faceSize = sizeof(faces[0]);
-
-        const auto indexBufferID = glsCreateAndAttachFaceBuffer(vertexArrayObjectIDForFaces, faces);
+        glsCreateAndAttachFaceBuffer(vertexArrayObjectIDForFaces, mesh.m_faces);
         m_vertexArrayObjectIDForFaces = vertexArrayObjectIDForFaces;
     }
     {//Edges
@@ -100,12 +95,10 @@ void OpenGLMeshPrimitive::insertMesh(const Mesh& mesh)
         const auto vertexArrayObjectIDForEdges = glsCreateVertexArrayObject();
         glsAttachBufferToAttribute<3>(vertexArrayObjectIDForEdges, vertexBufferID, 0);
         vector<array<int,2>> edgeVertexIndices; edgeVertexIndices.reserve(numEdges);
-        for (const auto& e : mesh.m_edges)
+        for (const auto& e : edges)
             edgeVertexIndices.emplace_back(e.m_vis);
 
-        const auto edgeSize = sizeof(edgeVertexIndices[0]);
-        
-        const auto indexBufferID = glsCreateAndAttachEdgeBuffer(vertexArrayObjectIDForEdges, edgeVertexIndices);
+        glsCreateAndAttachEdgeBuffer(vertexArrayObjectIDForEdges, edgeVertexIndices);
 
         m_vertexArrayObjectIDForEdges = vertexArrayObjectIDForEdges;
     }

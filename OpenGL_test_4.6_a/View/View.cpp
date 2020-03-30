@@ -40,14 +40,15 @@ public:
 public:
     void setMesh(unique_ptr<Mesh> m) override { m_mesh = move(m); }
 
+public:
+    BackendWindow& m_backendWindow;
+
 public: //Mesh
     unique_ptr<Scene> m_scene;
     shared_ptr<Mesh> m_mesh;
     shared_ptr<BezierPatch> m_bezierPatch;
     array<Vector3, 2> m_meshBoundingBox;
 
-public:
-    BackendWindow& m_backendWindow;
 };
 
 View* View::makeView(BackendWindow& backendWindow)

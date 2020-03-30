@@ -29,8 +29,6 @@ OpenGLBezierPatchPrimitive::~OpenGLBezierPatchPrimitive()
 constexpr int c_numVerticesPerPatch = 16;
 void OpenGLBezierPatchPrimitive::render(const bool renderFaces, const bool renderEdges) const
 {
-    constexpr bool showPatchFaces = true;
-
     glBindVertexArray(m_vertexArrayObject);
     glPatchParameteri(GL_PATCH_VERTICES, c_numVerticesPerPatch);
 

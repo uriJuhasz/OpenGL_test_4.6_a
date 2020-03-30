@@ -1,0 +1,398 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						14,
+						15,
+						16,
+						17
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "Backend",
+					"childIndexes" : 
+					[
+						2
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Backend",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "Backend/Scene",
+					"childIndexes" : 
+					[
+						3
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "Backend/Scene"
+				},
+				{
+					"build" : "Backend/Scene/SceneObjects",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 0,
+					"source" : "Backend/Scene/SceneObjects"
+				},
+				{
+					"build" : "Documentation",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Documentation",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "Geometry",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Geometry",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "IO",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "IO",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "Main",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Main",
+					"targetIndexes" : 
+					[
+						6
+					]
+				},
+				{
+					"build" : "Math",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Math",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "OpenGLBackend",
+					"childIndexes" : 
+					[
+						10
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "OpenGLBackend",
+					"targetIndexes" : 
+					[
+						5
+					]
+				},
+				{
+					"build" : "OpenGLBackend/private",
+					"childIndexes" : 
+					[
+						11,
+						12,
+						13
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 9,
+					"projectIndex" : 0,
+					"source" : "OpenGLBackend/private"
+				},
+				{
+					"build" : "OpenGLBackend/private/Instances",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 10,
+					"projectIndex" : 0,
+					"source" : "OpenGLBackend/private/Instances"
+				},
+				{
+					"build" : "OpenGLBackend/private/Primitives",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 10,
+					"projectIndex" : 0,
+					"source" : "OpenGLBackend/private/Primitives"
+				},
+				{
+					"build" : "OpenGLBackend/private/Shaders",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 10,
+					"projectIndex" : 0,
+					"source" : "OpenGLBackend/private/Shaders"
+				},
+				{
+					"build" : "Style",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Style",
+					"targetIndexes" : 
+					[
+						7
+					]
+				},
+				{
+					"build" : "Utilities",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Utilities",
+					"targetIndexes" : 
+					[
+						8
+					]
+				},
+				{
+					"build" : "View",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "View",
+					"targetIndexes" : 
+					[
+						9
+					]
+				},
+				{
+					"build" : "WindowsBackend",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "WindowsBackend",
+					"targetIndexes" : 
+					[
+						10
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17
+					],
+					"name" : "OpenGL_4_6_Test_1",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "Backend::@f80fd7e8befdbf2a81ef",
+					"jsonFile" : "target-Backend-Debug-4f7a79f0b9837adb3b4a.json",
+					"name" : "Backend",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "Documentation::@4466e0d90a6726719aa5",
+					"jsonFile" : "target-Documentation-Debug-75cb14db6caaddd940b4.json",
+					"name" : "Documentation",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Geometry::@8bb03a0d1c401daaf107",
+					"jsonFile" : "target-Geometry-Debug-80b4d42c5b6dd5489b7f.json",
+					"name" : "Geometry",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "IO::@5f12f00ceba7b49cda07",
+					"jsonFile" : "target-IO-Debug-487570ac270599c207d0.json",
+					"name" : "IO",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 8,
+					"id" : "Math::@d9195a680f797b78970e",
+					"jsonFile" : "target-Math-Debug-911d144fa5d7419a7c9e.json",
+					"name" : "Math",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "OpenGLBackend::@344a8f46e398795c6323",
+					"jsonFile" : "target-OpenGLBackend-Debug-b379a9b2091268a7c820.json",
+					"name" : "OpenGLBackend",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "OpenGL_4_6_Test_1::@e4405d0c4cf2df57c995",
+					"jsonFile" : "target-OpenGL_4_6_Test_1-Debug-254f115151eca61d5c3c.json",
+					"name" : "OpenGL_4_6_Test_1",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 14,
+					"id" : "Style::@03f96bac268e2701758e",
+					"jsonFile" : "target-Style-Debug-110319fd6a692fdccb96.json",
+					"name" : "Style",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 15,
+					"id" : "Utilities::@e5cfef13bd836c54df78",
+					"jsonFile" : "target-Utilities-Debug-802f376b8b1989d4895d.json",
+					"name" : "Utilities",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 16,
+					"id" : "View::@02ca73c7bd22da2f4e09",
+					"jsonFile" : "target-View-Debug-b5efaa868f0210917fe3.json",
+					"name" : "View",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 17,
+					"id" : "WindowsBackend::@c3976536eeccd0c05b6c",
+					"jsonFile" : "target-WindowsBackend-Debug-d94edea02740e271026c.json",
+					"name" : "WindowsBackend",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a/out/build/x64-Clang-Debug",
+		"source" : "C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 0
+	}
+}

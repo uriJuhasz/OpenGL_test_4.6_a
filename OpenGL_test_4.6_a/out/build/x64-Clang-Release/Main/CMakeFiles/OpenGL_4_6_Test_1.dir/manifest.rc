@@ -1,0 +1,2 @@
+#pragma code_page(65001)
+1 /* CREATEPROCESS_MANIFEST_RESOURCE_ID */ 24 /* RT_MANIFEST */ "C:/Users/rossd/source/repos/OpenGL_test_4.6_a/OpenGL_test_4.6_a/out/build/x64-Clang-Release/Main/CMakeFiles/OpenGL_4_6_Test_1.dir/embed.manifest"

@@ -1,0 +1,13 @@
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/CMakeFiles/ALL_BUILD.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/CMakeFiles/ZERO_CHECK.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/Backend/CMakeFiles/Backend.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/Documentation/CMakeFiles/Documentation.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/Geometry/CMakeFiles/Geometry.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/IO/CMakeFiles/IO.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/Main/CMakeFiles/OpenGL_4_6_Test_1.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/Math/CMakeFiles/Math.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/OpenGLBackend/CMakeFiles/OpenGLBackend.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/Style/CMakeFiles/Style.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/Utilities/CMakeFiles/Utilities.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/View/CMakeFiles/View.dir
+C:/Users/rossd/source/repos/OpenGL_test_4.6_a/build1/WindowsBackend/CMakeFiles/WindowsBackend.dir

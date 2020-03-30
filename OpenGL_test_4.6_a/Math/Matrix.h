@@ -34,11 +34,13 @@ public:
     {
         for (int i = 0; i < 16; ++i)
             m_value[i] += other.m_value[i];
+        return *this;
     }
     Matrix4x4 operator-=(const Matrix4x4& other)
     {
         for (int i = 0; i < 16; ++i)
             m_value[i] -= other.m_value[i];
+        return *this;
     }
     Matrix4x4 operator*=(const Matrix4x4& other)
     {
@@ -62,7 +64,7 @@ inline Matrix4x4 transpose(const Matrix4x4& m)
     };
 }
 
-constexpr Matrix4x4 unitMatrix4x4 = Matrix4x4(
+static const Matrix4x4 unitMatrix4x4 = Matrix4x4(
     1.0f, 0.0f, 0.0f, 0.0f,
     0.0f, 1.0f, 0.0f, 0.0f,
     0.0f, 0.0f, 1.0f, 0.0f,
