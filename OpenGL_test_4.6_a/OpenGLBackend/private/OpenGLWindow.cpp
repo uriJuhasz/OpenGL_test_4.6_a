@@ -33,8 +33,8 @@ public:
     {
         if (!context)
             throw new Exception("GLFWWindow: context is invalid");
-        constexpr int numSamples = 4;
-        glfwWindowHint(GLFW_SAMPLES, numSamples);
+//        constexpr int numSamples = 4;
+//        glfwWindowHint(GLFW_SAMPLES, numSamples);
         glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -65,7 +65,7 @@ public:
                 if (glfwRawMouseMotionSupported())
                     glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-                glEnable(GL_MULTISAMPLE);
+//                glEnable(GL_MULTISAMPLE);
             }
             else
             {
