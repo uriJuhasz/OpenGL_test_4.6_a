@@ -230,6 +230,9 @@
     <None Include="OpenGLBackend\private\Shaders\SphereEdgeShaderProgram.glsl" />
     <None Include="OpenGLBackend\private\Shaders\SphereFaceShaderProgram.glsl" />
     <None Include="OpenGLBackend\private\Shaders\textureOnly.glsl" />
+    <None Include="OpenGLBackend\private\Shaders\fixedColor2.frag" />
+    <None Include="OpenGLBackend\private\Shaders\allTranformations2.vert" />
+    <None Include="OpenGLBackend\private\Shaders\pointSelection2.geom" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Documentation\Todo.txt" />

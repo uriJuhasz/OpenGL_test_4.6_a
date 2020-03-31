@@ -186,7 +186,10 @@ uniform float light1SpecularExponent = 100;
 
 layout (location=1) in VertexData gVertexData;
 
+uniform vec4 selectionColor = vec4(0,0,0,1);
+
 out vec4 fragmentColor;
+out vec4 fragmentSelectionIndex;
 
 vec3 calculateLight(vec3 lightPosition, vec3 lightColor, float lightSpecularExponent, vec3 baseColor, vec3 normal)
 {
@@ -231,5 +234,6 @@ void main()
 	vec3 light0Component = calculateLight(light0Position,light0Color,light0SpecularExponent,color, normal);
 	vec3 light1Component = calculateLight(light1Position,light1Color,light1SpecularExponent,color, normal);
 	fragmentColor = vec4(light0Component + light1Component ,1);
+	fragmentSelectionIndex = selectionColor;
 }
 #endif

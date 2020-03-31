@@ -43,13 +43,15 @@ void OpenGLBezierPatchInstance::renderMain()
 		{ //Control points
 			const auto vao = m_patchPrimitive.getVertexArrayObject();
 			glBindVertexArray(vao);
-			//		const auto vertexBuffer = glsGetVertexAttribInt(GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, 0);
 			constexpr float c_controlPointSize = 16.0f;
 			glPointSize(c_controlPointSize);
 			auto& shader = getScene().getPointsShader();
+			const auto shaderID = shader.m_shaderProgramID;
 			shader.setParameter("modelMatrix", m_modelMatrix);
 			shader.setParameter("fixedFragmentColor", ColorRGBA::Red);
-			glUseProgram(shader.m_shaderProgramID);
+			shader.setParameter("selectionColor", ColorRGBA::Yellow);
+
+			glUseProgram(shaderID);
 			glDrawArrays(GL_POINTS, 0, c_numVerticesPerPatch);
 			glUseProgram(0);
 		}
@@ -80,7 +82,8 @@ void OpenGLBezierPatchInstance::renderMain()
 				auto& shader = getScene().getMeshEdgeShader();
 				shader.setParameter("modelMatrix", m_modelMatrix);
 				shader.setParameter("fixedFragmentColor", ColorRGBA::Yellow);
-				
+				shader.setParameter("selectionColor", ColorRGBA::Black);
+
 				glUseProgram(shader.m_shaderProgramID);
 				glBindVertexArray(vertexArrayObject);
 				glDrawElements(GL_LINES, numEdges * 2, GL_UNSIGNED_INT, 0);

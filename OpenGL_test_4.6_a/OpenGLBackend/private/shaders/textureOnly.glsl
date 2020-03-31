@@ -29,7 +29,9 @@ uniform sampler2D mainTexture;
 void main() {
     const float u = vsVertexData.uvCoord[0];
     const float v = vsVertexData.uvCoord[1];
-	fragmentColor = texture(mainTexture, vsVertexData.uvCoord); //vec4(u,v,1-u-v,1); //
+	fragmentColor = 
+        texture(mainTexture, vsVertexData.uvCoord); 
+        //vec4(u,v,1-u-v,1);
 }
 
 #endif

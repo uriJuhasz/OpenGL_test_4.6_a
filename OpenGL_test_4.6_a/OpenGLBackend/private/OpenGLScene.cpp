@@ -16,6 +16,7 @@
 #include "Geometry/BezierPatch.h"
 
 #include "Utilities/Misc.h"
+#include "Utilities/UninitializedAllocator.h"
 
 #include <vector>
 #include <array>
@@ -138,7 +139,7 @@ private:
 public:
     OpenGLStandardShaderProgram& getPointsShader() const override
     {
-        return *m_fixedColorShader;
+        return *m_pointsShader;
     }
 
     OpenGLStandardShaderProgram& getBoundingBoxShader() const override
@@ -174,6 +175,7 @@ public:
     unique_ptr<OpenGLStandardShaderProgram> m_flatTextureShader;
 
     unique_ptr<OpenGLStandardShaderProgram> m_fixedColorShader;
+    unique_ptr<OpenGLStandardShaderProgram> m_pointsShader;
 
     unique_ptr<OpenGLStandardShaderProgram> m_boundingBoxShader;
 
@@ -188,9 +190,11 @@ public:
     void render() const override
     {
         static ColorRGBA black = ColorRGBA::Black;
+        static ColorRGBA red = ColorRGBA::Red;
         static float one = 1.0f;
 
         const vector<OpenGLShaderProgram*> allShaders = {
+            m_pointsShader.get(),
             m_fixedColorShader.get(),
             m_boundingBoxShader.get(),
             m_meshFaceShader.get(),
@@ -237,7 +241,7 @@ public:
             shaderPtr->setParameter("pixelWidth", pixelWidth);
 
         { //Smooth lines
-            constexpr bool antialiasedLines = true;
+            constexpr bool antialiasedLines = false;
             if (antialiasedLines)
             {
                 glEnable(GL_BLEND);
@@ -255,7 +259,11 @@ public:
         }
 
         {
+
+            static const array<GLenum, 2> bufs = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+            glNamedFramebufferDrawBuffers(m_frameBufferID, 2, bufs.data());
             glClearNamedFramebufferfv(m_frameBufferID, GL_COLOR, 0, black.m_value.data());
+            glClearNamedFramebufferfv(m_frameBufferID, GL_COLOR, 1, black.m_value.data());
             glClearNamedFramebufferfv(m_frameBufferID, GL_DEPTH, 0, &one);
             glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferID);
             glEnable(GL_DEPTH_TEST);
@@ -265,31 +273,44 @@ public:
             instancePtr->render();
 
         if (true){
-//            glClearNamedFramebufferfv(0, GL_COLOR, 0, black.m_value.data());
-//            glClearNamedFramebufferfv(0, GL_DEPTH, 0, &zero);
+            // glClearNamedFramebufferfv(0, GL_COLOR, 0, black.m_value.data());
+            //            glClearNamedFramebufferfv(0, GL_DEPTH, 0, &zero);
 
-            glDisable(GL_DEPTH_TEST);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glBindVertexArray(m_screenVAO);
-            const auto shaderID = m_flatTextureShader->m_shaderProgramID;
-            glUseProgram(shaderID);
-            glUniform1i(glGetUniformLocation(shaderID, "mainTexture"),0);
+            if (true)
+            {
+                glDisable(GL_DEPTH_TEST);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glBindVertexArray(m_screenVAO);
+                const auto shaderID = m_flatTextureShader->m_shaderProgramID;
+                glUseProgram(shaderID);
+                glUniform1i(glGetUniformLocation(shaderID, "mainTexture"), 0);
 
-            glBindTextureUnit(0, m_screenTBO);
-//            glDrawArrays(GL_TRIANGLES, 0, 3);
-            glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, 0);
+                glBindTextureUnit(0, m_screenTBO);
+                glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, 0);
 
-            glBindVertexArray(0);
-            glUseProgram(0);
+                glBindVertexArray(0);
+                glUseProgram(0);
+            }
 
+            if (false) //Read from texture - slow
             {
                 int tw = 0, th = 0;
                 glGetTextureLevelParameteriv(m_screenTBO, 0, GL_TEXTURE_WIDTH, &tw);
                 glGetTextureLevelParameteriv(m_screenTBO, 0, GL_TEXTURE_HEIGHT, &th);
-                vector<array<int, 2>> textureRead(tw * th);
-                glGetTextureImage(m_screenTBO, 0, GL_RG, GL_INT, textureRead.size() * sizeof(textureRead[0]), textureRead.data());
+                typedef array<int, 2> TwoInts;
+                vector< TwoInts,UninitializedAllocator<TwoInts>> textureRead(tw * th);
+//                glGetTextureImage(m_screenTBO, 0, GL_RG, GL_INT, textureRead.size() * sizeof(textureRead[0]), textureRead.data());
             }
-//            glBlitNamedFramebuffer(m_frameBufferID, 0, 0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            
+            if (false) // Bit blat 
+            {
+                GLint renderBufferID;
+                glGetNamedFramebufferAttachmentParameteriv(m_frameBufferID, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,&renderBufferID);
+                GLint w = 0, h = 0;
+                glGetNamedRenderbufferParameteriv(renderBufferID, GL_RENDERBUFFER_WIDTH, &w);
+                glGetNamedRenderbufferParameteriv(renderBufferID, GL_RENDERBUFFER_HEIGHT, &h);
+                glBlitNamedFramebuffer(m_frameBufferID, 0, 0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            }
         }
     }
 
@@ -383,7 +404,19 @@ void OpenGLSceneImpl::loadShaders()
 
     m_flatTextureShader = makeStandardShaderProgram("textureOnly.glsl", "textureOnly");
 
-    m_fixedColorShader = makeStandardShaderProgramModular("allTranformations.vert", "", "fixedColor.frag", "points");
+    {
+        m_pointsShader = makeStandardShaderProgramModular("allTranformations2.vert", "", "fixedColor2.frag", "points");
+        auto& shader = *m_pointsShader;
+        const auto shaderID = shader.m_shaderProgramID;
+        glBindFragDataLocation(shaderID, 0, "fragmentColor");
+        glBindFragDataLocation(shaderID, 1, "fragmentColor2");
+        glLinkProgram(shaderID);
+    }
+
+    {
+        m_fixedColorShader = makeStandardShaderProgramModular("allTranformations.vert", "", "fixedColor.frag", "points");
+    }
+    
 //    m_pointsShader = makeStandardShaderProgram("PointsShader.glsl", "points");
 
     m_boundingBoxShader = makeStandardShaderProgramModular("nopVec3.vert", "boundingBox.geom", "fixedColor.frag", "boundingBox");
@@ -391,8 +424,41 @@ void OpenGLSceneImpl::loadShaders()
 
     m_meshFaceShader = makeStandardShaderProgram("MeshFaceShaderProgram.glsl", "meshFace");
 
-    m_bezierFaceShader = makeTessellationShaderProgram("BezierFaceShaderProgram.glsl", "BezierFace");
-    m_bezierEdgeShader = makeTessellationShaderProgram("BezierEdgeShaderProgram.glsl", "BezierEdge");
+    {
+        m_bezierFaceShader = makeTessellationShaderProgram("BezierFaceShaderProgram.glsl", "BezierFace");
+        m_bezierEdgeShader = makeTessellationShaderProgram("BezierEdgeShaderProgram.glsl", "BezierEdge");
+
+        auto& shader = *m_bezierFaceShader;
+        const auto shaderID = shader.m_shaderProgramID;
+        static const array<GLenum, 2> props = { GL_LOCATION, GL_LOCATION_INDEX };
+        {
+            array<GLint, 2> vals;
+            GLsizei l = 0;
+            glGetProgramResourceiv(shaderID, GL_PROGRAM_OUTPUT, 0, 2, props.data(), vals.size() * sizeof(vals[0]), &l, vals.data());
+            std::cout << " 0loc: " << vals[0] << " locInd: " << vals[1] << std::endl;
+//            glGetProgramResourceiv(shaderID, GL_PROGRAM_OUTPUT, 1, 2, props.data(), vals.size() * sizeof(vals[0]), &l, vals.data());
+//            std::cout << " 1loc: " << vals[0] << " locInd: " << vals[1] << std::endl;
+        }
+        
+        glBindFragDataLocation(shaderID, 0, "fragmentColor");
+//        glBindFragDataLocation(shaderID, 1, "fragmentColor2");
+        glLinkProgram(shaderID);
+
+        {
+            array<GLint, 2> vals;
+            GLsizei l = 0;
+            glGetProgramResourceiv(shaderID, GL_PROGRAM_OUTPUT, 0, 2, props.data(), vals.size() * sizeof(vals[0]), &l, vals.data());
+            std::cout << "0loc: " << vals[0] << " locInd: " << vals[1] << std::endl;
+//            glGetProgramResourceiv(shaderID, GL_PROGRAM_OUTPUT, 1, 2, props.data(), vals.size() * sizeof(vals[0]), &l, vals.data());
+//            std::cout << "1loc: " << vals[0] << " locInd: " << vals[1] << std::endl;
+        }
+
+        /*        GLuint fdi = 0;
+        glGetFragDataIndex(shaderID, &fdi);
+        char* fdl = nullptr;
+        glGetFragDataLocation(shaderID, fdl);*/
+        glsCheckShaderProgramErrors("SomeShader", shaderID);
+    }
 
     m_sphereFaceShader = makeTessellationShaderProgram("SphereFaceShaderProgram.glsl", "SphereFace");
     m_sphereEdgeShader = makeTessellationShaderProgram("SphereEdgeShaderProgram.glsl", "SphereEdge");
@@ -496,8 +562,6 @@ std::unique_ptr<OpenGLScene> OpenGLScene::makeScene(OpenGLWindow& window)
 
 void OpenGLSceneImpl::initialize()
 {
-    loadShaders();
-
     {
         const auto windowSize = m_window.getViewportDimensions();
         const auto w = (unsigned int)(windowSize[0]);
@@ -508,7 +572,7 @@ void OpenGLSceneImpl::initialize()
         {
             glCreateRenderbuffers(1, &rboColor);
             glNamedRenderbufferStorage(rboColor, GL_RGBA8, w, h);
-            //                glNamedFramebufferRenderbuffer(fbo, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rboColor);
+            glNamedFramebufferRenderbuffer(fbo, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rboColor);
         }
 
         GLuint rboDepth;
@@ -523,9 +587,9 @@ void OpenGLSceneImpl::initialize()
             glCreateTextures(GL_TEXTURE_2D, 1, &tboColor);
             glTextureParameteri(tboColor, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTextureParameteri(tboColor, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTextureStorage2D(tboColor, 1, GL_RGBA32F /*GL_RG16UI*/, w, h);
+            glTextureStorage2D(tboColor, 1, GL_RGBA8 /*GL_RG16UI*/, w, h);
 
-            glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, tboColor, 0);
+            glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT1, tboColor, 0);
         }
 
         m_frameBufferID = fbo;
@@ -545,6 +609,8 @@ void OpenGLSceneImpl::initialize()
         glsCreateAndAttachTriangleStripBuffer(vao, faceTriangleStrip);
         m_screenVAO = vao;
     }
+
+    loadShaders();
 }
 
 
