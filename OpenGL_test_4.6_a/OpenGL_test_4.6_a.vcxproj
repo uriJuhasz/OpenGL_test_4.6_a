@@ -57,7 +57,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\ThirdParty\glew-2.2.0\include;$(SolutionDir)\ThirdParty\glfw-3.3.2\include;$(SolutionDir)\ThirdParty\Assimp-5.0.1\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -72,13 +72,12 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;Shell32.lib;glew32.lib;glu32.lib;assimp-vc142-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Code\glew-2.1.0\lib\Release\x64;C:\Code\glfw-3.3.2.bin.WIN64\lib-vc2019;C:\Code\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\ThirdParty\glew-2.2.0\lib\Release\x64;$(SolutionDir)\ThirdParty\glfw-3.3.2\lib-vc2019;$(SolutionDir)\ThirdParty\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries />
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y C:\Code\Assimp-5.0.1\bin\assimp-vc142-mt.dll $(TargetDir)
-xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
+      <Command>xcopy /y $(SolutionDir)\ThirdParty\Assimp-5.0.1\bin\assimp-vc142-mt.dll $(TargetDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -90,7 +89,7 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir);C:\Code\glew-2.1.0\include;C:\Code\glfw-3.3.2.bin.WIN64\include;C:\Code\Assimp-5.0.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\ThirdParty\glew-2.2.0\include;$(SolutionDir)\ThirdParty\glfw-3.3.2\include;$(SolutionDir)\ThirdParty\Assimp-5.0.1\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -109,12 +108,11 @@ xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;Shell32.lib;glew32.lib;glu32.lib;assimp-vc142-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Code\glew-2.1.0\lib\Release\x64;C:\Code\glfw-3.3.2.bin.WIN64\lib-vc2019;C:\Code\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\ThirdParty\glew-2.2.0\lib\Release\x64;$(SolutionDir)\ThirdParty\glfw-3.3.2\lib-vc2019;$(SolutionDir)\ThirdParty\Assimp-5.0.1\lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y C:\Code\Assimp-5.0.1\bin\assimp-vc142-mt.dll $(TargetDir)
-xcopy /y C:\Code\glew-2.1.0\bin\Release\x64\glew32.dll $(TargetDir)</Command>
+      <Command>xcopy /y $(SolutionDir)\ThirdParty\Assimp-5.0.1\bin\assimp-vc142-mt.dll $(TargetDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
